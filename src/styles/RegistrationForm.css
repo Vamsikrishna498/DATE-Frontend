@@ -45,13 +45,14 @@
 .leftform-column {
    display: flex;
    flex-direction: column;
-   gap: 3.5px;
+   
    min-width:300px;
   }
   
   .rightform-column {
    display: flex;
    flex-direction: column;
+   gap: 3.5px;
   min-width: 330px;
   } 
   

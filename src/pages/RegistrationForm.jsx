@@ -20,11 +20,11 @@ const schema = yup.object().shape({
       if (!value) return false;
       const dob = new Date(value);
       const today = new Date();
-
+ 
       const ageDifMs = today - dob;
       const ageDate = new Date(ageDifMs);
       const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-
+ 
       return age >= 18 && age <= 90;
     }),
   gender: yup.string().required("Gender is required"),
@@ -54,7 +54,7 @@ const schema = yup.object().shape({
     .required("Confirm Password is required"),
 });
  
-const RegistrationForm = () => {
+ const RegistrationForm = () => {
   const {
     register,
     handleSubmit,
@@ -62,50 +62,96 @@ const RegistrationForm = () => {
     watch,
     setValue,
     formState: { errors },
-  } = useForm({
-    resolver: yupResolver(schema),
-  });
+  } = useForm({ resolver: yupResolver(schema) });
+ 
   const [countries, setCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("");
   const [states, setStates] = useState([]);
   const selectedState = watch("state");
-  // Fetch countries
+ 
+  const [emailValue, setEmailValue] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [emailVerified, setEmailVerified] = useState(false);
+  const navigate = useNavigate();
+ 
+  // ✅ Fetch countries
   useEffect(() => {
-    axios
-      .get("http://localhost:8080/api/auth/countries")
-      .then((response) => {
-        setCountries(response.data);
-      })
-      .catch((error) => console.error("Error fetching countries:", error));
+    axios.get("http://34.56.164.208:8080/api/auth/countries")
+      .then((res) => setCountries(res.data))
+      .catch((err) => console.error("Error fetching countries:", err));
   }, []);
-  // Fetch states when country changes
+ 
+  // ✅ Fetch states by country
   useEffect(() => {
     if (selectedCountry) {
-      axios
-        .get(`http://localhost:8080/api/auth/states/${selectedCountry}`)
-        .then((response) => {
-          setStates(response.data);
-        })
-        .catch((error) => console.error("Error fetching states:", error));
+      axios.get(`http://localhost:8080/api/auth/states/${selectedCountry}`)
+        .then((res) => setStates(res.data))
+        .catch((err) => console.error("Error fetching states:", err));
     } else {
       setStates([]);
     }
   }, [selectedCountry]);
-  const navigate = useNavigate();
-  const onSubmit = async (data) => {
+ 
+  // ✅ FIXED: Send OTP
+const handleSendOTP = async () => {
   try {
-    const response = await axios.post("http://34.56.164.208:8080/api/auth/register", data);
-    console.log(response.data);
-    alert("Registration Successful!");
-    reset(); // Clear form
-
-    // Navigate to login after success
-    navigate("/login");  // 👈 Redirects to login page
+    const response = await axios.post(
+      "http://34.56.164.208:8080/api/auth/send-otp",
+      { emailOrPhone: emailValue }, // ✅ send as body
+      {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
+ 
+    alert("OTP sent successfully!");
+    setOtpSent(true);
   } catch (error) {
-    alert("Registration Failed!");
+    alert("Error sending OTP.");
     console.error(error);
   }
 };
+ 
+ 
+  // ✅ Handle Verify OTP
+const handleVerifyOTP = async () => {
+  try {
+    const response = await axios.post("http://34.56.164.208:8080/api/auth/verify-otp", {
+      emailOrPhone: emailValue,  // 🔄 corrected key
+      otp: otp,
+    });
+ 
+    if (response.status === 200) {
+      alert("Email verified successfully!");
+      setEmailVerified(true);
+    } else {
+      alert("Invalid OTP.");
+    }
+  } catch (error) {
+    alert("OTP verification error.");
+    console.error(error);
+  }
+};
+ 
+  // ✅ Final Registration Submission
+  const onSubmit = async (data) => {
+    if (!emailVerified) {
+      alert("Please verify your email before submitting.");
+      return;
+    }
+ 
+    try {
+      const response = await axios.post("http://34.56.164.208:8080/api/auth/register", data);
+      alert("Registration successful!");
+      reset();
+      navigate("/login");
+    } catch (error) {
+      alert("Registration failed.");
+      console.error(error);
+    }
+  };
  
   return (
     <form
@@ -171,10 +217,49 @@ const RegistrationForm = () => {
               </div>
  
               <div className="registrationform-group">
-                <label>Email Address *</label>
-                <input type="email" {...register("email")} />
-                <p className="reg-error">{errors.email?.message}</p>
-              </div>
+  <label>Email Address *</label>
+  <input
+    type="email"
+    {...register("email")}
+    value={emailValue}
+    onChange={(e) => {
+      setEmailValue(e.target.value);
+      setOtpSent(false);
+      setEmailVerified(false);
+    }}
+  />
+  <p className="reg-error">{errors.email?.message}</p>
+ 
+  {!otpSent && (
+    <button
+      type="button"
+      onClick={handleSendOTP}
+      className="otp-button"
+    >
+      Send OTP
+    </button>
+  )}
+ 
+  {otpSent && !emailVerified && (
+    <div style={{ marginTop: "10px" }}>
+      <input
+        type="text"
+        placeholder="Enter OTP"
+        value={otp}
+        onChange={(e) => setOtp(e.target.value)}
+      />
+      <button
+        type="button"
+        onClick={handleVerifyOTP}
+        className="otp-verify-button"
+      >
+        Verify OTP
+      </button>
+    </div>
+  )}
+ 
+  {emailVerified && <p style={{ color: "green" }}>Email Verified ✅</p>}
+</div>
  
               <div className="registrationform-group">
                 <label>Create Password *</label>
@@ -252,6 +337,4 @@ const RegistrationForm = () => {
   );
 };
  
-export default RegistrationForm;
- 
- 
+export default RegistrationForm; 

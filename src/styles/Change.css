@@ -1,5 +1,4 @@
-/* Container styles for both components */
-.change-userid-container,
+.change-userid-container, 
 .password-container {
  background-size: cover;
   background-position: center;
@@ -10,7 +9,7 @@
   align-items: center;
 }
 
-/* Shared box styling */
+
 .change-userid-box, 
 .password-box {
   width: 500px;
@@ -31,7 +30,7 @@
  
 }
 
-/* Logo styling for password screen */
+
 .password-logo {
   position: absolute;
   top: 20px;
@@ -39,7 +38,7 @@
   height: 80px;
 }
 
-/* Headings and text */
+
 .change-userid-box h2,
 .password-box h2 {
   font-weight: bold;
@@ -53,7 +52,7 @@
   color: red;
 }
 
-/* Label and input fields */
+
 label {
   display: block;
   margin-bottom: 5px;
@@ -74,14 +73,14 @@ input[type="password"] {
   background: white;
 }
 
-/* Error text */
+
 .error-text {
   color: red;
   margin-bottom: 10px;
   font-size: 13px;
 }
 
-/* Password field styling */
+
 .password-field {
   display: flex;
   align-items: center;
@@ -103,7 +102,7 @@ input[type="password"] {
   user-select: none;
 }
 
-/* Shared button */
+
 .change-btn {
   width: 100%;
   padding: 10px;

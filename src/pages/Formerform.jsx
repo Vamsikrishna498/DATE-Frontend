@@ -194,6 +194,7 @@
       mode: "onChange",
     });
     const soilTestValue = watch("soilTest");
+    console.log("Soil Test Value:", soilTestValue);
     const selectedDoc = watch("documentType");
     const navigate = useNavigate();
     const { farmerId } = useParams();
@@ -216,7 +217,7 @@
     if (isEditMode) {
       // GET Farmer by ID before updating
       const getResponse = await axios.get(
-        `http://localhost:8080/api/farmers/${farmerId}`,
+        `http://34.56.164.208:8080api/farmers/${farmerId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -227,7 +228,7 @@
  
       // UPDATE farmer
       await axios.put(
-        `http://localhost:8080/api/farmers/${farmerId}`,
+        `http://34.56.164.208:8080/api/farmers/${farmerId}`,
         formData,
         {
           headers: {
@@ -239,7 +240,7 @@
     } else {
       // CREATE new farmer
       await axios.post(
-        'http://localhost:8080/api/farmers',
+        'http://34.56.164.208:8080/api/farmers',
         formData,
         {
           headers: {
@@ -256,97 +257,74 @@
     alert('Failed to submit. Please try again.');
   }
  };
- 
 
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const countryOptions = [
-    { value: "India", label: "India" },
-    { value: "United States", label: "United States" },
-    { value: "United Kingdom", label: "United Kingdom" },
-    { value: "Canada", label: "Canada" },
-    { value: "Australia", label: "Australia" },
+ const [selectedCountry, setSelectedCountry] = useState("");
+useEffect(() => {
+  axios.get("http://34.56.164.208:8080/api/auth/countries").then((res) => {
+    setCountries(res.data);
+  });
+}, []);
+
+const [selectedState, setSelectedState] = useState("");
+useEffect(() => {
+  if (selectedCountry) {
+    axios.get(`http://34.56.164.208:8080/api/auth/states/${selectedCountry}`).then((res) => {
+      setStates(res.data);
+    });
+  } else {
+    setStates([]);
+  }
+}, [selectedCountry]);
+const [selectedDistrict, setSelectedDistrict] = useState("");
+useEffect(() => {
+  if (selectedState) {
+    axios.get(`/api/districts?state=${selectedState}`).then((res) => {
+      setDistricts(res.data);
+    });
+  } else {
+    setDistricts([]);
+  }
+}, [selectedState]);
+const [selectedMandal, setSelectedMandal] = useState("");
+useEffect(() => {
+  if (selectedDistrict) {
+    axios.get(`/api/mandals?district=${selectedDistrict}`).then((res) => {
+      setMandals(res.data);
+    });
+  } else {
+    setMandals([]);
+  }
+}, [selectedDistrict]);
+
+useEffect(() => {
+  if (selectedMandal) {
+    axios.get(`/api/villages?mandal=${selectedMandal}`).then((res) => {
+      setVillages(res.data);
+    });
+  } else {
+    setVillages([]);
+  }
+}, [selectedMandal]);
+
+axios.get("http://localhost:8080/api/houses")
+  .then((res) => console.log("Success:", res.data))
+  .catch((err) => {
+    console.error("AXIOS ERROR:", err.message);
+    if (err.response) {
+      console.error("STATUS:", err.response.status);
+      console.error("DATA:", err.response.data);
+    }  
+  });
+
+
+    const [countries, setCountries] = useState([]);
+    const [states, setStates] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [mandals, setMandals] = useState([]);
+    const [villages, setVillages] = useState([]);
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+
   
-  ];
-
-  const districtOptions = [
-    { value: "Adilabad", label: "Adilabad" },
-    { value: "Bhadradri Kothagudem", label: "Bhadradri Kothagudem" },
-    { value: "Hanumakonda", label: "Hanumakonda" },
-    { value: "Hyderabad", label: "Hyderabad" },
-    { value: "Jagtial", label: "Jagtial" },
-    { value: "Jangaon", label: "Jangaon" },
-    { value: "Jayashankar Bhupalpally", label: "Jayashankar Bhupalpally" },
-    { value: "Jogulamba Gadwal", label: "Jogulamba Gadwal" },
-    { value: "Kamareddy", label: "Kamareddy" },
-    { value: "Karimnagar", label: "Karimnagar" },
-    { value: "Khammam", label: "Khammam" },
-    { value: "Komaram Bheem", label: "Komaram Bheem (Asifabad)" },
-    { value: "Mahabubabad", label: "Mahabubabad" },
-    { value: "Mahabubnagar", label: "Mahabubnagar" },
-    { value: "Mancherial", label: "Mancherial" },
-    { value: "Medak", label: "Medak" },
-    { value: "Medchal–Malkajgiri", label: "Medchal–Malkajgiri" },
-    { value: "Mulugu", label: "Mulugu" },
-    { value: "Nagarkurnool", label: "Nagarkurnool" },
-    { value: "Nalgonda", label: "Nalgonda" },
-    { value: "Narayanpet", label: "Narayanpet" },
-    { value: "Nirmal", label: "Nirmal" },
-    { value: "Nizamabad", label: "Nizamabad" },
-    { value: "Peddapalli", label: "Peddapalli" },
-    { value: "Rajanna Sircilla", label: "Rajanna Sircilla" },
-    { value: "Rangareddy", label: "Rangareddy" },
-    { value: "Sangareddy", label: "Sangareddy" },
-    { value: "Siddipet", label: "Siddipet" },
-    { value: "Suryapet", label: "Suryapet" },
-    { value: "Vikarabad", label: "Vikarabad" },
-    { value: "Wanaparthy", label: "Wanaparthy" },
-    { value: "Warangal", label: "Warangal" },
-    { value: "Yadadri Bhuvanagiri", label: "Yadadri Bhuvanagiri" },
-  ];
-
-  const mandalOptions = [
-    { value: "Bonakal", label: "Bonakal" },
-    { value: "Chintakani", label: "Chintakani" },
-    { value: "Enkuru", label: "Enkuru" },
-    { value: "Kalluru", label: "Kalluru" },
-    { value: "Kamepalli", label: "Kamepalli" },
-    { value: "Khammam (Rural)", label: "Khammam (Rural)" },
-    { value: "Khammam (Urban)", label: "Khammam (Urban)" },
-    { value: "Konijerla", label: "Konijerla" },
-    { value: "Kusumanchi", label: "Kusumanchi" },
-    { value: "Madhira", label: "Madhira" },
-    { value: "Mudigonda", label: "Mudigonda" },
-    { value: "Nelakondapalli", label: "Nelakondapalli" },
-    { value: "Penuballi", label: "Penuballi" },
-    { value: "Raghunadhapalem", label: "Raghunadhapalem" },
-    { value: "Sathupalli", label: "Sathupalli" },
-    { value: "Singareni", label: "Singareni" },
-    { value: "Thallada", label: "Thallada" },
-    { value: "Tirumalayapalem", label: "Tirumalayapalem" },
-    { value: "Vemsoor", label: "Vemsoor" },
-    { value: "Wyra", label: "Wyra" },
-    { value: "Yerrupalem", label: "Yerrupalem" },
-  ];
-  
-  const villageOptions = [
-    { value: "Allipuram", label: "Allipuram" },
-    { value: "Bachodu", label: "Bachodu" },
-    { value: "Danavaigudem", label: "Danavaigudem" },
-    { value: "Gandhi Nagar", label: "Gandhi Nagar" },
-    { value: "Kalavoddu", label: "Kalavoddu" },
-    { value: "Khammam (Rural)", label: "Khammam (Rural)" },
-    { value: "Lingala", label: "Lingala" },
-    { value: "Mallemadugu", label: "Mallemadugu" },
-    { value: "Mekala Gudem", label: "Mekala Gudem" },
-    { value: "Mustikunta", label: "Mustikunta" },
-    { value: "Pandurangapuram", label: "Pandurangapuram" },
-    { value: "Peddireddygudem", label: "Peddireddygudem" },
-    { value: "Rajeswarapuram", label: "Rajeswarapuram" },
-    { value: "Singareni Colony", label: "Singareni Colony" },
-    { value: "Turakagudem", label: "Turakagudem" },
-  ]; 
- 
 
   return (
    
@@ -487,125 +465,132 @@
 
   
         {currentStep === 1 && (
-  <div className="address-field">
-    {/* Country Dropdown */}
-    <label>Country <span className="required">*</span></label>
-    <Controller
-      name="country"
-      control={control}
-      render={({ field }) => (
-        <Select
-          {...field}
-          options={countryOptions}
-          isSearchable
-          placeholder="Select your Country"
-          classNamePrefix="react-select"
-          value={countryOptions.find(option => option.value === field.value)}
-          onChange={(selected) => {
-            field.onChange(selected.value);
-            // Reset dependent dropdowns here
-            setValue("state", "");
-            setValue("district", "");
-            setValue("mandal", "");
-            setValue("village", "");
-          }}
-        />
-      )}
-    />
-    <p className="error">{errors.country?.message}</p>
+              <div className="address-field">
+                <label>
+      House Number / Flat Number <span className="required">*</span>
+     </label>
+     <textarea {...register("description", { required: true })} />
+     {errors.description && <p className="error">Description is required</p>}
+                <label>
+  Select Country <span className="optional"></span>
+  <select
+    value={selectedCountry}
+    onChange={(e) => {
+      setSelectedCountry(e.target.value);
+      setValue("country", e.target.value);
+      setValue("state", "");
+      setValue("district", "");
+      setValue("mandal", "");
+      setValue("village", "");
+    }}
+  >
+    <option value="">Select</option>
+    {countries.map((country) => (
+      <option key={country.code} value={country.code}>
+        {country.name}
+      </option>
+    ))}
+  </select>
+</label>
 
-    {/* State Dropdown */}
-    <label>State <span className="required">*</span></label>
-    <select {...register("state")}>
-      <option value="">Select your state</option>
-      <option value="Andhra Pradesh">Andhra Pradesh</option>
-      <option value="Telangana">Telangana</option>
-      <option value="Karnataka">Karnataka</option>
-      <option value="Maharashtra">Maharashtra</option>
-      <option value="Tamil Nadu">Tamil Nadu</option>
-    </select>
-    <p className="error">{errors.state?.message}</p>
+{selectedCountry && (
+  <>
+    <label>
+      State <span className="optional"></span>
+      <select
+        value={selectedState}
+        onChange={(e) => {
+          setSelectedState(e.target.value);
+          setValue("state", e.target.value);
+          setValue("district", "");
+          setValue("mandal", "");
+          setValue("village", "");
+        }}
+      >
+        <option value="">Select</option>
+        {states.map((state) => (
+          <option key={state.code} value={state.code}>
+            {state.name}
+          </option>
+        ))}
+      </select>
+    </label>
 
-    {/* District Dropdown */}
-    <label>District <span className="required">*</span></label>
-    <Controller
-      name="district"
-      control={control}
-      render={({ field }) => (
-        <Select
-          {...field}
-          options={districtOptions}
-          isSearchable
-          placeholder="Select your District"
-          classNamePrefix="react-select"
-          value={districtOptions.find(option => option.value === field.value)}
-          onChange={(selected) => {
-            field.onChange(selected.value);
-            setValue("mandal", "");
-            setValue("village", "");
-          }}
-        />
-      )}
-    />
-    <p className="error">{errors.district?.message}</p>
+    {selectedState && (
+      <>
+        <label>
+          District <span className="optional"></span>
+          <select
+            value={selectedDistrict}
+            onChange={(e) => {
+              setSelectedDistrict(e.target.value);
+              setValue("district", e.target.value);
+              setValue("mandal", "");
+              setValue("village", "");
+            }}
+          >
+            <option value="">Select</option>
+            {districts.map((district) => (
+              <option key={district.code} value={district.code}>
+                {district.name}
+              </option>
+            ))}
+          </select>
+        </label>
 
-    {/* Mandal Dropdown */}
-    <label>Mandal <span className="required">*</span></label>
-    <Controller
-      name="mandal"
-      control={control}
-      render={({ field }) => (
-        <Select
-          {...field}
-          options={mandalOptions}
-          isSearchable
-          placeholder="Select your Mandal"
-          classNamePrefix="react-select"
-          value={mandalOptions.find(option => option.value === field.value)}
-          onChange={(selected) => {
-            field.onChange(selected.value);
-            setValue("village", "");
-          }}
-        />
-      )}
-    />
-    <p className="error">{errors.mandal?.message}</p>
+        {selectedDistrict && (
+          <>
+            <label>
+              Mandal / Block <span className="optional"></span>
+              <select
+                value={selectedMandal}
+                onChange={(e) => {
+                  setSelectedMandal(e.target.value);
+                  setValue("mandal", e.target.value);
+                  setValue("village", "");
+                }}
+              >
+                <option value="">Select</option>
+                {mandals.map((mandal) => (
+                  <option key={mandal.code} value={mandal.code}>
+                    {mandal.name}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-    {/* Village Dropdown */}
-    <label>Village <span className="required">*</span></label>
-    <Controller
-      name="village"
-      control={control}
-      render={({ field }) => (
-        <Select
-          {...field}
-          options={villageOptions}
-          isSearchable
-          placeholder="Select your Village"
-          classNamePrefix="react-select"
-          value={villageOptions.find(option => option.value === field.value)}
-          onChange={(selected) => field.onChange(selected.value)}
-        />
-      )}
-    />
-    <p className="error">{errors.village?.message}</p>
-
-    {/* Pincode Field */}
-    <label>Pincode <span className="required">*</span></label>
-    <input
-      {...register("pincode", {
-        required: "Pincode is required",
-        pattern: {
-          value: /^[1-9][0-9]{5}$/,
-          message: "Enter a valid 6-digit pincode",
-        },
-      })}
-    />
-    <p className="error">{errors.pincode?.message}</p>
-  </div>
+            {selectedMandal && (
+              <>
+                <label>
+                  Village <span className="optional"></span>
+                  <select {...register("village")}>
+                    <option value="">Select</option>
+                    {villages.map((village) => (
+                      <option key={village.code} value={village.code}>
+                        {village.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            )}
+          </>
+        )}
+      </>
+    )}
+  </>
 )}
 
-
+    <label>Pincode <span className="required">*</span></label>  
+    <input
+      type="text"
+      {...register("pincode", { required: "Pincode is required" })}
+      placeholder="e.g. 500001"
+    />
+    <p className="error">{errors.pincode?.message}</p> 
+   
+  </div>
+)} 
 
 {currentStep === 2 && (
                 <>

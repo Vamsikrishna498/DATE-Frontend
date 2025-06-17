@@ -61,7 +61,7 @@ const ChangePassword = () => {
     try {
       setLoading(true);
  
-      const response = await fetch('http://localhost:8080/api/auth/reset-password/confirm', {
+      const response = await fetch('http://34.56.164.208:8080/api/auth/reset-password/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -126,6 +126,4 @@ const ChangePassword = () => {
   );
 };
  
-export default ChangePassword;
- 
- 
+export default ChangePassword; 
