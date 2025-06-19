@@ -167,9 +167,22 @@ button[type="button"]:hover {
   background-color: #388d19;
 }
 
-.address-field{
+.address-field {
   width: 900px;
-  height: auto;
+  max-height: 550px;   
+  overflow-y: auto;    
+  padding-right: 20px; 
+  border-radius: 6px;
+  scrollbar-width: thin;  
+}
+
+.address-field::-webkit-scrollbar {
+  width: 6px;
+}
+
+.address-field::-webkit-scrollbar-thumb {
+  background-color: #999;
+  border-radius: 3px;
 }
 
 .profes-field{

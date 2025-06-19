@@ -100,9 +100,9 @@ const ForgotPassword = () => {
         <div className="popup">
           <div className="popup-content">
             <h3>Success!</h3>
-            <p>
+            <h4>
               A reset link has been sent to <strong>{target}</strong>
-            </p>
+            </h4>
             <button onClick={handlePopupClose}>OK</button>
           </div>
         </div>
