@@ -222,20 +222,24 @@ import React, { useEffect, useState } from "react";
  
 const onSubmit = async (data) => {
   const formData = new FormData();
- 
-  // Handle photo file
-  if (data.photo && data.photo[0]) {
-    formData.append("photo", data.photo[0]);
-  }
- 
-  // Prepare farmerDto JSON (exclude file)
   const farmerDto = { ...data };
+ 
+  // Remove file fields from JSON
   delete farmerDto.photo;
+  delete farmerDto.soilTestCertificate;
+  delete farmerDto.aadhaarFile;
+  delete farmerDto.panFile;
  
   formData.append(
     "farmerDto",
     new Blob([JSON.stringify(farmerDto)], { type: "application/json" })
   );
+ 
+  // Append files conditionally
+  if (data.photo?.[0]) formData.append("photo", data.photo[0]);
+  if (data.soilTestCertificate?.[0]) formData.append("soilTestCertificate", data.soilTestCertificate[0]);
+  if (data.aadhaarFile?.[0]) formData.append("aadhaarFile", data.aadhaarFile[0]);
+  if (data.panFile?.[0]) formData.append("panFile", data.panFile[0]);
  
   const token = localStorage.getItem("token");
   if (!token) {
@@ -245,6 +249,7 @@ const onSubmit = async (data) => {
  
   try {
     let response;
+ 
     if (isEditMode) {
       response = await axios.put(
         `http://localhost:8080/api/farmers/${farmerId}`,
@@ -269,10 +274,9 @@ const onSubmit = async (data) => {
       );
     }
  
-    setShowSuccessPopup(true);
-    console.log("✅ API Success:", response.data);
     alert("✅ Farmer form submitted successfully!");
-   
+    const id = response.data.id || farmerId;
+    navigate(`/view-farmer/${id}`);
   } catch (error) {
     console.error("❌ Submit Error:", error.response?.data || error.message);
     alert("❌ Failed to submit. Please try again.");
@@ -1009,5 +1013,4 @@ useEffect(() => {
     </div>
   );
 };
-  export default FarmerForm;  
- 
+  export default FarmerForm;

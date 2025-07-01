@@ -1,0 +1,166 @@
+.list-container {
+  margin: 20px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.list-container h3 {
+  display: flex;
+  font-size: 26px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+thead {
+  background-color: #f5f7fa;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: left;
+}
+
+th {
+  font-weight: 600;
+  color: #555;
+}
+
+tr:hover {
+  background-color: #f9f9f9;
+}
+
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.status.active {
+  background-color: #28a745;
+  color: white;
+}
+
+.status.inactive {
+  background-color: #6c757d;
+  color: white;
+}
+
+.status.pending {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.status.rejected {
+  background-color: #dc3545;
+  color: white;
+}
+
+.status.return {
+  background-color: #fd7e14;
+  color: white;
+}
+
+.status.approved {
+  background-color: #28a745;
+  color: white;
+}
+
+/* ID styling (e.g., farmer and employee IDs) */
+.farmer-id,
+.employee-id {
+  color: #007bff;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* View button */
+.view-button {
+  background-color: #28a745;
+  color: white;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.view-button:hover {
+  background-color: #218838;
+}
+
+/* Optional: make the table responsive */
+@media (max-width: 768px) {
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tr {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+  }
+
+  td {
+    border: none;
+    position: relative;
+    padding-left: 50%;
+  }
+
+  td::before {
+    position: absolute;
+    left: 10px;
+    top: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+
+  /* Labels for mobile (example) */
+  .registration-table td:nth-of-type(1)::before { content: "Name"; }
+  .registration-table td:nth-of-type(2)::before { content: "Email"; }
+  .registration-table td:nth-of-type(3)::before { content: "Mobile Number"; }
+  .registration-table td:nth-of-type(4)::before { content: "Date of Birth"; }
+  .registration-table td:nth-of-type(5)::before { content: "City"; }
+  .registration-table td:nth-of-type(6)::before { content: "Role"; }
+  .registration-table td:nth-of-type(7)::before { content: "Status"; }
+  .registration-table td:nth-of-type(8)::before { content: "Action"; }
+
+  .farmer-table td:nth-of-type(1)::before { content: "Farmer ID"; }
+  .farmer-table td:nth-of-type(2)::before { content: "Name"; }
+  .farmer-table td:nth-of-type(3)::before { content: "Aadhaar No."; }
+  .farmer-table td:nth-of-type(4)::before { content: "State"; }
+  .farmer-table td:nth-of-type(5)::before { content: "District"; }
+  .farmer-table td:nth-of-type(6)::before { content: "Mandal"; }
+  .farmer-table td:nth-of-type(7)::before { content: "Status"; }
+  .farmer-table td:nth-of-type(8)::before { content: "Action"; }
+
+  .employee-table td:nth-of-type(1)::before { content: "Employee ID"; }
+  .employee-table td:nth-of-type(2)::before { content: "Name"; }
+  .employee-table td:nth-of-type(3)::before { content: "Designation"; }
+  .employee-table td:nth-of-type(4)::before { content: "District"; }
+  .employee-table td:nth-of-type(5)::before { content: "Contact Number"; }
+  .employee-table td:nth-of-type(6)::before { content: "Onboard Date"; }
+  .employee-table td:nth-of-type(7)::before { content: "Status"; }
+  .employee-table td:nth-of-type(8)::before { content: "Action"; }
+}

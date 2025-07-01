@@ -1,206 +1,142 @@
-.farmer-view-container {
-    display: flex;
-    
+.view-farmer-form {
+  max-width: 1200px;
+  margin: auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+ 
+.step-container {
+  margin-top: 1rem;
+}
+ 
+/* Header step title */
+.step-container h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.2rem;
+  color: #333;
+}
+ 
+/* View mode rows */
+.viewinfo-row, .viweinfo-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  background: #f9f9f9;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.8rem;
+  border-radius: 8px;
+  color: #333;
+}
+ 
+.viewinfo-row div, .viweinfo-row div {
+  flex: 1;
+  word-break: break-word;
+}
+ 
+/* Buttons */
+.viwe-button {
+  background-color: #1976d2;
+  color: #fff;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  transition: background 0.3s ease;
+}
+ 
+.viwe-button:hover {
+  background-color: #125ba4;
+}
+ 
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+ 
+/* Edit mode grid layout */
+.edit-main, .currentform-grid, .proposedform-grid, .documentform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+ 
+.leftedit-grid, .rightedit-grid, .proposedform-columnleft, .proposedform-columnright, .left-column, .right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+ 
+/* Form fields */
+.viewform-row {
+  display: flex;
+  flex-direction: column;
+}
+ 
+.viewform-row label {
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+}
+ 
+.viweinput, input[type="text"], input[type="date"], select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+}
+ 
+.viweinput:focus {
+  border-color: #1976d2;
+  outline: none;
+}
+ 
+/* Error messages */
+.error {
+  color: #e53935;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+ 
+/* Optional and required indicators */
+.required {
+  color: red;
+}
+ 
+.optional {
+  color: #888;
+  font-style: italic;
+}
+ 
+/* Photo preview box */
+.photo-preview {
+  max-width: 100px;
+  height: auto;
+  margin-top: 0.5rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+}
+ 
+.photo-box {
+  margin-top: 1rem;
+}
+ 
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .viewinfo-row, .viweinfo-row {
     flex-direction: column;
-    min-height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f7fafc;
   }
-  .non-editable-heading {
-    user-select: none;     /* Prevents text selection */
-    cursor: default;       /* Keeps default arrow cursor */
-  }
-  /* Header */
-  .header {
-    height: 120px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    padding: 0 24px;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-  }
-  
-  .viwelogo {
-    height: 120px; 
-  }
-  
-  /* Center Image */
-  .user-info {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    padding: 12px 0;
-    background-color: #ffffff;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .middle {
-    height: 150px;
-  }
-  
-  /* Layout: Sidebar + Main Content */
-  .body-content {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
-  
-  /* Sidebar */
-  .sidebar {
-    width: 230px;
-    background-color: #f9fafb;
-    border-right: 1px solid #e5e7eb;
-    padding: 20px 10px;
-    overflow-y: auto;
-    
-  }
-  
-  .sidebar-item {
-    padding: 10px 14px;
-    margin-bottom: 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    color: #374151;
-    transition: all 0.2s ease-in-out;
-    
-  }
-  
-  .sidebar-item:hover {
-    background-color: #e0f2fe;
-  }
-  
-  .sidebar-item.active {
-    background-color: #bae6fd;
-    font-weight: bold;
-    color: #1e3a8a;
-    border-left: 4px solid #2563eb;
-  }
-  
-  /* Main content area */
-  .viewmain-content{
-    flex: 1;
-    padding: 24px;
-    overflow-y: auto;
-    background-color: #ffffff;
-  }
-  
-  h1 {
-    font-size: 28px;
-    text-align: center;
-    margin-bottom: 16px;
-    color: #1f2937;
-  }
-  
-  /* Display rows */
-  .viewinfo-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 12px;
-    font-size: 0.95rem;
-    color: #374151;
-  }
-  
-  .viewinfo-row div {
-    flex: 1;
-    margin-left: 15%;
-    margin-top: 20px;
-  }
-  
-  strong {
-    color: #111827;
-     flex: 1;
-    margin-left: 25%;
-    margin-top: 20px;
-    padding: 20, 10 px;
-  }
-  
-  /* Editable form rows */
-  .viewform-row {
-    display: flex;
-    justify-content: space-between;
-    flex-direction: column;
-  }
-  
-  .viweinput {
-    flex: 1;
-    margin-right: 16px;
-    padding: 8px 10px;
-    font-size: 0.95rem;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    background-color: #fff;
-    transition: border-color 0.2s;
-  }
-  
-  .viweinput:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px #bfdbfe;
-  }
-  .edit-main{
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px;
+ 
+  .action-buttons {
     justify-content: center;
   }
-  .leftedit-grid {
-     display: flex;
-    width: 40%;
-    flex-direction: column;
+ 
+  .step-container h2 {
+    font-size: 1.25rem;
   }
-  .rightedit-grid {
-    display: flex;
-    width: 40%;
-     flex-direction: column;
-   }
-  
-  /* Buttons */
-  .viwe-button {
-   margin-left: 90%;
-    margin-top: 18px;
-    padding: 10px 24px;
-    background-color: #006838;
-    color: white;
-    font-size: 0.95rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-  }
-  
-  .viwe-button:hover {
-    background-color: #09d475;
-  }
-  
-  /* Responsive tweaks */
-  @media (max-width: 768px) {
-    .body-content {
-      flex-direction: column;
-    }
-  
-    .sidebar {
-      width: 100%;
-      display: flex;
-      overflow-x: auto;
-      border-right: none;
-      border-bottom: 1px solid #e5e7eb;
-    }
-  
-    .sidebar-item {
-      flex: 1;
-      text-align: center;
-      margin: 0 4px;
-    }
-  
-    .form-row,
-    .info-row {
-      flex-direction: column;
-    }
-  
-    .form-row input,
-    .info-row div {
-      margin-right: 0;
-      margin-bottom: 10px;
-    }
-  }
+}

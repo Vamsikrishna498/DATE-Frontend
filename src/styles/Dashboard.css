@@ -22,9 +22,9 @@
 }
 
 .dashboard-sidebar {
-  background-color: #3d6b42;
+  background-color: #006838;
   width: 240px;
-  height: calc(60vh - 80px);
+  height: calc(70vh - 80px);
   padding-top: 20px;
   color: white;
 }
@@ -35,18 +35,23 @@
 .sidebar-menu {
   list-style-type: none;
   padding: 0;
+  
 }
 
 .sidebar-menu li {
-  padding: 12px 20px;
+  padding: 15px 20px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 18px;
+  color: whitesmoke;
 }
 
 .sidebar-menu li.active,
 .sidebar-menu li:hover {
   background-color: #d2a854;
   color: white;
+}
+.dash-link-button{
+  background-color: #006838;
 }
 
 .dashboard-main {
@@ -56,7 +61,7 @@
 }
 
 .banner-image {
-  background-image: url("../assets/banner.jpg"); /* adjust path */
+  background-image: url("../assets/banner.jpg"); 
   height: 200px;
   background-size: cover;
   background-position: center;
@@ -78,6 +83,7 @@
 }
 
 .card {
+  background-color: wheat;
   width: 200px;
   border: 1px solid #ccc;
   padding: 15px;

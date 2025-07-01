@@ -218,8 +218,20 @@ button[type="button"]:hover {
 }
 
 .other-field{
-  width: 900px;
-  height: auto;
+   width: 900px;
+  max-height: 550px;   
+  overflow-y: auto;    
+  padding-right: 20px; 
+  border-radius: 6px;
+  scrollbar-width: thin; 
+}
+.other-field::-webkit-scrollbar {
+  width: 6px;
+}
+
+.other-field::-webkit-scrollbar-thumb {
+  background-color: #999;
+  border-radius: 3px;
 }
 .portal-form-group{
   width: 900px;
