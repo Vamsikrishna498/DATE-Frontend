@@ -1,3 +1,6 @@
+//app.js  working code
+
+
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import FarmerForm from "./pages/Formerform";
@@ -18,6 +21,7 @@ import logo2 from "./assets/rightlogo.png";
 import "./App.css";
 import UserProfile from "./pages/UserProfile";
 import { RegistrationList, FarmerList, EmployeeList } from "./pages/List";
+import { RegistrationDetails } from "./pages/RegistrationDetails";
  
 function Layout({ children, currentStep = 0, onStepChange }) {
   const steps = [
@@ -67,16 +71,19 @@ function Layout({ children, currentStep = 0, onStepChange }) {
 function AppContent() {
   const location = useLocation();
  
-  const noFrameRoutes = [
-    "/login",
-    "/register",
-    "/forgot-username",
-    "/forgot-password",
-    "/change-userid",
-    "/change-password",
-    "/otp-verification",
-    "/dashboard",
-  ];
+ const noFrameRoutes = [
+  "/login",
+  "/register",
+  "/forgot-username",
+  "/forgot-password",
+  "/change-userid",
+  "/change-password",
+  "/otp-verification",
+  "/dashboard",
+  "/fpo-form",
+  "/admin-config",
+  "/employee-details"
+];
  
   if (location.pathname.startsWith("/view-farmer")) {
     return (
@@ -102,6 +109,7 @@ function AppContent() {
         <Route path="/fpo-form" element={<AddFPOForm />} />
         <Route path="/admin-config" element={<Adminconfig />} />
         <Route path="/employee-details" element={<EmployeeDetails />} />
+        <Route path="/registrations/:id" element={<RegistrationDetails />} />
         <Route
           path="/profile"
           element={localStorage.getItem("token") ? <UserProfile /> : <Navigate to="/login" />}
@@ -109,7 +117,14 @@ function AppContent() {
       </Routes>
     );
   }
- 
+    <Route
+  path="/registrations/:id"
+  element={
+    <Dashboard>
+      <RegistrationDetails />
+    </Dashboard>
+  }
+/>
   return (
     <Routes>
       <Route path="/farmer-form" element={<FarmerFormWrapper />} />

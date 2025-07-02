@@ -104,7 +104,7 @@
            Employees
             {openMenu === "employees" && (
            <ul className="submenu">
-           <li><Link to="/EmployeeDetails">Add Employees</Link></li>
+           <li><Link to="/employee-details">Add Employees</Link></li>
            <li>
            <button
            className="link-button"
@@ -115,12 +115,7 @@
            </li>
            </ul>
             )}
-            </li>
-            <li ><Link to="/user-roles">User & Roles</Link></li>
-            <li><Link to="/personalization">Personalization</Link></li>
-            <li><Link to="/settings">Settings</Link></li>
-            <li><Link to="/account">My Account</Link></li>
-            <li><Link to="/logout">Logout</Link></li>
+            </li> 
             </ul>
             </div>
             <div className="dashboard-main">

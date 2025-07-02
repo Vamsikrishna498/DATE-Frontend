@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/List.css";
 
@@ -20,6 +21,8 @@ export const RegistrationList = () => {
     };
     fetchRegistrations();
   }, []);
+
+   const navigate = useNavigate();
 
   return (
     <div className="list-container">
@@ -64,7 +67,13 @@ export const RegistrationList = () => {
                 )}
               </td>
               <td>
-                <button className="view-button">View</button>
+               <button
+                className="view-button"
+                onClick={() => navigate(`/registrations/${r.id}`)}
+               >
+                 View
+                </button>
+
               </td>
             </tr>
           ))}
