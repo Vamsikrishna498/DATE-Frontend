@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import axios from "axios";
 import "../styles/RegistrationDetails.css";
 
-export const RegistrationDetails = () => {
-  const { id } = useParams();
+export const RegistrationDetails = ({ id, onBack }) => {
+  console.log("RegistrationDetails got id:", id);
   const [registration, setRegistration] = useState(null);
   const [newStatus, setNewStatus] = useState("");
 
+  // Fetch registration details by id
   useEffect(() => {
     if (!id) return;
     const fetchRegistration = async () => {
@@ -18,12 +18,13 @@ export const RegistrationDetails = () => {
         });
         setRegistration(res.data);
       } catch (error) {
-        console.error("Error fetching registration details", error);
+        console.error("Error fetching registration details:", error);
       }
     };
     fetchRegistration();
   }, [id]);
 
+  // Update status handler
   const handleStatusUpdate = async () => {
     if (!newStatus) return;
     try {
@@ -34,7 +35,6 @@ export const RegistrationDetails = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert("Status updated successfully");
-      // Update local state
       setRegistration((prev) => ({
         ...prev,
         status: newStatus,
@@ -45,21 +45,15 @@ export const RegistrationDetails = () => {
     }
   };
 
+  // Show loader while fetching
   if (!registration) return <div className="details-container">Loading...</div>;
 
   return (
     <div className="details-container">
+      <button onClick={onBack}>Back to List</button>
       <h2>Registration Details</h2>
-      <div className="details-card">
-        <div className="photo-section">
-          <img
-            src={registration.photoUrl || "/default-photo.jpg"}
-            alt={registration.name}
-            className="profile-photo"
-          />
-        </div>
+      <div className="details-card"> 
         <div className="info-section">
-          <p><strong>Title:</strong> {registration.title}</p>
           <p><strong>First Name:</strong> {registration.firstName}</p>
           <p><strong>Last Name:</strong> {registration.lastName}</p>
           <p><strong>DOB:</strong> {registration.dateOfBirth}</p>
@@ -68,16 +62,14 @@ export const RegistrationDetails = () => {
           <p><strong>Mobile:</strong> {registration.mobileNumber}</p>
           <p><strong>Country:</strong> {registration.country}</p>
           <p><strong>State:</strong> {registration.state}</p>
-          <p><strong>District:</strong> {registration.district}</p>
-          <p><strong>City:</strong> {registration.city}</p>
-          <p><strong>Zip Code:</strong> {registration.zipCode}</p>
+          <p><strong>Pin Code:</strong> {registration.pinCode}</p>
         </div>
       </div>
 
       <div className="status-section">
         <p>
-          <strong>Current Status:</strong>
-          <span className={`status ${registration.status.toLowerCase()}`}>
+          <strong>Current Status:</strong>{" "}
+          <span className={`status ${registration.status?.toLowerCase()}`}>
             {registration.status}
           </span>
         </p>
@@ -92,10 +84,7 @@ export const RegistrationDetails = () => {
           <option value="Return">Refer Back</option>
         </select>
 
-        <button
-          disabled={!newStatus}
-          onClick={handleStatusUpdate}
-        >
+        <button disabled={!newStatus} onClick={handleStatusUpdate}>
           Update Status
         </button>
       </div>

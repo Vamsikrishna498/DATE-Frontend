@@ -45,7 +45,7 @@ const ForgotPassword = () => {
    const navigate = useNavigate();
    const onSubmit = async (data) => {
     try {
-      const response = await axios.post("http://34.56.164.208/api/auth/forgot-password", {
+      const response = await axios.post("http://localhost:8080/api/auth/forgot-password", {
         emailOrPhone: data.userInput
       }, {
         headers: { 'Content-Type': 'application/json' }

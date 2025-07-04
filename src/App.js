@@ -92,6 +92,7 @@ function AppContent() {
       </Routes>
     );
   }
+  
  
   if (noFrameRoutes.includes(location.pathname)) {
     return (
@@ -109,7 +110,7 @@ function AppContent() {
         <Route path="/fpo-form" element={<AddFPOForm />} />
         <Route path="/admin-config" element={<Adminconfig />} />
         <Route path="/employee-details" element={<EmployeeDetails />} />
-        <Route path="/registrations/:id" element={<RegistrationDetails />} />
+        <Route path="/dashboard/registration/:id" element={<RegistrationDetails />} />
         <Route
           path="/profile"
           element={localStorage.getItem("token") ? <UserProfile /> : <Navigate to="/login" />}

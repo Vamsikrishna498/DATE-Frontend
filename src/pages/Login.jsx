@@ -32,7 +32,7 @@ const Login = () => {
  
  const onSubmit = async (data) => {
   try {
-    const response = await axios.post("http://34.56.164.208:8080/api/auth/login", data);
+    const response = await axios.post("http://localhost:8080/api/auth/login", data);
     console.log("Login Response:", response.data);
  
     if (response.data && response.data.token) {

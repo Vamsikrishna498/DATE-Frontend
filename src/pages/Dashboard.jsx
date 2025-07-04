@@ -7,6 +7,7 @@
  import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
  import { faUser, faPersonDigging } from "@fortawesome/free-solid-svg-icons";
  import { RegistrationList, FarmerList, EmployeeList } from "../pages/List";
+ import DashboardHome from "../pages/DashboardHome";
 
   const Dashboard = () => {
   const navigate = useNavigate();
@@ -15,6 +16,9 @@
   const [farmerList, setFarmerList] = useState([]);
   const [selectedFarmer, setSelectedFarmer] = useState(null);
   const [activeView, setActiveView] = useState("dashboard");
+  const [photoPreview, setPhotoPreview] = useState(null);
+  
+
   const handleToggle = (menuName) => {
     setOpenMenu(openMenu === menuName ? null : menuName);
   };
@@ -50,6 +54,7 @@
 
     fetchDashboardData();
   }, []);
+     
 
   return (
     <div className="dashboard-container">
@@ -59,7 +64,7 @@
       </header>
 
       <div className="banner-image" />
-
+       
       <div className="dashboard-grid">
         {/* Sidebar */}
           <div className="dashboard-sidebar">
@@ -78,7 +83,7 @@
           className="link-button"
           onClick={() => setActiveView("registrationList")}
           >
-          View list
+         Registration View list
           </button>
           </li>
           </ul>
@@ -94,7 +99,7 @@
            className="link-button"
            onClick={() => setActiveView("farmersList")}
            >
-           View list
+          Farmer View list
            </button>
           </li>
           </ul>
@@ -110,7 +115,7 @@
            className="link-button"
            onClick={() => setActiveView("employeesList")}
            >
-           View list
+          Employees View list
            </button>
            </li>
            </ul>
@@ -121,11 +126,11 @@
             <div className="dashboard-main">
             {activeView === "dashboard" && (
             <>
-             <div className="dashboard-title">Dashboard</div>
+             <div className="dashboard-title">Dashboard Overview</div>
                <div className="card-wrapper">
            {/* Your cards */}
             <div className="card">
-            <h3 className="card-title blue">Total Farmers</h3>
+            <h3 className="card-title blue"> Farmers</h3>
             <div className="card-icon"><FontAwesomeIcon icon={faPersonDigging} size="2x" /></div>
             <div>{farmerCount}</div>
             <div className="percentage">+5% increase</div>
@@ -142,13 +147,7 @@
           <div>0</div>
           <div className="percentage">0% increase</div>
         </div>
-        {selectedFarmer && (
-          <div className="card">
-            <h3 className="card-title blue">Sample Farmer</h3>
-            <div>{selectedFarmer.firstName} {selectedFarmer.lastName}</div>
-            <div>Phone: {selectedFarmer.phoneNumber}</div>
-          </div>
-        )}
+      
       </div>
     </>
   )}

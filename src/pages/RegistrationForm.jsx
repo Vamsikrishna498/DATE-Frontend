@@ -77,7 +77,7 @@ const schema = yup.object().shape({
  
   // ✅ Fetch countries
   useEffect(() => {
-    axios.get("http://34.56.164.208:8080/api/auth/countries")
+    axios.get("http://localhost:8080/api/auth/countries")
       .then((res) => setCountries(res.data))
       .catch((err) => console.error("Error fetching countries:", err));
   }, []);
@@ -97,7 +97,7 @@ const schema = yup.object().shape({
 const handleSendOTP = async () => {
   try {
     const response = await axios.post(
-      "http://34.56.164.208:8080/api/auth/send-otp",
+      "http://localhost:8080/api/auth/send-otp",
       { emailOrPhone: emailValue }, // ✅ send as body
       {
         headers: {
@@ -118,7 +118,7 @@ const handleSendOTP = async () => {
   // ✅ Handle Verify OTP
 const handleVerifyOTP = async () => {
   try {
-    const response = await axios.post("http://34.56.164.208:8080/api/auth/verify-otp", {
+    const response = await axios.post("http://localhost:8080/api/auth/verify-otp", {
       emailOrPhone: emailValue,  // 🔄 corrected key
       otp: otp,
     });
@@ -143,7 +143,7 @@ const handleVerifyOTP = async () => {
     }
  
     try {
-      const response = await axios.post("http://34.56.164.208:8080/api/auth/register", data);
+      const response = await axios.post("http://localhost:8080/api/auth/register", data);
       alert("Registration successful!");
       reset();
       navigate("/login");

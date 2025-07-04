@@ -1,142 +1,393 @@
+.farmer-view-container,
 .view-farmer-form {
-  max-width: 1200px;
-  margin: auto;
-  padding: 2rem;
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  min-height: 68vh;
+  background-color: #f7fafc;
 }
- 
 .step-container {
-  margin-top: 1rem;
+  display: flex;
+  width: 900px;
+  flex-direction: column;
+  justify-content: center;
+ padding-left: 20px;
 }
- 
-/* Header step title */
+.view-irrigation-field{
+   display: flex;
+  width: 900px;
+  flex-direction: column;
+  justify-content: center;
+ padding-left: 20px;
+}
+/* === Header === */
+.header {
+  height: 100px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.viwelogo {
+  height: 100px;
+}
+
+/* === Layout: Sidebar + Main === */
+.body-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+.sidebar {
+  width: 300px;
+  background-color: #f1f5f9;
+  border-right: 1px solid #d1d5db;
+  padding: 20px 10px;
+  overflow-y: auto;
+}
+.sidebar-item {
+  padding: 25px 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #374151;
+  transition: background 0.2s ease;
+}
+.sidebar-item:hover {
+  background-color: #e0f2fe;
+}
+.sidebar-item.active {
+  background-color: #bae6fd;
+  font-weight: bold;
+  color: #1e3a8a;
+  border-left: 4px solid #2563eb;
+}
+
+/* === Main Content === */
+.viewmain-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background-color: #fff;
+}
+
+/* === Step Title === */
 .step-container h2 {
   font-size: 1.5rem;
-  margin-bottom: 1.2rem;
-  color: #333;
+  margin-bottom: 1rem;
+  color: #1f2937;
 }
- 
-/* View mode rows */
-.viewinfo-row, .viweinfo-row {
+
+/* === Info Display (Read-Only) === */
+.viewinfo-row {
   display: flex;
-  justify-content: space-between;
-  gap: 2rem;
+  flex-wrap: wrap;
+  gap: 100px;
   background: #f9f9f9;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.8rem;
+  padding: 2rem;
+  margin-bottom: 1rem;
   border-radius: 8px;
-  color: #333;
 }
- 
-.viewinfo-row div, .viweinfo-row div {
+.viewinfo-row div {
   flex: 1;
+  min-width: 200px;
   word-break: break-word;
 }
- 
-/* Buttons */
+
+/* === Edit Mode Layout === */
+.edit-main,
+.currentform-grid,
+.proposedform-grid,
+.documentform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding-left: 30px;
+}
+.leftedit-grid,
+.rightedit-grid {
+  display: flex;
+  flex-direction: column;
+
+  
+}
+
+/* === Form Fields === */
+.viewform-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+.viewform-row label {
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+}
+.viweinput,
+input[type="text"],
+input[type="date"],
+select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+}
+.viweinput:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+/* === Buttons === */
 .viwe-button {
-  background-color: #1976d2;
-  color: #fff;
-  padding: 0.5rem 1.2rem;
+  align-self: flex-end;
+  margin-top: 1rem;
+  padding: 10px 24px;
+  background-color: #006838;
+  color: white;
+  font-size: 0.95rem;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  transition: background 0.3s ease;
+  transition: background-color 0.2s ease;
 }
- 
 .viwe-button:hover {
-  background-color: #125ba4;
+  background-color: #09d475;
 }
- 
 .action-buttons {
   display: flex;
   justify-content: flex-end;
   margin-top: 1.5rem;
 }
- 
-/* Edit mode grid layout */
-.edit-main, .currentform-grid, .proposedform-grid, .documentform-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-}
- 
-.leftedit-grid, .rightedit-grid, .proposedform-columnleft, .proposedform-columnright, .left-column, .right-column {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
- 
-/* Form fields */
-.viewform-row {
-  display: flex;
-  flex-direction: column;
-}
- 
-.viewform-row label {
-  font-weight: 500;
-  margin-bottom: 0.4rem;
-}
- 
-.viweinput, input[type="text"], input[type="date"], select {
-  padding: 0.5rem;
-  font-size: 1rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #fff;
-}
- 
-.viweinput:focus {
-  border-color: #1976d2;
-  outline: none;
-}
- 
-/* Error messages */
-.error {
-  color: #e53935;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-}
- 
-/* Optional and required indicators */
+
+/* === Indicators & Errors === */
 .required {
   color: red;
 }
- 
 .optional {
   color: #888;
   font-style: italic;
 }
- 
-/* Photo preview box */
+.error {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* === Image & Banner Section === */
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+.middle {
+  height: 200px;
+  width: 100%;
+}
+.edit-photo-box {
+  width: 100px; /* Adjust as needed */
+  height: 100px;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+.edit-photo-preview {
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+}
 .photo-preview {
+  display: flex;
   max-width: 100px;
   height: auto;
   margin-top: 0.5rem;
-  border: 2px solid #ddd;
+  border: 2px solid #e5e7eb;
   border-radius: 6px;
 }
- 
-.photo-box {
-  margin-top: 1rem;
+
+/* === Headings === */
+h1 {
+  font-size: 28px;
+  text-align: center;
+  color: #1f2937;
+  margin-bottom: 16px;
 }
+.non-editable-heading {
+  user-select: none;
+  cursor: default;
+}
+.farmer-header {
+  position: relative;
+  height: 100px;
+  background-color: #f4f4f4;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Logo on Top-Left */
+.logo-section {
+  position: absolute;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+}
+.one {
+  padding: 10px;
+  font-weight: bold;
+  font-size: 18px;
+  color: #000;
+}
+.logo-img {
+  display: flex;
+  height: 100px;
+  margin-right: 125vh;
+  
+}
+
+.logo-text {
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Background Image */
+.header-background {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.bg-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+/* Centered Photo Card */
+.photo-id-card {
+  display: flex;
+  position: absolute;
+  top: 50%;
+  left: 120px;
+  transform: translateY(-50%);
+  background: #fff;
+  padding: 16px 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: center;
+  width: 300px;
+  z-index: 2;
+}
+
+.user-photo {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.farmer-id-name {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.farmer-id {
  
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .viewinfo-row, .viweinfo-row {
-    flex-direction: column;
-  }
- 
-  .action-buttons {
-    justify-content: center;
-  }
- 
-  .step-container h2 {
-    font-size: 1.25rem;
-  }
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.farmer-name {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+/* Top-Right Profile Info */
+.user-profile {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+}
+
+.profile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.username {
+  font-weight: 500;
+  color: #000;
+}
+
+.user-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.user-icon {
+  display: flex;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  justify-content: center;
+  border: 2px solid #ccc; 
+}
+.user-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.user-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ccc;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 120px;
+  right: 0;
+  background: whitesmoke;
+  border: 1px solid #ccc;
+  padding: 8px 0;
+  box-shadow: 0 10px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  width: 180px;
+  height: 280px;
+}
+
+.dropdown-item {
+  padding: 16px 30px;
+  font-size: 16px;
+  color: #333;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #bae6fd;
+  font-weight: bold;
+  color: #1e3a8a;
+  border-left: 4px solid #2563eb;
 }

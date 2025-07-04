@@ -1,42 +1,126 @@
 .details-container {
-  padding: 20px;
+  max-width: 1100px;
+  margin-left: 100px;
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
+
+.details-container h2 {
+  margin-bottom: 100px;
+  color: #333;
+  text-align: center;
+}
+
+.details-container button {
+  background-color: #2e7d32;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.details-container button:hover {
+  background-color: #1b5e20;
+}
+
 .details-card {
   display: flex;
-  gap: 40px;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 100px;
+  margin-bottom: 24px;
 }
-.photo-section .profile-photo {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-}
-.info-section p {
-  margin: 4px 0;
-}
-.status-section {
+
+.photo-section {
+  flex: 0 0 160px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
 }
-.status {
-  padding: 2px 6px;
+
+.profile-photo {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+}
+
+.info-section {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 40px;
+  padding-left: 25%;
+}
+
+.info-section p {
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.info-section strong {
+  color: #222;
+}
+
+.status-section {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+}
+
+.status-section select {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  margin-left: 6px;
+  min-width: 160px;
 }
-.status.pending {
-  background-color: #f0ad4e;
-  color: white;
+
+.status-section button {
+  background-color: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
 }
+
+.status-section button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.status-section button:hover:not(:disabled) {
+  background-color: #0d47a1;
+}
+
+/* Status color badges */
+.status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
 .status.approved {
-  background-color: #5cb85c;
-  color: white;
+  background-color: #c8e6c9;
+  color: #2e7d32;
 }
+
 .status.rejected {
-  background-color: #d9534f;
-  color: white;
+  background-color: #ffcdd2;
+  color: #c62828;
 }
+
 .status.return {
-  background-color: #f0ad4e;
-  color: white;
+  background-color: #ffe0b2;
+  color: #ef6c00;
 }

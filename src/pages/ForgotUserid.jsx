@@ -42,7 +42,7 @@ const ForgotUserId = () => {
  
    const onSubmit = async (data) => {
     try {
-       await axios.post("http://34.56.164.208/api/auth/forgot-user-id", {
+       await axios.post("http://localhost:8080/api/auth/forgot-user-id", {
         emailOrPhone: data.userInput,
       }, {
         headers: { "Content-Type": "application/json" },

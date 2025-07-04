@@ -1,126 +1,86 @@
-  import React, { useEffect, useState } from "react";
-  import "../styles/FarmerView.css";
-  import logo3 from "../assets/rightlogo.png";
-  import logo4 from "../assets/middle.png";
-  import { useParams } from "react-router-dom";
-  import axios from "axios";
-  import { useForm, FormProvider } from "react-hook-form";
-  import { yupResolver } from "@hookform/resolvers/yup";
-  import stepSchemas from '../validations/stepSchemas';
+import React, { useEffect, useState } from "react";
+ import { useFormContext } from "react-hook-form";
+import "../styles/FarmerView.css";
+import logo3 from "../assets/rightlogo.png";
+import logo4 from "../assets/middle.png";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import { useForm, FormProvider } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import stepSchemas from '../validations/stepSchemas';
+
  
-  const ViewFarmer = () => {
-  const { farmerId } = useParams(); 
-  const [currentStep, setCurrentStep] = useState(0);
+const ViewFarmer = () => {
+  const { farmerId } = useParams();
   const [isEditMode, setIsEditMode] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
-  const [photoPreviewStep0, setPhotoPreviewStep0] = useState(null);
-  const [photoPreviewStep3, setPhotoPreviewStep3] = useState(null);
-  const [cropCategoryStep3, setCropCategoryStep3] = useState("");
-  const [waterSourceCategory, setWaterSourceCategory] = useState("");
-  const [farmer, setFarmer] = useState({});
-  const handlePhotoChangeStep3 = (e) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [farmer, setFarmer] = useState({
+  waterSource: "",
+  borewellDischarge: "",
+  summerDischarge: "",
+  borewellLocation: "",
+  voterId: "",
+  aadharNumber: "",
+  panNumber: "",
+  ppbNumber: "",
+  documentType: "",
+  // add other fields as needed
+});
+
+ 
+
+ const {
+    register,
+    handleSubmit,
+    setValue,
+    trigger,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm();
+
+const watchedFields = watch();
+
+const [photoPreviewStep0, setPhotoPreviewStep0] = useState(null);
+const [photoPreviewStep3, setPhotoPreviewStep3] = useState(null);
+const [cropCategoryStep3, setCropCategoryStep3] = useState("");
+const [waterSourceCategory, setWaterSourceCategory] = useState("");
+const [selectedIrrigationTab, setSelectedIrrigationTab] = useState("Current");
+const cropOptions = {
+  Grains: ["Rice", "Wheat", "Maize"],
+  Vegetables: ["Tomato", "Carrot", "Spinach"],
+  Fruits: ["Mango", "Banana", "Papaya"]
+};
+
+const waterSourceOptions = ["Borewell", "Open Well", "Canal", "Tank", "River", "Drip"];
+
+const handlePhotoChangeStep3 = (e) => {
   const file = e.target.files[0];
   if (file) {
     setValue("photoStep3", file, { shouldValidate: true });
     setPhotoPreviewStep3(URL.createObjectURL(file));
-   }
-  };
+  }
+};
 
-  const cropOptions = {
-    Grains: ["Rice", "Wheat", "Maize"],
-    Vegetables: ["Tomato", "Carrot", "Spinach"],
-    Fruits: ["Mango", "Banana", "Papaya"],
-  };
-
-  const waterSourceOptions = ["Borewell", "Open Well", "Canal", "Tank", "River", "Drip"];
-
+ 
   const methods = useForm({
     mode: "onChange",
     resolver: yupResolver(stepSchemas[currentStep]),
     defaultValues: {},
   });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    trigger,
-    watch,
-    formState: { errors },
-  } = methods;
-
-  const watchedFields = watch();
-
-  useEffect(() => {
-    const fetchFarmerData = async () => {
-      if (!farmerId || farmerId === "undefined") {
-        console.warn("No farmerId found in URL");
-        return;
-      }
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("You are not logged in.");
-        return;
-      }
-
-      try {
-        const res = await axios.get(`http://localhost:8080/api/farmers/${farmerId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        reset(res.data);
-
-        if (res.data.photo) {
-          setPhotoPreview(res.data.photo);
-        }
-      } catch (err) {
-        console.error("Error fetching farmer data:", err);
-        alert("Failed to fetch farmer data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFarmerData();
-  }, [farmerId, reset]); 
-
-  const onSubmit = async (data) => { 
-    const token = localStorage.getItem("token");
-    if (!token) return alert("You are not logged in.");
-    if (!farmerId || farmerId === "undefined") return alert("Invalid farmer ID.");
-
-    const formData = new FormData();
-    const farmerDto = { ...data };
-    delete farmerDto.photo;
-
-    formData.append("farmerDto", new Blob([JSON.stringify(farmerDto)], { type: "application/json" }));
-    if (data.photo && data.photo[0]) {
-      formData.append("photo", data.photo[0]);
-    }
-
-    try {
-      await axios.put(`http://localhost:8080/api/farmers/${farmerId}`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      alert("✅ Farmer updated successfully!");
-      setIsEditMode(false);
-    } catch (error) {
-      console.error("❌ Update failed:", error.response?.data || error.message);
-      alert("❌ Failed to update farmer.");
-    }
-  };
-
-  if (loading) return <p>Loading farmer data...</p>;
  
+
+const onSubmit = (data) => {
+  console.log(data); // or send to API
+};
+
+ 
+   
+ const userPhoto = "https://via.placeholder.com/40"; 
 const handleChange = (e) => {
   const { name, value } = e.target;
   setFarmer((prev) => ({ ...prev, [name]: value }));
@@ -141,32 +101,89 @@ const handleFileChange = (e) => {
       reader.readAsDataURL(file);
     }
   };
-  
+  const handlePhotoUpload = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    setPhotoPreviewStep0(URL.createObjectURL(file));
+  }
+};
+useEffect(() => {
+  const fetchFarmerData = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You are not logged in.");
+      return;
+    }
 
-  const sidebarSteps = [
-    "Personal Information",
-    "Address",
-    "Professional Information",
-    "Current Crop Information",
-    "Proposed Crop Information",
-    "Irrigation Details",
-    "Other Information",
-    "Documents",
-  ];
- 
-  if (loading) return <p>Loading farmer data...</p>;
+    if (!farmerId || farmerId === "undefined") {
+      console.warn("No valid farmer ID found in URL");
+      return;
+    }
+
+    try {
+      const response = await axios.get(`http://localhost:8080/api/farmers/${farmerId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const farmerData = response.data;
+
+      // Update form values and local state
+      reset(farmerData);
+      setFarmer(farmerData);
+
+      if (farmerData.photo) {
+        setPhotoPreviewStep0(farmerData.photo); // Show fetched photo (can be full URL or relative)
+      }
+
+    } catch (error) {
+      console.error("❌ Error fetching farmer data:", error);
+      alert("Failed to fetch farmer data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchFarmerData(); // Run fetch function
+}, [farmerId, reset]);
+
+const sidebarSteps = [
+  "Personal Information",
+  "Address",
+  "Professional Information",
+  "Current Crop",
+  "Proposed Crop",
+  "Irrigation",
+  "Bank",
+  "Documents"
+];
  
   return (
    <div className="farmer-view-container">
      <div className="farmer-header">
   {/* Left Logo */}
-  <div className="logo-section">
+  <div className="logo-section"onClick={() => setDropdownOpen(!dropdownOpen)}>
     <img src={logo3} alt="DATE Logo" className="logo-img" />
-    {photoPreviewStep0 ? (
-     <img src={photoPreviewStep0} alt="User Icon" className="user-icon" />
-      ) : (
-                  <span className="user-icon" > User </span>
-             )}
+    
+  {photoPreviewStep0 ? (
+    <img src={photoPreviewStep0} alt="User Icon" className="user-icon" />
+  ) : (
+    <span className="user-icon">User</span>
+  )}
+  <div className="one">{watch("firstName") || "Farmer Name"}</div>
+
+  {/* 👇 Dropdown shown on click */}
+  {dropdownOpen && (
+    <div className="dropdown-menu">
+      <div className="dropdown-item">{watch("firstName") || "User Name"}</div>
+      <div className="dropdown-item">👤 My Profile</div>
+      <div className="dropdown-item">⚙️ Account Settings</div>
+      <div className="dropdown-item">❓ Need Help?</div>
+      <div className="dropdown-item">📲 Sign Out</div>
+    </div>
+  )}
+
   </div>
   </div>
   {/* Background Image with Overlay */}
@@ -183,8 +200,8 @@ const handleFileChange = (e) => {
              )}
          </div>
          <div className="farmer-id-name">
-      <div className="farmer-id">ID: <strong>{farmerId}</strong></div>
-      <div className="farmer-name">Farmer Name</div>
+      <div className="farmer-id">ID: <strong>{farmer?.id}</strong></div>
+      <div className="one"> {watch("firstName") ? watch("firstName") : "Farmer Name"} </div> 
       </div>
     </div>
   </div>
@@ -222,8 +239,8 @@ const handleFileChange = (e) => {
 
         <div className="viewinfo-row">
           {photoPreviewStep0 && (
-            <div className="photo-box">
-              <div><strong>Photo:</strong>{watchedFields.photo}</div>
+            <div className="view-photo-box">
+              <strong>Photo:</strong>
               <img src={photoPreviewStep0} alt="Photo" className="photo-preview" />
             </div>
           )}
@@ -231,14 +248,14 @@ const handleFileChange = (e) => {
 
         <div className="viewinfo-row">
           <div><strong>Salutation:</strong> {watchedFields.salutation}</div>
-          <div><strong>First Name:</strong> {watchedFields.firstName}</div>
+          <div><strong>Gender:</strong> {watchedFields.gender}</div>
         </div>
         <div className="viewinfo-row">
-          <div><strong>Middle Name:</strong> {watchedFields.middleName}</div>
+          <div><strong>First Name:</strong> {watchedFields.firstName}</div>
           <div><strong>Last Name:</strong> {watchedFields.lastName}</div>
         </div>
         <div className="viewinfo-row">
-          <div><strong>Gender:</strong> {watchedFields.gender}</div>
+          <div><strong>Middle Name:</strong> {watchedFields.middleName}</div>
           <div><strong>Date of Birth:</strong> {watchedFields.dateOfBirth}</div>
         </div>
         <div className="viewinfo-row">
@@ -247,10 +264,10 @@ const handleFileChange = (e) => {
         </div>
         <div className="viewinfo-row">
           <div><strong>Contact Number:</strong> {watchedFields.contactNumber}</div>
-          <div><strong>Alternative Number:</strong> {watchedFields.alternativeNumber}</div>
+          <div><strong>Alternative Number:</strong> {watchedFields.alternativeContactNumber}</div>
         </div>
         <div className="viewinfo-row">
-          <div><strong>Alternative Type:</strong> {watchedFields.alternativeType}</div>
+          <div><strong>Alternative Type:</strong> {watchedFields.alternativeRelationType}</div>
         </div>
       </>
     ) : (
@@ -371,7 +388,7 @@ const handleFileChange = (e) => {
               </div>
               <div className="viewinfo-row">
                 <div><strong>District:</strong> {watchedFields.district}</div>
-                <div><strong>Mandal:</strong> {watchedFields.mandal}</div>
+                <div><strong>Mandal:</strong> {watchedFields.block}</div>
               </div>
               <div className="viewinfo-row">
                 <div><strong>Village:</strong> {watchedFields.village}</div>
@@ -486,7 +503,7 @@ const handleFileChange = (e) => {
         <div className="viewinfo-row">
           {photoPreviewStep3 && (
             <div className="photo-box">
-              <div><strong>Photo:</strong>{watchedFields.photo}</div>
+              <strong>Photo:</strong>
               <img src={photoPreviewStep3} alt="Preview" className="photo-preview" />
             </div>
           )}
@@ -708,96 +725,135 @@ const handleFileChange = (e) => {
   <div className="view-irrigation-field">
     {!isEditMode ? (
       <>
-        <button onClick={() => setIsEditMode(true)} className="viwe-button">Edit</button>
+        <button onClick={() => setIsEditMode(true)} className="viwe-button">
+          Edit
+        </button>
         <div className="viewinfo-row">
-          <div><strong>Water Source Category:</strong> {watchedFields.waterSourceCategory}</div>
-          <div><strong>Current Crop - Water Source:</strong> {watchedFields.currentWaterSource}</div>
-          <div><strong>Proposed Crop - Water Source:</strong> {watchedFields.proposedWaterSource}</div>
-          <div><strong>Discharge (LPH):</strong> {watchedFields.borewellDischarge}</div>
-          <div><strong>Summer Discharge:</strong> {watchedFields.summerDischarge}</div>
-          <div><strong>Location:</strong> {watchedFields.borewellLocation}</div>
+          <div>
+            <strong>Current Crop - Water Source:</strong> {watchedFields.currentWaterSource}
+          </div>
+          <div>
+            <strong>Proposed Crop - Water Source:</strong> {watchedFields.proposedWaterSource}
+          </div>
+          <div>
+            <strong>Discharge (LPH):</strong> {watchedFields.currentDischargeLPH}
+          </div>
+          <div>
+            <strong>Summer Discharge:</strong> {watchedFields.summerDischarge}
+          </div>
+          <div>
+            <strong>Location:</strong> {watchedFields.borewellLocation}
+          </div>
         </div>
       </>
     ) : (
-      <div className="proposedform-grid">
-        <div className="proposedform-columnleft">
-          <div className="viewform-row">
-            <label>Select Water Source Category <span className="optional"></span></label>
-            <select
-              {...register("waterSourceCategory")}
-              className="viweinput"
-              value={waterSourceCategory}
-              onChange={(e) => {
-                setWaterSourceCategory(e.target.value);
-                setValue("currentWaterSource", "");
-                setValue("proposedWaterSource", "");
-              }}
-            >
-              <option value="">Select</option>
-              {waterSourceOptions.map((source) => (
-                <option key={source} value={source}>{source}</option>
-              ))}
-            </select>
-          </div>
+      <div className="irrigation-field">
+        {/* Tabs Header */}
+        <div className="tab-header">
+          <span
+            className={selectedIrrigationTab === "Current" ? "tab active" : "tab"}
+            onClick={() => setSelectedIrrigationTab("Current")}
+          >
+            Current Crop Addition
+          </span>
+          <span
+            className={selectedIrrigationTab === "Proposed" ? "tab active" : "tab"}
+            onClick={() => setSelectedIrrigationTab("Proposed")}
+          >
+            Proposed Crop Addition
+          </span>
+        </div>
 
-          {waterSourceCategory && (
-            <>
-              <div className="viewform-row">
-                <label>Current Crop - Water Source <span className="optional"></span></label>
-                <select {...register("currentWaterSource")} className="viweinput" defaultValue="">
-                  <option value="">Select</option>
-                  {waterSourceOptions.map((source) => (
-                    <option key={source} value={source}>{source}</option>
-                  ))}
-                </select>
-                <p className="error">{errors.currentWaterSource?.message}</p>
-              </div>
+        {/* Current Crop Tab */}
+        {selectedIrrigationTab === "Current" && (
+          <div className="tab-content">
+            <label>
+              Water Source <span className="required">*</span>
+              <select {...register("currentWaterSource")} defaultValue="">
+                <option value="">Select</option>
+                {waterSourceOptions.map((source) => (
+                  <option key={source} value={source}>
+                    {source}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="error">{errors.currentWaterSource?.message}</p>
 
-              <div className="viewform-row">
-                <label>Proposed Crop - Water Source <span className="optional"></span></label>
-                <select {...register("proposedWaterSource")} className="viweinput" defaultValue="">
-                  <option value="">Select</option>
-                  {waterSourceOptions.map((source) => (
-                    <option key={source} value={source}>{source}</option>
-                  ))}
-                </select>
-                <p className="error">{errors.proposedWaterSource?.message}</p>
-              </div>
-            </>
-          )}
-
-          <div className="viewform-row">
-            <label>Discharge (LPH) <span className="optional"></span></label>
-            <input {...register("borewellDischarge")} className="viweinput" />
+            <label>
+              Borewell wise Discharge in LPH <span className="optional"></span>
+              <input {...register("currentDischargeLPH")} />
+            </label>
             <p className="error">{errors.borewellDischarge?.message}</p>
-          </div>
 
-          <div className="viewform-row">
-            <label>Summer Discharge <span className="optional"></span></label>
-            <input {...register("summerDischarge")} className="viweinput" />
+            <label>
+              Discharge during summer months <span className="optional"></span>
+              <input {...register("summerDischarge")} />
+            </label>
             <p className="error">{errors.summerDischarge?.message}</p>
-          </div>
 
-          <div className="viewform-row">
-            <label>Location <span className="optional"></span></label>
-            <input {...register("borewellLocation")} className="viweinput" />
+            <label>
+              Borewell location <span className="optional"></span>
+              <input {...register("borewellLocation")} />
+            </label>
             <p className="error">{errors.borewellLocation?.message}</p>
           </div>
+        )}
 
-          <div className="action-buttons">
-            <button type="button" className="viwe-button" onClick={() => setIsEditMode(false)}>
-              Save
-            </button>
+        {/* Proposed Crop Tab */}
+        {selectedIrrigationTab === "Proposed" && (
+          <div className="tab-content">
+            <label>
+              Water Source <span className="required">*</span>
+              <select {...register("proposedWaterSource")} defaultValue="">
+                <option value="">Select</option>
+                {waterSourceOptions.map((source) => (
+                  <option key={source} value={source}>
+                    {source}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="error">{errors.proposedWaterSource?.message}</p>
+
+            <label>
+              Borewell wise Discharge in LPH <span className="optional"></span>
+              <input {...register("proposedBorewellDischarge")} />
+            </label>
+            <p className="error">{errors.proposedBorewellDischarge?.message}</p>
+
+            <label>
+              Discharge during summer months <span className="optional"></span>
+              <input {...register("proposedSummerDischarge")} />
+            </label>
+            <p className="error">{errors.proposedSummerDischarge?.message}</p>
+
+            <label>
+              Borewell location <span className="optional"></span>
+              <input {...register("proposedBorewellLocation")} />
+            </label>
+            <p className="error">{errors.proposedBorewellLocation?.message}</p>
           </div>
+        )}
+
+        <div className="action-buttons">
+          <button
+            type="button"
+            className="viwe-button"
+            onClick={() => setIsEditMode(false)}
+          >
+            Save
+          </button>
         </div>
       </div>
     )}
   </div>
 )}
 
+
  
    {currentStep === 6 && (
-  <div className="step-container"> 
+  <div className="step-container">
     {!isEditMode ? (
       <>
         <button onClick={() => setIsEditMode(true)} className="viwe-button">Edit</button>

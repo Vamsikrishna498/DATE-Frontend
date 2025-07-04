@@ -155,7 +155,7 @@ import React, { useEffect, useState } from "react";
     console.log("Edit mode?", isEditMode);
   const [selectedCountry, setSelectedCountry] = useState("");
   const [countries, setCountries] = useState([]);
- 
+  const [selectedIrrigationTab, setSelectedIrrigationTab] = useState("current");
   const [selectedState, setSelectedState] = useState("");
   const [states, setStates] = useState([]);
  
@@ -460,7 +460,7 @@ useEffect(() => {
  
       <label>
         Alternative Type <span className="optional"></span>
-        <select {...register("alternativeType")}>
+        <select {...register("alternativeRelationType")}>
           <option value="">Select Relation</option>
           <option value="Father">Father</option>
           <option value="Mother">Mother</option>
@@ -476,7 +476,7 @@ useEffect(() => {
  
       <label>
         Alternative Number <span className="optional"></span>
-        <input type="tel" maxLength={10} {...register("alternativeNumber")} placeholder="10-digit number" />
+        <input type="tel" maxLength={10} {...register("alternativeContactNumber")} placeholder="10-digit number" />
       </label>
       <p className="error">{errors.alternativeNumber?.message}</p>
      
@@ -780,73 +780,93 @@ useEffect(() => {
                 </div>
                </div>
       )}
-   {currentStep === 5 && (
-              <div className="irrigation-field">
-                <div className="Current Crop Addition">
-                  <label>
-              Select Water Source Category <span className="optional"></span>
-             <select
-              value={waterSourceCategory}
-             onChange={(e) => {
-             setWaterSourceCategory(e.target.value);
-             setValue("currentWaterSource", "");
-             setValue("proposedWaterSource", "");
-             }}
-              >
-             <option value="">Select</option>
-             {waterSourceOptions.map((source) => (
-             <option key={source} value={source}>{source}</option>
-              ))}
-             </select>
-             </label>
- 
-          {waterSourceCategory && (
-           <>
-            <label>
-            Current Crop - Water Source <span className="optional"></span>
-               <select {...register("currentWaterSource")} defaultValue="">
-                 <option value="">Select</option>
-                {waterSourceOptions.map((source) => (
-                  <option key={source} value={source}>{source}</option>
-                 ))}
-                </select>
-                   </label>
-                <p className="error">{errors.currentWaterSource?.message}</p>
- 
-               <label>
-               Proposed Crop - Water Source <span className="optional"></span>
-                 <select {...register("proposedWaterSource")} defaultValue="">
-                 <option value="">Select</option>
-               {waterSourceOptions.map((source) => (
-                  <option key={source} value={source}>{source}</option>
-                  ))}
-                 </select>
-                   </label>
-                 <p className="error">{errors.proposedWaterSource?.message}</p>
-                  </>
-              )}
- 
-                <label>Discharge (LPH) <span className="optional"></span>
-            <input {...register("borewellDischarge")} />
-            </label>
-             <p>{errors.borewellDischarge?.message}</p>
- 
-            <label>Summer Discharge <span className="optional"></span>
-            <input {...register("summerDischarge")} />
-           </label>
-           <p>{errors.summerDischarge?.message}</p>
- 
-            <label>Location <span className="optional"></span>
-            <input {...register("borewellLocation")} />
-           </label>
-             <p>{errors.borewellLocation?.message}</p>
- 
-                <p>{errors.irrigationType?.message}</p>
-               
-                </div>
-             
-              </div>
-     )}
+         {currentStep === 5 && (
+  <div className="irrigation-field">
+    {/* Tabs Header */}
+    <div className="tab-header">
+      <span
+        className={selectedIrrigationTab === "Current" ? "tab active" : "tab"}
+        onClick={() => setSelectedIrrigationTab("Current")}
+      >
+        Current Crop Addition
+      </span>
+      <span
+        className={selectedIrrigationTab === "Proposed" ? "tab active" : "tab"}
+        onClick={() => setSelectedIrrigationTab("Proposed")}
+      >
+        Proposed Crop Addition
+      </span>
+    </div>
+
+    {/* Current Crop Tab */}
+    {selectedIrrigationTab === "Current" && (
+      <div className="tab-content">
+        <label>
+          Water Source <span className="required">*</span>
+          <select {...register("currentWaterSource")} defaultValue="">
+            <option value="">Select</option>
+            {waterSourceOptions.map((source) => (
+              <option key={source} value={source}>{source}</option>
+            ))}
+          </select>
+        </label>
+        <p className="error">{errors.currentWaterSource?.message}</p>
+
+        <label>
+          Borewell wise Discharge in LPH <span className="optional"></span>
+          <input {...register("currentDischargeLPH")} />
+        </label>
+        <p className="error">{errors.borewellDischarge?.message}</p>
+
+        <label>
+          Discharge during summer months <span className="optional"></span>
+          <input {...register("currentSummerDischarge")} />
+        </label>
+        <p className="error">{errors.summerDischarge?.message}</p>
+
+        <label>
+          Borewell location <span className="optional"></span>
+          <input {...register("currentBorewellLocation")} />
+        </label>
+        <p className="error">{errors.borewellLocation?.message}</p>
+      </div>
+    )}
+
+    {/* Proposed Crop Tab */}
+    {selectedIrrigationTab === "Proposed" && (
+      <div className="tab-content">
+        <label>
+          Water Source <span className="required">*</span>
+          <select {...register("proposedWaterSource")} defaultValue="">
+            <option value="">Select</option>
+            {waterSourceOptions.map((source) => (
+              <option key={source} value={source}>{source}</option>
+            ))}
+          </select>
+        </label>
+        <p className="error">{errors.proposedWaterSource?.message}</p>
+
+        <label>
+          Borewell wise Discharge in LPH <span className="optional"></span>
+          <input {...register("proposedBorewellDischarge")} />
+        </label>
+        <p className="error">{errors.proposedBorewellDischarge?.message}</p>
+
+        <label>
+          Discharge during summer months <span className="optional"></span>
+          <input {...register("proposedSummerDischarge")} />
+        </label>
+        <p className="error">{errors.proposedSummerDischarge?.message}</p>
+
+        <label>
+          Borewell location <span className="optional"></span>
+          <input {...register("proposedBorewellLocation")} />
+        </label>
+        <p className="error">{errors.proposedBorewellLocation?.message}</p>
+      </div>
+    )}
+  </div>
+)}
  
     {currentStep === 6 && (
                 <div className="other-field">

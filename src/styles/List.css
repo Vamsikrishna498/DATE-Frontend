@@ -12,6 +12,10 @@
   margin-bottom: 20px;
   color: #333;
 }
+.reg-selact{
+  width: 100px;
+  padding: 3px;
+}
 
 table {
   width: 100%;

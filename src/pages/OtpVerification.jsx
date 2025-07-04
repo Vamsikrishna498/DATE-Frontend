@@ -27,7 +27,7 @@ const OtpVerification = () => {
  
     try {
       // Always verify OTP first
-      const res = await axios.post('http://34.56.164.208/api/auth/verify-otp', {
+      const res = await axios.post('http://localhost:8080/api/auth/verify-otp', {
         emailOrPhone: target,
         otp: otp
       });
@@ -48,8 +48,8 @@ const OtpVerification = () => {
   const handleResend = async () => {
     try {
       const resendUrl = type === 'userId'
-        ? 'http://34.56.164.208/api/auth/send-otp' // Adjust if separate endpoint exists
-        : 'http://34.56.164.208/api/auth/forgot-password';
+        ? 'http://localhost:8080/api/auth/send-otp' // Adjust if separate endpoint exists
+        : 'http://localhost:8080/api/auth/forgot-password';
  
       await axios.post(resendUrl, {
         emailOrPhone: target

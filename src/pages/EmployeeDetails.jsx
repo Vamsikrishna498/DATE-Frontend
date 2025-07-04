@@ -50,7 +50,7 @@ const handlePhotoChange = (e) => {
   }
 };
 
-const API_BASE_URL = "https://your-api.com/api/employees";
+const API_BASE_URL = "https://localhost:8080/api/employees";
 
 const submitStepData = async (stepData, stepIndex) => {
   try {

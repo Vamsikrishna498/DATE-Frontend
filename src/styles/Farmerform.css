@@ -304,3 +304,22 @@ button[type="button"]:hover {
 .popup-content button:hover {
   background-color: blue; 
 }
+.tab-header {
+  display: flex;
+  margin-bottom: 10%;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: 20px;
+}
+.tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.tab.active {
+  border-bottom: 2px solid black;
+  font-weight: bold;
+}
+.tab-content {
+  margin-top: 10px;
+}
