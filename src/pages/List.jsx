@@ -11,8 +11,9 @@ export const RegistrationList = () => {
   const [registrations, setRegistrations] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const token = localStorage.getItem("token");
+   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
- 
+  
   useEffect(() => {
     const fetchRegistrations = async () => {
       try {
@@ -43,12 +44,33 @@ export const RegistrationList = () => {
     )
   );
 };
- 
+  const filteredRegistrations = registrations.filter((r) => {
+    const name = (r.name || r.userName || "").toLowerCase();
+    const email = (r.email || "").toLowerCase();
+    const mobile = (r.mobileNumber || "").toLowerCase();
+    
+    return (
+      name.includes(searchTerm.toLowerCase()) ||
+      email.includes(searchTerm.toLowerCase()) ||
+      mobile.includes(searchTerm.toLowerCase())
+    );
+  });
   return (
     <div className="list-container">
+
       {!selectedId && (
         <>
-      <h3>Registration List</h3>
+      <h3>📋 Registration List</h3>
+      
+       <div className="search-container">
+        <input
+            type="text"
+            placeholder="🔍 Search....."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+           />
+          </div>
       {registrations.length === 0 ? (
         <p>No registrations found.</p>
       ) : (
@@ -59,7 +81,7 @@ export const RegistrationList = () => {
               <th>Email</th>
               <th>Mobile Number</th>
               <th>Date of Birth</th>
-              <th>City</th>
+              <th>State</th>
               <th>Role</th>
               <th>Status</th>
               <th>Action</th>
@@ -72,7 +94,7 @@ export const RegistrationList = () => {
                 <td>{r.email}</td>
                 <td>{r.mobileNumber || "N/A"}</td>
                 <td>{r.dateOfBirth || "N/A"}</td>
-                <td>{r.city || "N/A"}</td>
+                <td>{r.state || "N/A"}</td>
                 <td>{r.role}</td>
                 
                 <td>
@@ -114,6 +136,7 @@ export const RegistrationList = () => {
 // ------------------ Farmer List ------------------
  export const FarmerList = () => {
   const [farmers, setFarmers] = useState([]);
+   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const { farmerId } = useParams();
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -195,13 +218,33 @@ export const RegistrationList = () => {
     if (!aadhaar) return "";
     return `****-***-${aadhaar.slice(-4)}`;
   };
+  const filteredFarmers = farmers.filter((f) => {
+    const name = (
+      f.name ||
+      `${f.firstName || ""} ${f.lastName || ""}`
+    ).toLowerCase();
+    const document = (f.documentNumber || "").toLowerCase();
+    return (
+      name.includes(searchTerm.toLowerCase()) ||
+      document.includes(searchTerm.toLowerCase())
+    );
+  });
 
   // ✅ Show loading state
   if (loading) return <p>Loading farmer data...</p>;
 
   return (
     <div className="list-container">
-      <h3>Farmers List</h3>
+      <h3>📋 Farmers List</h3>
+       <div className="search-container">
+        <input
+          type="text"
+          placeholder="🔍 Search..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-input"
+        />
+      </div>
       <table className="farmer-table">
         <thead>
           <tr>
@@ -264,7 +307,9 @@ export const RegistrationList = () => {
 // ------------------ Employee List ------------------
 export const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
- 
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
@@ -274,15 +319,36 @@ export const EmployeeList = () => {
         });
         setEmployees(res.data);
       } catch (error) {
-        console.error("Error fetching employees:", error);
+        console.error("❌ Error fetching employees:", error);
       }
     };
+
     fetchEmployees();
   }, []);
- 
+
+  const filteredEmployees = employees.filter((e) => {
+    const name = (e.name || "").toLowerCase();
+    const designation = (e.designation || "").toLowerCase();
+    return (
+      name.includes(searchTerm.toLowerCase()) ||
+      designation.includes(searchTerm.toLowerCase())
+    );
+  });
+
   return (
     <div className="list-container">
-      <h3>Employees List</h3>
+      <h3>📋 Employees List</h3>
+
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="🔍 Search by name or designation..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-input"
+        />
+      </div>
+
       <table className="employee-table">
         <thead>
           <tr>
@@ -297,7 +363,7 @@ export const EmployeeList = () => {
           </tr>
         </thead>
         <tbody>
-          {employees.map((e) => (
+          {filteredEmployees.map((e) => (
             <tr key={e.id}>
               <td><span className="employee-id">{e.employeeId}</span></td>
               <td>{e.name}</td>
@@ -306,18 +372,29 @@ export const EmployeeList = () => {
               <td>{e.contactNumber}</td>
               <td>{e.onboardDate}</td>
               <td>
-                {e.status === "Active" && <span className="status active">Active</span>}
-                {e.status === "Inactive" && <span className="status inactive">Inactive</span>}
+                <span className={`status ${e.status?.toLowerCase()}`}>
+                  {e.status}
+                </span>
               </td>
               <td>
-                <button className="view-button">View</button>
+                <button
+                  className="view-button"
+                  onClick={() => navigate(`/view-employee/${e.id}`)}
+                >
+                  View
+                </button>
               </td>
             </tr>
           ))}
+          {filteredEmployees.length === 0 && (
+            <tr>
+              <td colSpan="8" style={{ textAlign: "center" }}>
+                No employees found.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
   );
-};
- 
- 
+}; 

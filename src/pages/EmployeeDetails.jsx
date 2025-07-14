@@ -1,69 +1,65 @@
 import React, { useState, useEffect } from "react";
 import { useForm, FormProvider, } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import * as Yup from 'yup';
+import employeeSchemas from "../validations/employeeSchemas";
 import sampleImage from "../assets/tractor.png";
 import logo1 from "../assets/leftlogo.png";
 import logo2 from "../assets/rightlogo.png";
 import "../styles/EmployeeDetails.css";
 
-function EmployeeDetails() {
+   function EmployeeDetails() {
+  const { employeeId } = useParams(); 
+  const navigate = useNavigate();
+  const isEditMode = !!employeeId;
+
+  // Step Titles
   const steps = [
     "🏛️ Employee Details",
-    "🔍  Contact Details",
+    "🔍 Contact Details",
     "👨‍🌾 Other Details",
-    "📌 Adress",
+    "📌 Address",
     "👨‍🌾 Professional Details",
     "💧 Bank Details",
     "📄 Documents",
-    "Portal Access",
-    
-    
+    "🛡️ Portal Access",
   ];
-
-  const [currentStep, setCurrentStep] = useState(0);
   const totalSteps = steps.length;
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
-  const methods = useForm();
+  // 🔁 State Hooks - declare before useForm
+  const [currentStep, setCurrentStep] = useState(0);
+  const [selectedDoc, setSelectedDoc] = useState("");
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [employeeData, setEmployeeData] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+
+  // ✅ useForm must be defined AFTER currentStep
+  const methods = useForm({
+    mode: "onBlur",
+    resolver: yupResolver(employeeSchemas[currentStep]),
+  });
+
+  // Destructure form methods
   const {
     register,
     handleSubmit,
+    reset,
+    trigger,
     watch,
     setValue,
-    trigger,
     formState: { errors },
   } = methods;
 
-  const onSubmit = (data) => {
-    console.log("Form Submitted:", data);
-    setShowSuccessPopup(true);
-  };
+  // Now safe to use watch values
+  const photo = watch("photo");
+  const resume = watch("resume");
+  const aadhaarFile = watch("aadhaarFile");
+  const panFile = watch("panFile");
 
-  const [photoPreview, setPhotoPreview] = useState(null);
-
-const handlePhotoChange = (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    setPhotoPreview(URL.createObjectURL(file));
-  }
-};
-
-const API_BASE_URL = "https://localhost:8080/api/employees";
-
-const submitStepData = async (stepData, stepIndex) => {
-  try {
-    const response = await axios.post(`${API_BASE_URL}/step${stepIndex + 1}`, stepData);
-    console.log(`Step ${stepIndex + 1} submitted:`, response.data);
-    return response.data;
-  } catch (error) {
-    console.error(`Error in step ${stepIndex + 1}:`, error.response?.data || error.message);
-    throw error;
-  }
-};
-
-const [countries, setCountries] = useState([]);
+  const [countries, setCountries] = useState([]);
  const states = [{ id: 1, name: 'Andrapradesh' }, { id: 2, name: 'Telangana' },{ id: 3, name: 'Karnataka' },{ id: 4, name: 'Tamilnadu' } ];
     const districts = [{ id: 1, name: "Adilabad" }, { id: 2, name: "Bhadradri Kothagudem" },{ id: 3, name: "Hyderabad"},
       { id: 4, name:  "Khammam"},{ id: 5, name: "Jayashankar Bhupalpally"},{ id: 6, name: "Jangaon"},{ id: 7, name: "Jagtial"},
@@ -145,25 +141,99 @@ const [countries, setCountries] = useState([]);
      
   ];
 
-const country = watch("address.country");
-const state = watch("address.state");
-const district = watch("address.district");
-const block = watch("address.block");
 
-const addressSchema = Yup.object().shape({
-    address: Yup.object().shape({
-      country: Yup.string().required('Country is required'),
-      state: Yup.string().required('State is required'),
-      district: Yup.string().required('District is required'),
-      block: Yup.string().required('Block (mandal) is required'),
-      village: Yup.string().required('Village is required'),
-      zipcode: Yup.string()
-        .required('Zipcode is required')
-        .matches(/^[0-9]{6}$/, 'Zipcode must be 6 digits'),
-    }),
-  });
+  // Load employee data in edit mode
+  useEffect(() => {
+    if (isEditMode) {
+      axios
+        .get(`http://localhost:8080/api/employees/${employeeId}`)
+        .then((res) => {
+          const data = res.data;
+          Object.keys(data).forEach((key) => {
+            setValue(key, data[key]);
+          });
+          setSelectedDoc(data.documentType);
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch employee:", err);
+          setLoading(false);
+        });
+    }
+  }, [employeeId, isEditMode, setValue]);
+
+  const documentType = watch("documentType");
+
+  useEffect(() => {
+    setSelectedDoc(documentType);
+  }, [documentType]);
+
+ const onSubmit = async (data) => {
+  const formData = new FormData();
+
+  const fields = [
+    "salutation", "firstName", "middleName", "lastName", "gender", "nationality", "dob",
+    "contactNumber", "email", "relationType", "relationName", "altNumber", "altNumberType",
+    "country", "state", "district", "block", "village", "zipcode", "sector",
+    "education", "experience", "bankName", "accountNumber", "branchName", "ifscCode",
+    "documentType", "documentNumber", "role", "accessStatus"
+  ];
+
+  fields.forEach((field) => formData.append(field, data[field] || ""));
+
+  // Files
+  if (data.photo?.[0]) formData.append("photo", data.photo[0]);
+  if (data.ppbFile?.[0]) formData.append("passbook", data.ppbFile[0]);
+
+  if (data.documentType === "aadharNumber" && data.aadhaarFile?.[0]) {
+    formData.append("documentFile", data.aadhaarFile[0]);
+  } else if (data.documentType === "panNumber" && data.panFile?.[0]) {
+    formData.append("documentFile", data.panFile[0]);
+  } else if (data.documentType === "voterId" && data.voterFile?.[0]) {
+    formData.append("documentFile", data.voterFile[0]);
+  }
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("Please log in again.");
+    navigate("/login");
+    return;
+  }
+
+  try {
+    const response = isEditMode
+      ? await axios.put(`http://localhost:8080/api/employees/${employeeId}`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        })
+      : await axios.post(`http://localhost:8080/api/employees`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+    alert("✅ Employee form submitted successfully!");
+    const id = response.data.id || employeeId;
+    navigate(`/view-employee/${id}`);
+  } catch (error) {
+    console.error("❌ Submit Error:", error.response?.data || error.message);
+    alert("❌ Failed to submit. Please check all required fields.");
+  }
+};
 
 
+
+
+const handlePhotoChange = (e) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    setPhotoPreview(URL.createObjectURL(file));
+    setValue("photo", [file]); // ✅ set as array to match react-hook-form file input
+  }
+};
 
   return (
     <div className="employee-container">
@@ -172,150 +242,155 @@ const addressSchema = Yup.object().shape({
         <img src={logo2} alt="DATE Logo" className="infologo-right" />
       </header>
 
-      <div className="employeemiddle-container">
-        <nav className="employeenav-links">
-          {steps.map((label, index) => (
-            <div
-              key={index}
-              className={`employeenav-item ${index === currentStep ? "active" : ""}`}
-              onClick={() => setCurrentStep(index)}
-              style={{ cursor: "pointer" }}
-            >
-              {label}
-            </div>
-          ))}
-        </nav>
-      </div>
-         <u><h2 className="form-title">
-          {steps[currentStep].replace(/^[^\w]+/, "").trim()}
-         </h2></u>
-      <div className="main-content">
-        <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)} className="employee-form">
+          <div className="employeemiddle-container">
+      <nav className="employeenav-links">
+        {steps.map((label, index) => (
+          <div
+            key={index}
+            className={`employeenav-item ${index === currentStep ? "active" : ""}`}
+            onClick={() => setCurrentStep(index)}
+            style={{ cursor: "pointer" }}
+          >
+            {label}
+          </div>
+        ))}
+      </nav>
+    </div>
+    <u><h2 className="form-title">
+      {steps[currentStep].replace(/^[^\w]+/, "").trim()}
+    </h2></u>
+    <div className="main-content">
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)} className="employee-form">
             {currentStep === 0 && (
-  <div className="employeeform-grid">
-    <div className="frame-photo">
-  <label className="label">
-    Photo <span className="optional">(Optional)</span>
-  </label>
-  <div className="photo-box">
-    {photoPreview ? (
-      <img src={photoPreview} alt="Preview" className="photo-preview" />
-    ) : (
-      "Photo"
-    )}
-  </div>
-  
- <div>
-  <input
-    type="file"
-    accept="image/*"
-    {...register("photo")}
-    onChange={(e) => {
-      handlePhotoChange(e);
-      // Keep react-hook-form handling
-      register("photo").onChange(e);
-    }}
-    className="input"
-  />
+           <div className="employeeform-grid">
+             {/* 1. Photo */}
+           <div className="frame-photo">
+           <label className="label">
+          Photo <span className="optional">(Optional)</span>
+           </label>
+            <div className="photo-box">
+           {photoPreview ? (
+               <img src={photoPreview} alt="Preview" className="photo-preview" />
+          ) : (
+           "Photo"
+           )}
+          </div>
+            <div>
+               <input
+            type="file"
+             accept="image/*"
+                {...register("photo")}
+                  onChange={handlePhotoChange}
+              />
+          {errors.photo && <p className="error">{errors.photo.message}</p>}
+       </div>
+       </div>
+        {/* 5. Last Name */}
+          <div>
+           <label className="label">
+           Last Name<span className="required">*</span>
+          </label>
+          <input
+           className="input"
+           placeholder="Last Name"
+           {...register("lastName", { required: "Last Name is required" })}
+          />
+           {errors.lastName && <p className="error">{errors.lastName.message}</p>}
+          </div>
+        
+      {/* 2. Salutation */}
+        <div>
+         <label className="label">
+          Salutation<span className="required">*</span>
+           </label>
+          <select
+             className="input"
+            {...register("salutation", { required: "Salutation is required" })}
+          >
+            <option value="">Select</option>
+           <option value="Mr">Mr</option>
+           <option value="Mrs.">Mrs.</option>
+          <option value="Ms.">Ms.</option>
+          <option value="Miss.">Miss.</option>
+           <option value="Dr.">Dr.</option>
+        </select>
+          {errors.salutation && <p className="error">{errors.salutation.message}</p>}
+           </div> 
+            {/* 6. Gender */}
+        <div>
+          <label className="label">
+           Gender<span className="required">*</span>
+         </label>
+          <select
+            className="input"
+           {...register("gender", { required: "Gender is required" })}
+          >
+           <option value="">Select</option>
+           <option value="Male">Male</option>
+          <option value="Female">Female</option>
+           <option value="Transgender">Transgender</option>
+          </select>
+          {errors.gender && <p className="error">{errors.gender.message}</p>}
+         </div>
+           
+               {/* 3. First Name */}
+         <div>
+          <label className="label">
+              First Name<span className="required">*</span>
+          </label>
+          <input
+            className="input"
+          placeholder="First Name"
+           {...register("firstName", { required: "First Name is required" })}
+         />
+          {errors.firstName && <p className="error">{errors.firstName.message}</p>}
+         </div>
+         {/* 8. DOB */}
+        <div>
+           <label className="label">
+          DOB<span className="required">*</span>
+          </label>
+         <input
+          type="date"
+          className="input"
+           {...register("dob", { required: "Date of Birth is required" })}
+         />
+         {errors.dob && <p className="error">{errors.dob.message}</p>}
+        </div>
 
-  {errors.photo && <p className="error">{errors.photo.message}</p>}
-  </div>
-  </div>
+                   {/* 4. Middle Name */}
+          <div>
+          <label className="label">
+           Middle Name<span className="required">*</span>
+         </label>
+         <input
+           className="input"
+           placeholder="Middle Name"
+           {...register("middleName", { required: "Middle Name is required" })}
+           />
+           {errors.middleName && <p className="error">{errors.middleName.message}</p>}
+         </div>
+          {/* 7. Nationality */}
+      <div>
+        <label className="label">
+           Nationality<span className="required">*</span>
+        </label>
+        <select
+          className="input"
+         {...register("nationality", { required: "Nationality is required" })}
+        >
+          <option value="">Select</option>
+          <option value="Indian">Indian</option>
+         </select>
+         {errors.nationality && <p className="error">{errors.nationality.message}</p>}
+       </div>
+           </div>
 
-    {/* Gender */}
-    <div>
-      <label className="label">Gender<span className="required">*</span></label>
-      <select
-        className="input"
-        {...register("gender", { required: "Gender is required" })}
-      >
-        <option value="">Select</option>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
-        <option value="Transgender">Transgender</option>
-      </select>
-      {errors.gender && <p className="error">{errors.gender.message}</p>}
-    </div>
-
-    {/* First Name */}
-    <div>
-      <label className="label">First Name<span className="required">*</span></label>
-      <input
-        className="input"
-        placeholder="First Name"
-        {...register("firstName", { required: "First Name is required" })}
-      />
-      {errors.firstName && <p className="error">{errors.firstName.message}</p>}
-    </div>
-
-    {/* Salutation */}
-    <div>
-      <label className="label">Salutation<span className="required">*</span></label>
-      <select
-        className="input"
-        {...register("salutation", { required: "Salutation is required" })}
-      >
-        <option value="">Select</option>
-        <option value="Mr">Mr</option>
-        <option value="Mrs.">Mrs.</option>
-        <option value="Ms.">Ms.</option>
-        <option value="Miss.">Miss.</option>
-        <option value="Dr.">Dr.</option>
-      </select>
-      {errors.salutation && <p className="error">{errors.salutation.message}</p>}
-    </div>
-
-    {/* Middle Name */}
-    <div>
-      <label className="label">Middle Name<span className="required">*</span></label>
-      <input
-        className="input"
-        placeholder="Middle Name"
-        {...register("middleName", { required: "Middle Name is required" })}
-      />
-      {errors.middleName && <p className="error">{errors.middleName.message}</p>}
-    </div>
-
-    {/* Nationality */}
-    <div>
-      <label className="label">Nationality<span className="required">*</span></label>
-      <select
-        className="input"
-        {...register("nationality", { required: "Nationality is required" })}
-      >
-        <option value="">Select</option>
-        <option value="Indian">Indian</option>
-      </select>
-      {errors.nationality && <p className="error">{errors.nationality.message}</p>}
-    </div>
-
-    {/* Last Name */}
-    <div>
-      <label className="label">Last Name<span className="required">*</span></label>
-      <input
-        className="input"
-        placeholder="Last Name"
-        {...register("lastName", { required: "Last Name is required" })}
-      />
-      {errors.lastName && <p className="error">{errors.lastName.message}</p>}
-    </div>
-
-    {/* DOB */}
-    <div>
-      <label className="label">DOB<span className="required">*</span></label>
-      <input
-        type="date"
-        className="input"
-        {...register("dob", { required: "Date of Birth is required" })}
-      />
-      {errors.dob && <p className="error">{errors.dob.message}</p>}
-    </div>
-  </div>
-)}
+        )}
             {/* Step 1: Contact Details */}
             {currentStep === 1 && (
-              <div className="form-one">
+              <div className="emp-form-one">
                 <div>
                 <label className="label">Contact Number
                     <span className="required">*</span></label>
@@ -353,82 +428,102 @@ const addressSchema = Yup.object().shape({
                 </div>
               </div>
             )}
-
-{currentStep === 2 && (
-  <div className="form-two">
+       {currentStep === 2 && (
+  <div className="emp-form-two">
+    {/* Relation */}
     <div>
-    
-  <label className="label" htmlFor="relation">
-    Select <span className="required">*</span>
-  </label>
-  <select
-    id="relation"
-    className="input"
-    {...register("relation", { required: "Please select a relation" })}
-  >
-    <option value="">-- Select --</option>
-    <option value="do">D/O</option>
-    <option value="so">S/O</option>
-    <option value="wo">W/O</option>
-  </select>
-  {errors.relation && <p className="error">{errors.relation.message}</p>}
-</div>
+      <label className="label" htmlFor="relation">
+        Select <span className="required">*</span>
+      </label>
+      <select
+        id="relation"
+        className="input"
+        {...register("relation", { required: "Please select a relation" })}
+      >
+        <option value="">-- Select --</option>
+        <option value="do">D/O</option>
+        <option value="so">S/O</option>
+        <option value="wo">W/O</option>
+      </select>
+      {errors.relation && <p className="error">{errors.relation.message}</p>}
+    </div>
 
-
+    {/* Father Name */}
     <div>
-      <label className="label">Father Name</label>
+      <label className="label">Father Name <span className="required">*</span></label>
       <input
         type="text"
         placeholder="Krishna Kumar"
         className="input"
-        {...register("fatherName")}
+        {...register("fatherName", { required: "Father Name is required" })}
       />
+      {errors.fatherName && <p className="error">{errors.fatherName.message}</p>}
     </div>
 
+    {/* Alternative Number */}
     <div>
       <label className="label">Alternative Number</label>
       <input
         type="text"
         placeholder="91-987xxxxxx16"
         className="input"
-        {...register("altNumber")}
+        {...register("altNumber", {
+          pattern: {
+            value: /^\d{10}$/,
+            message: "Must be 10 digits",
+          },
+        })}
       />
+      {errors.altNumber && <p className="error">{errors.altNumber.message}</p>}
     </div>
 
+    {/* Alternative Type */}
     <div>
-     <label className="label" htmlFor="alternativeType">
-  Alternative Type <span className="required">*</span>
-</label>
-<select
-  id="alternativeType"
-  className="input"
-  {...register("alternativeType", { required: "Please select an alternative type" })}
->
-  <option value="">Select Relation</option>
-  <option value="Father">Father</option>
-  <option value="Mother">Mother</option>
-  <option value="Brother">Brother</option>
-  <option value="Sister">Sister</option>
-  <option value="Son">Son</option>
-  <option value="Daughter">Daughter</option>
-  <option value="Spouse">Spouse</option>
-  <option value="Other">Other</option>
-</select>
-{errors.alternativeType && <p className="error">{errors.alternativeType.message}</p>}
+      <label className="label" htmlFor="alternativeType">
+        Alternative Type <span className="required">*</span>
+      </label>
+      <select
+        id="alternativeType"
+        className="input"
+        {...register("alternativeType", { required: "Please select an alternative type" })}
+      >
+        <option value="">Select Relation</option>
+        <option value="Father">Father</option>
+        <option value="Mother">Mother</option>
+        <option value="Brother">Brother</option>
+        <option value="Sister">Sister</option>
+        <option value="Son">Son</option>
+        <option value="Daughter">Daughter</option>
+        <option value="Spouse">Spouse</option>
+        <option value="Other">Other</option>
+      </select>
+      {errors.alternativeType && <p className="error">{errors.alternativeType.message}</p>}
     </div>
   </div>
 )}
 
+
 {currentStep === 3 && (
-        <div className="form-three">
-         <div>
-            <label> Country <span className="required">*</span></label>
-            <select {...register("address.country")} className="input">
-              <option value="">Select Country</option>
-              {countries.map((countries) => ( <option key={countries.id} value={countries.name}> {countries.name}  </option> ))}
-            </select>
-            <p className="error">{errors.address?.country?.message}</p>
-          </div>
+        <div className="emp-form-three">
+        <div>
+  <label className="label">
+    Country <span className="required">*</span>
+  </label>
+  <select
+    className="input"
+    {...register("address.country", { required: "Country is required" })}
+  >
+    <option value="">Select Country</option>
+    <option value="India">India</option>
+    <option value="USA">USA</option>
+    <option value="UK">UK</option>
+    <option value="Canada">Canada</option>
+  </select>
+  {errors.address?.country && (
+    <p className="error">{errors.address.country.message}</p>
+  )}
+</div>
+
 
           <div>
             <label className="label">State <span className="required">*</span></label>
@@ -481,9 +576,10 @@ const addressSchema = Yup.object().shape({
 
 
 {currentStep === 4 && (
-  <div className="form-four">
+  <div className="emp-form-four">
+    {/* Education Field */}
     <div>
-      <label className="label">Education</label>
+      <label className="label">Education <span className="required">*</span></label>
       <select className="input" {...register("professional.education")}>
         <option value="">Select</option>
         <option value="Primary Schooling">Primary Schooling</option>
@@ -493,98 +589,197 @@ const addressSchema = Yup.object().shape({
         <option value="Graduate">Graduate</option>
         <option value="Post-Graduate">Post-Graduate</option>
       </select>
+      {errors.professional?.education && (
+        <p className="error">{errors.professional.education.message}</p>
+      )}
     </div>
 
+    {/* Experience Field */}
     <div>
-      <label className="label">Experience</label>
+      <label className="label">Experience <span className="required">*</span></label>
       <input
         type="text"
         placeholder="15 Years"
         className="input"
         {...register("professional.experience")}
       />
+      {errors.professional?.experience && (
+        <p className="error">{errors.professional.experience.message}</p>
+      )}
     </div>
   </div>
 )}
 
 {currentStep === 5 && (
-  <div className="form-five">
+  <div className="emp-form-five">
+    {/* Bank Name */}
     <div>
-      <label className="label">Bank Name</label>
+      <label className="label">Bank Name <span className="required">*</span></label>
       <input
         type="text"
         placeholder="HDFC Bank"
         className="input"
         {...register("bank.bankName")}
       />
+      {errors.bank?.bankName && <p className="error">{errors.bank.bankName.message}</p>}
     </div>
 
+    {/* Account Number */}
     <div>
-      <label className="label">Account Number</label>
+      <label className="label">Account Number <span className="required">*</span></label>
       <input
         type="text"
         placeholder="281398301653"
         className="input"
         {...register("bank.accountNumber")}
       />
+      {errors.bank?.accountNumber && <p className="error">{errors.bank.accountNumber.message}</p>}
     </div>
 
+    {/* Branch Name */}
     <div>
-      <label className="label">Branch name</label>
+      <label className="label">Branch name <span className="required">*</span></label>
       <input
         type="text"
         placeholder="Madhapur"
         className="input"
         {...register("bank.branchName")}
       />
+      {errors.bank?.branchName && <p className="error">{errors.bank.branchName.message}</p>}
     </div>
 
+    {/* IFSC Code */}
     <div>
-      <label className="label">IFSC Code</label>
+      <label className="label">IFSC Code <span className="required">*</span></label>
       <input
         type="text"
-        placeholder="HDFC0028"
+        placeholder="HDFC0001234"
         className="input"
         {...register("bank.ifscCode")}
       />
+      {errors.bank?.ifscCode && <p className="error">{errors.bank.ifscCode.message}</p>}
     </div>
 
+    {/* Passbook */}
     <div>
-      <label className="label">Passbook</label>
+      <label className="label">Passbook <span className="required">*</span></label>
       <input
         type="file"
         className="input"
         {...register("bank.passbook")}
       />
+      {errors.bank?.passbook && <p className="error">{errors.bank.passbook.message}</p>}
     </div>
   </div>
 )}
 
-{currentStep === 6 && (
-  <div className="form-six">
-    <div>
-      <label className="label">Add Document</label>
-      <select className="input" {...register("documents.documentType")}>
-        <option value="">Select</option>
-        <option value="voter">ID/ Voter Card</option>
-        <option value="aadhar">Aadhar Number</option>
-        <option value="pan">PAN Number</option>
-      </select>
-    </div>
 
-    <div>
-      <label className="label">Upload</label>
-      <input
-        type="file"
-        className="input"
-        {...register("documents.file")}
-      />
-    </div>
+{currentStep === 6 && (
+  <div className="emp-form-six">
+    <label className="label">
+      Add Document <span className="optional"></span>
+    </label>
+
+    <select
+      className="docinput"
+      {...register("documentType", { required: "Document Type is required" })}
+      onChange={(e) => {
+        setSelectedDoc(e.target.value);
+        setValue("documentType", e.target.value); // sync with react-hook-form
+      }}
+    >
+      <option value="">Select</option>
+      <option value="voterId">ID/ Voter Card</option>
+      <option value="aadharNumber">Aadhar Number</option>
+      <option value="panNumber">Pan Number</option>
+      <option value="ppbNumber">PPB Number</option>
+    </select>
+    <p className="error-text">{errors.documentType?.message}</p>
+
+    {/* Voter ID */}
+    {selectedDoc === "voterId" && (
+      <>
+        <input
+          type="text"
+          placeholder="Voter ID"
+          className="input"
+          {...register("voterId", { required: "Voter ID is required" })}
+        />
+        <p className="error-text">{errors.voterId?.message}</p>
+
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          {...register("voterFile", { required: "Voter ID File is required" })}
+        />
+        <p className="error-text">{errors.voterFile?.message}</p>
+      </>
+    )}
+
+    {/* Aadhar */}
+    {selectedDoc === "aadharNumber" && (
+      <>
+        <input
+          type="text"
+          placeholder="Aadhar Number"
+          className="input"
+          {...register("aadharNumber", { required: "Aadhar Number is required" })}
+        />
+        <p className="error-text">{errors.aadharNumber?.message}</p>
+
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          {...register("aadharFile", { required: "Aadhar File is required" })}
+        />
+        <p className="error-text">{errors.aadharFile?.message}</p>
+      </>
+    )}
+
+    {/* PAN */}
+    {selectedDoc === "panNumber" && (
+      <>
+        <input
+          type="text"
+          placeholder="PAN Number"
+          className="input"
+          {...register("panNumber", { required: "PAN Number is required" })}
+        />
+        <p className="error-text">{errors.panNumber?.message}</p>
+
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          {...register("panFile", { required: "PAN File is required" })}
+        />
+        <p className="error-text">{errors.panFile?.message}</p>
+      </>
+    )}
+
+    {/* PPB (Optional) */}
+    {selectedDoc === "ppbNumber" && (
+      <>
+        <input
+          type="text"
+          placeholder="PPB Number"
+          className="input"
+          {...register("ppbNumber")}
+        />
+        <p className="error-text">{errors.ppbNumber?.message}</p>
+
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          {...register("ppbFile")}
+        />
+        <p className="error-text">{errors.ppbFile?.message}</p>
+      </>
+    )}
   </div>
 )}
 
 {currentStep === 7 && (
-  <div className="form-seven">
+  <div className="emp-form-seven">
     <div>
       <label className="label">
         Role/Designation <span className="required">*</span>
@@ -594,6 +789,9 @@ const addressSchema = Yup.object().shape({
         <option value="manager">Manager</option>
         <option value="employee">Employee</option>
       </select>
+      {errors.portalAccess?.role && (
+        <p className="error">{errors.portalAccess.role.message}</p>
+        )}
     </div>
 
     <div>
@@ -605,15 +803,35 @@ const addressSchema = Yup.object().shape({
         <option value="active">Active</option>
         <option value="inactive">Inactive</option>
       </select>
+          {errors.portalAccess?.status && (
+  <p className="error">{errors.portalAccess.status.message}</p>
+)}
     </div>
   </div>
 )}
-
-
-            {/* TODO: Add Steps 2 - 6 here */}
-
-            <div className="employee-btn">
-              {currentStep === 0 ? (
+               <div className="employee-btn">
+            {currentStep === 0 ? (
+              <button
+                type="button"
+                onClick={async () => {
+                  const isValid = await trigger();
+                  if (isValid) setCurrentStep(currentStep + 1);
+                }}
+              >
+                Next
+              </button>
+            ) : currentStep === totalSteps - 1 ? (
+              <>
+                <button type="button" onClick={() => setCurrentStep(currentStep - 1)}>
+                  Previous
+                </button>
+                <button type="submit">Submit</button>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={() => setCurrentStep(currentStep - 1)}>
+                  Previous
+                </button>
                 <button
                   type="button"
                   onClick={async () => {
@@ -623,42 +841,21 @@ const addressSchema = Yup.object().shape({
                 >
                   Next
                 </button>
-              ) : currentStep === totalSteps - 1 ? (
-                <>
-                  <button type="button" onClick={() => setCurrentStep(currentStep - 1)}>
-                    Previous
-                  </button>
-                  <button type="submit">Submit</button>
-                </>
-              ) : (
-                <>
-                  <button type="button" onClick={() => setCurrentStep(currentStep - 1)}>
-                    Previous
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const isValid = await trigger();
-                      if (isValid) setCurrentStep(currentStep + 1);
-                    }}
-                  >
-                    Next
-                  </button>
-                </>
-              )}
-            </div>
-
-            {showSuccessPopup && (
-              <div className="popup">
-                <div className="popup-content">
-                  <h3>Success!</h3>
-                  Employee form submitted successfully.
-                  <button onClick={() => setShowSuccessPopup(false)}>OK</button>
-                </div>
-              </div>
+              </>
             )}
-          </form>
-        </FormProvider>
+          </div>
+
+          {showSuccessPopup && (
+            <div className="popup">
+              <div className="popup-content">
+                <h3>Success!</h3>
+                Employee form submitted successfully.
+                <button onClick={() => setShowSuccessPopup(false)}>OK</button>
+              </div>
+            </div>
+          )}
+        </form>
+      </FormProvider>
 
         {/* Right: Image Section */}
         <div className="image-section">

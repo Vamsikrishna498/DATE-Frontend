@@ -158,6 +158,9 @@ import React, { useEffect, useState } from "react";
   const [selectedIrrigationTab, setSelectedIrrigationTab] = useState("current");
   const [selectedState, setSelectedState] = useState("");
   const [states, setStates] = useState([]);
+   const [selectedDoc, setSelectedDoc] = useState("");
+ 
+  const [farmer, setFarmer] = useState(null);
  
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [districts, setDistricts] = useState([]);
@@ -175,7 +178,7 @@ import React, { useEffect, useState } from "react";
     const totalSteps = steps.length;
     const [photoPreviewStep0, setPhotoPreviewStep0] = useState(null);
     const [photoPreviewStep3, setPhotoPreviewStep3] = useState(null);
-   
+    const [farmerData, setFarmerData] = useState(null);
     const handlePhotoChangeStep0 = (e) => {
     const file = e.target.files[0];
       if (file) {
@@ -191,6 +194,13 @@ import React, { useEffect, useState } from "react";
       setValue("photoStep3", file);
      }
     };
+
+    useEffect(() => {
+  if (farmerData?.photoFileName) {
+    const url = `${process.env.REACT_APP_API_BASE_URL}/uploads/${farmerData.photoFileName}`;
+    setPhotoPreviewStep0(url);
+  }
+}, [farmerData]);
  
     const cropOptions = {
       Grains: [ "Paddy", "Maize", "Red Gram", "Black Gram", "Bengal Gram", "Groundnut", "Green Gram", "Sweet Corn", ],
@@ -215,7 +225,7 @@ import React, { useEffect, useState } from "react";
     });
     const soilTestValue = watch("soilTest");
     console.log("Soil Test Value:", soilTestValue);
-    const selectedDoc = watch("documentType");
+    
     const navigate = useNavigate();
     const { farmerId } = useParams();
    
@@ -283,6 +293,29 @@ const onSubmit = async (data) => {
   }
 };
  
+ // Fetch farmer data if editing
+  useEffect(() => {
+    if (farmerId) {
+      axios.get(`http://localhost:8080/api/farmers/${farmerId}`)
+        .then(res => {
+          setFarmer(res.data);
+        })
+        .catch(err => console.error("Failed to load farmer", err));
+    }
+  }, [farmerId]);
+ 
+  // Populate form fields from farmer data
+  useEffect(() => {
+    if (farmer) {
+      setValue("currentSurveyNumber", farmer.currentSurveyNumber || "");
+      setValue("currentLandHolding", farmer.currentLandHolding || "");
+      setValue("currentGeoTag", farmer.currentGeoTag || "");
+      setValue("currentCrop", farmer.currentCrop || "");
+      setValue("currentNetIncome", farmer.currentNetIncome || "");
+      setValue("currentSoilTest", farmer.currentSoilTest || "");
+      setCropCategoryStep3(farmer.currentCropCategory || "");
+    }
+  }, [farmer, setValue]);
  
  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
  
@@ -358,22 +391,47 @@ useEffect(() => {
   <div className="form-grid">
     <div className="field-left">
       {/* Photo Upload */}
-      <div className="form-group photo-group">
-        <label>Photo <span className="optional"></span></label>
-        <div className="photo-box">
-          {photoPreviewStep0 ? (
-            <img src={photoPreviewStep0} alt="Preview" className="photo-preview" />
-          ) : (
-            <span className="photo-placeholder">No photo selected</span>
-          )}
-        </div>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handlePhotoChangeStep0}
-          className="photo-input"
-        />
-      </div>
+     <div className="form-group photo-group">
+  <label>
+    Photo <span className="optional">*</span>
+  </label>
+
+  {/* Preview box */}
+  <div className="photo-box">
+    {photoPreviewStep0 ? (
+      <img
+        src={photoPreviewStep0}
+        alt="Preview"
+        className="photo-preview"
+      />
+    ) : (
+      <span className="photo-placeholder">No photo selected</span>
+    )}
+  </div>
+
+  {/* File input */}
+  <input
+    type="file"
+    accept="image/*"
+    className="photo-input"
+    {...register("photo", {
+      required: "Photo is required"
+    })}
+    onChange={(e) => {
+      const file = e.target.files[0];
+      if (file) {
+        setPhotoPreviewStep0(URL.createObjectURL(file));
+        setValue("photo", file, { shouldValidate: true }); // Register value for RHF
+      }
+    }}
+  />
+
+  {/* Validation error message */}
+  {errors.photo && (
+    <p className="error-text">{errors.photo.message}</p>
+  )}
+</div>
+
  
           <label className="label">Salutation<span className="required">*</span></label>
       <select
@@ -797,7 +855,7 @@ useEffect(() => {
         Proposed Crop Addition
       </span>
     </div>
-
+ 
     {/* Current Crop Tab */}
     {selectedIrrigationTab === "Current" && (
       <div className="tab-content">
@@ -811,19 +869,19 @@ useEffect(() => {
           </select>
         </label>
         <p className="error">{errors.currentWaterSource?.message}</p>
-
+ 
         <label>
           Borewell wise Discharge in LPH <span className="optional"></span>
           <input {...register("currentDischargeLPH")} />
         </label>
         <p className="error">{errors.borewellDischarge?.message}</p>
-
+ 
         <label>
           Discharge during summer months <span className="optional"></span>
           <input {...register("currentSummerDischarge")} />
         </label>
         <p className="error">{errors.summerDischarge?.message}</p>
-
+ 
         <label>
           Borewell location <span className="optional"></span>
           <input {...register("currentBorewellLocation")} />
@@ -831,7 +889,7 @@ useEffect(() => {
         <p className="error">{errors.borewellLocation?.message}</p>
       </div>
     )}
-
+ 
     {/* Proposed Crop Tab */}
     {selectedIrrigationTab === "Proposed" && (
       <div className="tab-content">
@@ -845,19 +903,19 @@ useEffect(() => {
           </select>
         </label>
         <p className="error">{errors.proposedWaterSource?.message}</p>
-
+ 
         <label>
           Borewell wise Discharge in LPH <span className="optional"></span>
           <input {...register("proposedBorewellDischarge")} />
         </label>
         <p className="error">{errors.proposedBorewellDischarge?.message}</p>
-
+ 
         <label>
           Discharge during summer months <span className="optional"></span>
           <input {...register("proposedSummerDischarge")} />
         </label>
         <p className="error">{errors.proposedSummerDischarge?.message}</p>
-
+ 
         <label>
           Borewell location <span className="optional"></span>
           <input {...register("proposedBorewellLocation")} />
@@ -905,77 +963,106 @@ useEffect(() => {
         {currentStep === 7 && (
           <div className="other-field">
        <label className="label">
-          Add Document <span className="optional"></span>
-       </label>
-       <select className="docinput" {...register("documentType", { required: "Document Type is required" })}>
-            <option value="">Select</option>
-            <option value="voterId">ID/ Voter Card</option>
-          <option value="aadharNumber">Aadhar Number</option>
-           <option value="panNumber">Pan Number</option>
-         <option value="ppbNumber">PPB Number</option>
-          </select>
-          <p>{errors.documentType?.message}</p>
- 
- 
-         {selectedDoc === "voterId" && (
-         <>
-    <input
-      type="text"
-      placeholder="Voter ID"
-      className="input"
-      {...register("voterId", { required: "Voter ID is required" })}
-    />
-    <p>{errors.voterId?.message}</p>
- 
-    <input
-      type="file"
-      accept="image/*,application/pdf"
-      {...register("voterFile", { required: "Voter ID File is required" })}
-    />
-    <p>{errors.voterFile?.message}</p>
-   </>
-  )}
- 
-       {selectedDoc === "aadharNumber" && (
-        <>
-     <input
-       type="text"
-       placeholder="Aadhar Number"
-       {...register("aadharNumber", {
-        required: "Aadhar Number is required"
-       })}
-     />
-     <p>{errors.aadharNumber?.message}</p>
- 
-      <input
-        type="file"
-        {...register("aadharFile", {
-        required: "Aadhar File is required"
-        })}
-      />
-       <p>{errors.aadharFile?.message}</p>
-    </>
-     )}
- 
- 
-      {selectedDoc === "panNumber" && (
-    <>
-    <input   type="text"   placeholder="PAN Number" className="input"
-      {...register("panNumber", { required: "PAN Number is required" })}  />
-     <p>{errors.panNumber?.message}</p>
- 
-    <input  type="file"   accept="image/*,application/pdf"
-      {...register("panFile", { required: "PAN File is required" })} />
-      <p>{errors.panFile?.message}</p>
+      Add Document <span className="optional"></span>
+    </label>
+
+    <select
+      className="docinput"
+      {...register("documentType", { required: "Document Type is required" })}
+      onChange={(e) => {
+        setSelectedDoc(e.target.value);
+        setValue("documentType", e.target.value); // sync with react-hook-form
+      }}
+    >
+      <option value="">Select</option>
+      <option value="voterId">ID/ Voter Card</option>
+      <option value="aadharNumber">Aadhar Number</option>
+      <option value="panNumber">Pan Number</option>
+      <option value="ppbNumber">PPB Number</option>
+    </select>
+    <p className="error-text">{errors.documentType?.message}</p>
+
+    {/* Voter ID */}
+    {selectedDoc === "voterId" && (
+      <>
+        <input
+          type="text"
+          placeholder="Voter ID"
+          className="input"
+          {...register("voterId", { required: "Voter ID is required" })}
+        />
+        <p className="error-text">{errors.voterId?.message}</p>
+
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          {...register("voterFile", { required: "Voter ID File is required" })}
+        />
+        <p className="error-text">{errors.voterFile?.message}</p>
       </>
     )}
-        <input   type="text"  placeholder="PPB Number" className="input" {...register("ppbNumber")} />
-      <p>{errors.ppbNumber?.message}</p>
- 
-       <input  type="file" accept="image/*,application/pdf" {...register("ppbFile")} />
-        <p>{errors.ppbFile?.message} </p>
-          </div>
-                )}
+
+    {/* Aadhar */}
+    {selectedDoc === "aadharNumber" && (
+      <>
+        <input
+          type="text"
+          placeholder="Aadhar Number"
+          className="input"
+          {...register("aadharNumber", { required: "Aadhar Number is required" })}
+        />
+        <p className="error-text">{errors.aadharNumber?.message}</p>
+
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          {...register("aadharFile", { required: "Aadhar File is required" })}
+        />
+        <p className="error-text">{errors.aadharFile?.message}</p>
+      </>
+    )}
+
+    {/* PAN */}
+    {selectedDoc === "panNumber" && (
+      <>
+        <input
+          type="text"
+          placeholder="PAN Number"
+          className="input"
+          {...register("panNumber", { required: "PAN Number is required" })}
+        />
+        <p className="error-text">{errors.panNumber?.message}</p>
+
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          {...register("panFile", { required: "PAN File is required" })}
+        />
+        <p className="error-text">{errors.panFile?.message}</p>
+      </>
+    )}
+
+    {/* PPB (Optional) */}
+    {selectedDoc === "ppbNumber" && (
+      <>
+        <input
+          type="text"
+          placeholder="PPB Number"
+          className="input"
+          {...register("ppbNumber")}
+        />
+        <p className="error-text">{errors.ppbNumber?.message}</p>
+
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          {...register("ppbFile")}
+        />
+        <p className="error-text">{errors.ppbFile?.message}</p>
+      </>
+    )}
+  </div>
+)}
              <div className="btn-group">
   {currentStep === 0 ? (
     <button
