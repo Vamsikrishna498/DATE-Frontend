@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { RegistrationDetails } from "./RegistrationDetails";
 import "../styles/List.css";
+import { AuthContext } from '../AuthContext';
  
 // ------------------ Registration List ------------------
 export const RegistrationList = () => {
@@ -15,7 +16,9 @@ export const RegistrationList = () => {
    const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState('ALL'); // New state for tab
- 
+  const { user } = useContext(AuthContext);
+  const userRole = user?.role;
+
   // Move fetchRegistrations outside useEffect
   const fetchRegistrations = async () => {
     try {
@@ -39,6 +42,32 @@ export const RegistrationList = () => {
   // Only show pending registrations
   const pendingRegistrations = registrations.filter(r => r.status === "PENDING");
 
+  // Approve/Reject handlers
+  const handleApproveUser = async (userId) => {
+    try {
+      await axios.put(`http://localhost:8080/api/auth/users/${userId}/status`, { status: 'APPROVED' }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('User approved successfully');
+      setRefreshFlag(f => !f);
+    } catch (err) {
+      alert('Failed to approve user');
+      console.error(err);
+    }
+  };
+  const handleRejectUser = async (userId) => {
+    try {
+      await axios.put(`http://localhost:8080/api/auth/users/${userId}/status`, { status: 'REJECTED' }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('User rejected');
+      setRefreshFlag(f => !f);
+    } catch (err) {
+      alert('Failed to reject user');
+      console.error(err);
+    }
+  };
+
   // Filter registrations based on selected tab
   const filteredRegistrations = registrations.filter((r) => {
     // Search filter
@@ -52,8 +81,23 @@ export const RegistrationList = () => {
     // Tab filter
     if (selectedTab === 'PENDING') return matchesSearch && r.status === 'PENDING';
     if (selectedTab === 'APPROVED') return matchesSearch && r.status === 'APPROVED';
+    if (selectedTab === 'REJECTED') return matchesSearch && r.status === 'REJECTED';
     return matchesSearch; // ALL
   });
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    try {
+      await axios.delete(`http://localhost:8080/api/super-admin/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('User deleted successfully');
+      setRefreshFlag(f => !f); // Refresh the list
+    } catch (err) {
+      alert('Failed to delete user');
+      console.error(err);
+    }
+  };
   return (
     <div className="list-container">
 
@@ -62,7 +106,7 @@ export const RegistrationList = () => {
       <h3>📋 Registration List</h3>
       
       {/* Tabs for filtering */}
-      <div style={{ marginBottom: '16px' }}>
+      <div style={{ marginBottom: '16px', display: 'flex', gap: '12px' }}>
         <button
           className={selectedTab === 'ALL' ? 'tab-active' : ''}
           onClick={() => setSelectedTab('ALL')}
@@ -72,16 +116,20 @@ export const RegistrationList = () => {
         <button
           className={selectedTab === 'PENDING' ? 'tab-active' : ''}
           onClick={() => setSelectedTab('PENDING')}
-          style={{ marginLeft: 8 }}
         >
           Pending
         </button>
         <button
           className={selectedTab === 'APPROVED' ? 'tab-active' : ''}
           onClick={() => setSelectedTab('APPROVED')}
-          style={{ marginLeft: 8 }}
         >
           Approved
+        </button>
+        <button
+          className={selectedTab === 'REJECTED' ? 'tab-active' : ''}
+          onClick={() => setSelectedTab('REJECTED')}
+        >
+          Rejected
         </button>
       </div>
        <div className="search-container">
@@ -135,8 +183,34 @@ export const RegistrationList = () => {
                   </span>
                 </td>
                 <td>
-                  <button onClick={() => setSelectedId(r.id)}>View</button>
-                 
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => setSelectedId(r.id)} className="view-btn" style={{ background: '#006838', color: '#fff', borderRadius: '6px', padding: '6px 18px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>View</button>
+                    {userRole === 'SUPER_ADMIN' && r.status === 'PENDING' && (
+                      <>
+                        <button
+                          onClick={() => handleApproveUser(r.id)}
+                          style={{ background: '#22c55e', color: '#fff', borderRadius: '6px', padding: '6px 14px', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleRejectUser(r.id)}
+                          style={{ background: '#e53935', color: '#fff', borderRadius: '6px', padding: '6px 14px', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    {userRole === 'SUPER_ADMIN' && (
+                      <button
+                        onClick={() => handleDeleteUser(r.id)}
+                        className="delete-btn"
+                        style={{ background: '#e53935', color: '#fff', borderRadius: '6px', padding: '6px 18px', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
