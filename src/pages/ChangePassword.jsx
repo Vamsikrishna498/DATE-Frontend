@@ -1,129 +1,155 @@
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as Yup from 'yup';
-import { useNavigate, useLocation } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import "../styles/Change.css";
-import background from "../assets/background-image.png";
-import logo from "../assets/rightlogo.png";
- 
-/* ----------------- Validation Schema ----------------- */
-const validationSchema = Yup.object().shape({
-  password: Yup.string()
-    .required('Password is required')
-    .min(8, 'Must be at least 8 characters')
-    .matches(/[A-Z]/, 'Must contain an uppercase letter')
-    .matches(/[!@#$%^&*]/, 'Must include a special character (!@#$%^&*)'),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref('password')], 'Passwords must match')
-    .required('Please confirm your password')
-});
- 
+// This page is used for force password change on first login
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../AuthContext';
+import api from '../api/apiService';
+
 const ChangePassword = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { user, login } = useContext(AuthContext);
   const navigate = useNavigate();
-  const location = useLocation();
- 
-  // Retrieve email/phone from either route or sessionStorage
-  const routedEmail = location.state?.user;
-  const [emailOrPhone, setEmailOrPhone] = useState(
-    routedEmail || sessionStorage.getItem('emailOrPhone') || ''
-  );
- 
-  useEffect(() => {
-    if (emailOrPhone) {
-      sessionStorage.setItem('emailOrPhone', emailOrPhone);
-    }
-  }, [emailOrPhone]);
- 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors }
-  } = useForm({
-    resolver: yupResolver(validationSchema)
+  const [form, setForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
- 
-  const onSubmit = async (data) => {
-    if (!emailOrPhone) {
-      alert('Missing email or phone. Please go through the OTP verification step.');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    // Validation
+    if (form.newPassword !== form.confirmPassword) {
+      setError('New password and confirm password do not match.');
       return;
     }
- 
-    const payload = {
-      emailOrPhone,
-      newPassword: data.password,
-      confirmPassword: data.confirmPassword
-    };
- 
+
+    if (form.newPassword.length < 6) {
+      setError('New password must be at least 6 characters long.');
+      return;
+    }
+
     try {
-      setLoading(true);
- 
-      const response = await fetch('http://34.56.164.208:8080/api/auth/reset-password/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
- 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Failed to reset password');
+      // MOCK: Update password in localStorage
+      const mockApprovedUsers = JSON.parse(localStorage.getItem('mockApprovedUsers') || '[]');
+      const userIndex = mockApprovedUsers.findIndex(u => u.email === user.email);
+      
+      if (userIndex !== -1) {
+        mockApprovedUsers[userIndex] = {
+          ...mockApprovedUsers[userIndex],
+          password: form.newPassword // In real app, this would be hashed
+        };
+        localStorage.setItem('mockApprovedUsers', JSON.stringify(mockApprovedUsers));
       }
- 
-      alert('Password changed successfully!');
-      sessionStorage.removeItem('emailOrPhone');
-      navigate('/login');
-    } catch (error) {
-      console.error(error);
-      alert('Failed to change password: ' + error.message);
-    } finally {
-      setLoading(false);
+
+      setSuccess('Password changed successfully!');
+      
+      // Update user in context to remove forcePasswordChange flag
+      const updatedUser = { ...user, forcePasswordChange: false };
+      login(updatedUser, localStorage.getItem('token'));
+
+      // Redirect to appropriate dashboard after 2 seconds
+      setTimeout(() => {
+        if (user.role === 'SUPER_ADMIN') {
+          navigate('/super-admin/dashboard');
+        } else if (user.role === 'ADMIN') {
+          navigate('/admin/dashboard');
+        } else if (user.role === 'EMPLOYEE') {
+          navigate('/employee/dashboard');
+        } else {
+          navigate('/farmer/dashboard');
+        }
+      }, 2000);
+
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to change password.');
     }
   };
- 
+
+  // If user is not forced to change password, redirect them
+  if (!user?.forcePasswordChange) {
+    if (user?.role === 'SUPER_ADMIN') {
+      navigate('/super-admin/dashboard');
+    } else if (user?.role === 'ADMIN') {
+      navigate('/admin/dashboard');
+    } else if (user?.role === 'EMPLOYEE') {
+      navigate('/employee/dashboard');
+    } else {
+      navigate('/farmer/dashboard');
+    }
+    return null;
+  }
+
   return (
-    <div className="password-container" style={{ backgroundImage: `url(${background})` }}>
-      <img src={logo} alt="Logo" className="password-logo" />
-      <div className="password-box">
-        <h2>Password</h2>
-        <h4>Set a strong password to prevent unauthorized access to your account.</h4>
- 
-        <form onSubmit={handleSubmit(onSubmit)} className="change-pass">
-          <div className="input-wrapper">
-            <label>New Password</label>
-            <div className="password-field">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                {...register('password')}
-              />
-              <span onClick={() => setShowPassword(!showPassword)}>👁️</span>
-            </div>
-            {errors.password && <p className="error-text">{errors.password.message}</p>}
-          </div>
- 
-          <div className="input-wrapper">
-            <label>Confirm New Password</label>
-            <div className="password-field">
-              <input
-                type={showConfirm ? 'text' : 'password'}
-                {...register('confirmPassword')}
-              />
-              <span onClick={() => setShowConfirm(!showConfirm)}>👁️</span>
-            </div>
-            {errors.confirmPassword && (
-              <p className="error-text">{errors.confirmPassword.message}</p>
-            )}
-          </div>
- 
-          <button type="submit" className="change-btn" disabled={loading}>
-            {loading ? 'Updating...' : 'Change Password'}
-          </button>
-        </form>
-      </div>
+    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
+      <h2>Change Password</h2>
+      <p style={{ color: '#666', marginBottom: '20px' }}>
+        Welcome! Please change your temporary password to continue.
+      </p>
+      
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '15px' }}>
+          <label>Current Password (Temporary Password):</label>
+          <input
+            type="password"
+            name="currentPassword"
+            value={form.currentPassword}
+            onChange={handleChange}
+            required
+            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+          />
+        </div>
+        
+        <div style={{ marginBottom: '15px' }}>
+          <label>New Password:</label>
+          <input
+            type="password"
+            name="newPassword"
+            value={form.newPassword}
+            onChange={handleChange}
+            required
+            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+          />
+        </div>
+        
+        <div style={{ marginBottom: '15px' }}>
+          <label>Confirm New Password:</label>
+          <input
+            type="password"
+            name="confirmPassword"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            required
+            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+          />
+        </div>
+        
+        <button 
+          type="submit" 
+          style={{ 
+            width: '100%', 
+            padding: '10px', 
+            backgroundColor: '#007bff', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Change Password
+        </button>
+      </form>
+      
+      {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
+      {success && <p style={{ color: 'green', marginTop: '10px' }}>{success}</p>}
     </div>
   );
 };
- 
+
 export default ChangePassword; 

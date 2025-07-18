@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -19,6 +19,8 @@ const Dashboard = () => {
   const [selectedFilter, setSelectedFilter] = useState("Today");
   const [photoPreviewStep0, setPhotoPreviewStep0] = useState(null);
   const [showActivityModal, setShowActivityModal] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileRef = useRef();
 
   const handleToggle = (menuName) => {
     setOpenMenu(openMenu === menuName ? null : menuName);
@@ -52,6 +54,37 @@ const Dashboard = () => {
       .catch((err) => console.error(err));
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleProfileClick = () => {
+    setProfileMenuOpen((open) => !open);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "/login";
+  };
+
+  const handleChangePassword = () => {
+    window.location.href = "/change-password";
+  };
+
+  const handleSettings = () => {
+    window.location.href = "/profile";
+  };
+
   const handleGenerateReport = () => {
     alert("Report generation feature coming soon!");
   };
@@ -64,17 +97,20 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <header className="dash-bar">
         <img src={logo2} alt="DATE Logo" className="infologo-right" />
-          {farmerData?.photoFileName ? (
-    <img
-      src={`http://localhost:8080/uploads/${farmerData.photoFileName}`}
-      alt="User Icon"
-      className="user-icon"
-    />
-  ) : (
-    <span className="dashboradlogo-left">Admin</span>
-  )}
-
- 
+        {/* Only show the new profile dropdown at the top right */}
+        <div className="profile-dropdown-wrapper" ref={profileRef}>
+          <div className="profile-circle" onClick={handleProfileClick}>
+            <span role="img" aria-label="User" style={{fontSize: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%'}}>👤</span>
+          </div>
+          <span className="chevron-down" onClick={handleProfileClick}>▼</span>
+          {profileMenuOpen && (
+            <div className="profile-dropdown-menu">
+              <button onClick={handleSettings}>Settings</button>
+              <button onClick={handleChangePassword}>Change Password</button>
+              <button onClick={handleLogout}>Log Out</button>
+            </div>
+          )}
+        </div>
       </header>
 
       <div className="banner-image" />

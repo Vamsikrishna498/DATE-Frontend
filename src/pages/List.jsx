@@ -10,50 +10,49 @@ import "../styles/List.css";
 export const RegistrationList = () => {
   const [registrations, setRegistrations] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+  const [refreshFlag, setRefreshFlag] = useState(false); // Add this
   const token = localStorage.getItem("token");
    const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  
-  useEffect(() => {
-    const fetchRegistrations = async () => {
-      try {
-        const response = await axios.get("http://localhost:8080/api/auth/users/all", {
-          params: {
-            role: "Farmer",
-            status: "Active",
-          },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setRegistrations(response.data);
-      } catch (error) {
-        console.error("Error fetching registrations", error);
-      }
-    };
+  const [selectedTab, setSelectedTab] = useState('ALL'); // New state for tab
  
+  // Move fetchRegistrations outside useEffect
+  const fetchRegistrations = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/auth/users/all", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setRegistrations(response.data);
+    } catch (error) {
+      console.error("Error fetching registrations", error);
+    }
+  };
+
+  useEffect(() => {
     if (token) {
       fetchRegistrations();
     }
-  }, [token]);
+  }, [token, refreshFlag]); // Add refreshFlag as dependency
 
-  const handleStatusChange = (id, newStatus) => {
-  setRegistrations((prev) =>
-    prev.map((reg) =>
-      reg.id === id ? { ...reg, status: newStatus } : reg
-    )
-  );
-};
+  // Only show pending registrations
+  const pendingRegistrations = registrations.filter(r => r.status === "PENDING");
+
+  // Filter registrations based on selected tab
   const filteredRegistrations = registrations.filter((r) => {
+    // Search filter
     const name = (r.name || r.userName || "").toLowerCase();
     const email = (r.email || "").toLowerCase();
     const mobile = (r.mobileNumber || "").toLowerCase();
-    
-    return (
+    const matchesSearch =
       name.includes(searchTerm.toLowerCase()) ||
       email.includes(searchTerm.toLowerCase()) ||
-      mobile.includes(searchTerm.toLowerCase())
-    );
+      mobile.includes(searchTerm.toLowerCase());
+    // Tab filter
+    if (selectedTab === 'PENDING') return matchesSearch && r.status === 'PENDING';
+    if (selectedTab === 'APPROVED') return matchesSearch && r.status === 'APPROVED';
+    return matchesSearch; // ALL
   });
   return (
     <div className="list-container">
@@ -62,6 +61,29 @@ export const RegistrationList = () => {
         <>
       <h3>📋 Registration List</h3>
       
+      {/* Tabs for filtering */}
+      <div style={{ marginBottom: '16px' }}>
+        <button
+          className={selectedTab === 'ALL' ? 'tab-active' : ''}
+          onClick={() => setSelectedTab('ALL')}
+        >
+          All
+        </button>
+        <button
+          className={selectedTab === 'PENDING' ? 'tab-active' : ''}
+          onClick={() => setSelectedTab('PENDING')}
+          style={{ marginLeft: 8 }}
+        >
+          Pending
+        </button>
+        <button
+          className={selectedTab === 'APPROVED' ? 'tab-active' : ''}
+          onClick={() => setSelectedTab('APPROVED')}
+          style={{ marginLeft: 8 }}
+        >
+          Approved
+        </button>
+      </div>
        <div className="search-container">
         <input
             type="text"
@@ -71,7 +93,7 @@ export const RegistrationList = () => {
             className="search-input"
            />
           </div>
-      {registrations.length === 0 ? (
+      {filteredRegistrations.length === 0 ? (
         <p>No registrations found.</p>
       ) : (
         <table className="registration-table">
@@ -88,27 +110,29 @@ export const RegistrationList = () => {
             </tr>
           </thead>
           <tbody>
-            {registrations.map((r) => (
+            {filteredRegistrations.map((r) => (
               <tr key={r.id}>
                 <td>{r.name || r.userName}</td>
                 <td>{r.email}</td>
                 <td>{r.mobileNumber || "N/A"}</td>
                 <td>{r.dateOfBirth || "N/A"}</td>
                 <td>{r.state || "N/A"}</td>
-                <td>{r.role}</td>
-                
+                {/* Show role only if status is not PENDING and role exists */}
+                <td>{r.status !== "PENDING" && r.role ? r.role : ""}</td>
                 <td>
-                  <select className="reg-selact"
-                    value={r.status || ""}
-                    onChange={(e) => handleStatusChange(r.id, e.target.value)}
+                  <span
+                    className={
+                      r.status === "APPROVED"
+                        ? "status-approved"
+                        : r.status === "PENDING"
+                        ? "status-pending"
+                        : r.status === "REJECTED"
+                        ? "status-rejected"
+                        : "status-default"
+                    }
                   >
-                    <option value="">Select status</option>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="Return">Return</option>
-                  </select>
+                    {r.status}
+                  </span>
                 </td>
                 <td>
                   <button onClick={() => setSelectedId(r.id)}>View</button>
@@ -126,7 +150,10 @@ export const RegistrationList = () => {
       {selectedId && (
         <RegistrationDetails
           id={selectedId}
-          onBack={() => setSelectedId(null)}
+          onBack={() => {
+            setSelectedId(null);
+            setRefreshFlag(f => !f); // Toggle to trigger refresh
+          }}
         />
       )}
     </div>

@@ -72,93 +72,24 @@ const handlePhotoChangeStep3 = (e) => {
   const [farmerData, setFarmerData] = useState(null);
 
   useEffect(() => {
-  fetch("http://localhost:8080/api/farmers/5")
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You are not logged in.");
+    return;
+  }
+
+  fetch(`http://localhost:8080/api/farmers/${farmerId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
     .then((res) => res.json())
     .then((data) => {
-      console.log("Farmer Data:", data); // <-- This line important
+      console.log("Farmer Data:", data); // Check the photoFileName here!
       setFarmerData(data);
+      reset(data); // <-- This line populates the form fields!
     })
     .catch((err) => console.error(err));
-}, []);
-  const methods = useForm({
-    mode: "onChange",
-    resolver: yupResolver(stepSchemas[currentStep]),
-    defaultValues: {},
-  });
- 
-
-const onSubmit = (data) => {
-  console.log(data); // or send to API
-};
-
- 
-   
- const userPhoto = "https://via.placeholder.com/40"; 
-const handleChange = (e) => {
-  const { name, value } = e.target;
-  setFarmer((prev) => ({ ...prev, [name]: value }));
-};
- 
-const handleFileChange = (e) => {
-  const { name, files } = e.target;
-  setFarmer((prev) => ({ ...prev, [name]: files[0] }));
-};
- 
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-  const handlePhotoUpload = (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    setPhotoPreviewStep0(URL.createObjectURL(file));
-  }
-};
-useEffect(() => {
-  const fetchFarmerData = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You are not logged in.");
-      return;
-    }
-
-    if (!farmerId || farmerId === "undefined") {
-      console.warn("No valid farmer ID found in URL");
-      return;
-    }
-
-    try {
-      const response = await axios.get(`http://localhost:8080/api/farmers/${farmerId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const farmerData = response.data;
-
-      // Update form values and local state
-      reset(farmerData);
-      setFarmer(farmerData);
-
-      if (farmerData.photo) {
-        setPhotoPreviewStep0(farmerData.photo); // Show fetched photo (can be full URL or relative)
-      }
-
-    } catch (error) {
-      console.error("❌ Error fetching farmer data:", error);
-      alert("Failed to fetch farmer data.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchFarmerData(); // Run fetch function
 }, [farmerId, reset]);
 
 const sidebarSteps = [
@@ -243,15 +174,13 @@ const sidebarSteps = [
       </div>
         </div>
  
-        <FormProvider {...methods}>
- 
     <form onSubmit={handleSubmit((data) => console.log("Submitted", data))} className="view-farmer-form">
      
     <div className="step-container">
       <h2>{sidebarSteps[currentStep]}</h2>
  
       {/* Step 0: Personal Information */}
-     {currentStep === 0 && (
+    {currentStep === 0 && (
   <>
     {!isEditMode ? (
       <>
@@ -265,8 +194,8 @@ const sidebarSteps = [
           {farmerData?.photoFileName ? (
             <div className="view-photo-box">
               <img
-                src={`${process.env.REACT_APP_API_BASE_URL}/uploads/${farmerData.photoFileName}`}
-                alt="Farmer Photo"
+                src={`http://localhost:8080/uploads/${farmerData.photoFileName}`}
+                alt={`Farmer ${farmerData.firstName || ""} ${farmerData.lastName || ""}`}
                 className="view-photo"
                 style={{
                   width: "200px",
@@ -281,6 +210,7 @@ const sidebarSteps = [
           )}
         </div>
 
+        {/* Remaining View Fields */}
         <div className="viewinfo-row">
           <div><strong>Salutation:</strong> {watchedFields.salutation}</div>
           <div><strong>Gender:</strong> {watchedFields.gender}</div>
@@ -323,9 +253,24 @@ const sidebarSteps = [
                   }
                 }}
               />
-            
+              {photoPreviewStep0 && (
+                <img
+                  src={photoPreviewStep0}
+                  alt="Preview"
+                  className="edit-photo-preview"
+                  style={{
+                    width: "200px",
+                    height: "auto",
+                    marginTop: "10px",
+                    objectFit: "cover",
+                    borderRadius: "8px",
+                  }}
+                />
+              )}
+              {errors.photo && <p className="error">{errors.photo.message}</p>}
             </div>
 
+            {/* Left fields */}
             <label>Salutation <span className="required">*</span></label>
             <select {...register("salutation")} className="viweinput">
               <option value="">Select</option>
@@ -351,6 +296,7 @@ const sidebarSteps = [
           </div>
 
           <div className="field-right">
+            {/* Right fields */}
             <label>Gender <span className="required">*</span></label>
             <select {...register("gender")} className="viweinput">
               <option value="">Select</option>
@@ -1056,7 +1002,6 @@ const sidebarSteps = [
  
     </div>
   </form>
-</FormProvider>
  
       </div>
     </div>

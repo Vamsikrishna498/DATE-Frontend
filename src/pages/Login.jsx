@@ -1,93 +1,109 @@
-import React from "react";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup"; 
-import * as yup from "yup";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import "../styles/Login.css";
-import background from "../assets/background-image.png";
-import logo from "../assets/rightlogo.png";
-import illustration from "../assets/illustration.png";
- 
-// Validation Schema for login page
-const schema = yup.object().shape({
-  userName: yup.string().required("userName is required"),
-  password: yup
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
-});
- 
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../AuthContext';
+import api from '../api/apiService';
+import logo from '../assets/rightlogo.png';
+import background from '../assets/background-image.png';
+import '../styles/Login.css';
+
 const Login = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm({
-    resolver: yupResolver(schema),
-  });
- 
+  const { login } = useContext(AuthContext);
+  const [userName, setUserName] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
- 
- const onSubmit = async (data) => {
-  try {
-    const response = await axios.post("http://localhost:8080/api/auth/login", data);
-    console.log("Login Response:", response.data);
- 
-    if (response.data && response.data.token) {
-      localStorage.setItem("token", response.data.token);
-      navigate("/dashboard");
-    } else {
-      alert("Login failed. Please check your credentials.");
-      console.error("Token missing in response:", response.data);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const loginData = { userName, password };
+      const response = await api.post('/auth/login', loginData);
+      const { token } = response.data;
+      try {
+        const userResponse = await api.get('/user/profile');
+        const userData = userResponse.data;
+        const user = {
+          userName: userData.userName || userName,
+          name: userData.name,
+          email: userData.email,
+          role: userData.role,
+          forcePasswordChange: userData.forcePasswordChange || false,
+          status: userData.status
+        };
+        login(user, token);
+        if (user.role === 'SUPER_ADMIN') {
+          navigate('/super-admin/dashboard');
+        } else if (user.role === 'ADMIN') {
+          navigate('/admin/dashboard');
+        } else if (user.role === 'EMPLOYEE') {
+          navigate('/employee/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
+      } catch (profileErr) {
+        const user = {
+          userName: userName,
+          role: 'FARMER',
+          forcePasswordChange: false
+        };
+        login(user, token);
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      setError('Invalid credentials or server error.');
+    } finally {
+      setLoading(false);
     }
- 
-  } catch (error) {
-    alert("Login Failed!");
-    console.error(error);
-  }
-}; 
+  };
+
   return (
     <div
       className="login-container"
       style={{ backgroundImage: `url(${background})` }}
     >
-      <img src={logo} alt="Logo" className="logo" />
- 
-      <div className="login-content"> 
+      <div className="login-content">
         <div className="login-form">
-          <h2>Login to your account</h2>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="loginform-row">
-              <div className="form-group">
-                <label>Email*</label>
-                <input type="text" {...register("userName")} />
-                <p className="error">{errors.userName?.message}</p>
-              </div>
-              <div className="form-group">
-                <label>Password *</label>
-                <input type="password" {...register("password")} />
-                <p className="error">{errors.password?.message}</p>
-              </div>
+          <img src={logo} alt="Logo" className="logo" />
+          <h2>Login</h2>
+          <form onSubmit={handleSubmit} className="login-form-row">
+            <div className="loginform-group">
+              <label>Email/Username:</label>
+              <input
+                type="text"
+                value={userName}
+                onChange={e => setUserName(e.target.value)}
+                required
+                disabled={loading}
+                placeholder="Enter your email or username"
+              />
             </div>
- 
-            <button type="submit" className="login-btn">
-              Login
+            <div className="loginform-group">
+              <label>Password:</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                placeholder="Enter your password"
+              />
+            </div>
+            {error && <div className="login-error">{error}</div>}
+            <button type="submit" className="login-btn" disabled={loading}>
+              {loading ? 'Logging in...' : 'Login'}
             </button>
-            <div className="loginform-links">
-              <a href="/forgot-password">Forgot your password?</a>
-              
-            </div>
           </form>
+          <div className="loginform-links">
+            <a href="/forgot-username">Forgot Username?</a>&nbsp;|&nbsp;
+            <a href="/forgot-password">Forgot Password?</a>
+          </div>
         </div>
-      </div>
- 
-      <div className="login-image">
-        <img src={illustration} alt="Login Illustration" />
       </div>
     </div>
   );
 };
- 
+
 export default Login;

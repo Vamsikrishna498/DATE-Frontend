@@ -1,88 +1,98 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/OtpVerification.jsx
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import background from "../assets/background-image.png";
-import logo from "../assets/rightlogo.png";
-import "../styles/OtpVerification.css";
+ 
+import background from '../assets/background-image.png';
+import logo       from '../assets/rightlogo.png';
+import '../styles/OtpVerification.css';
  
 const OtpVerification = () => {
-  const [otp, setOtp] = useState('');
-  const navigate = useNavigate();
-  const location = useLocation();
+  /* ───────── STATE ───────── */
+  const [otp,         setOtp]         = useState('');
+  const [timer,       setTimer]       = useState(30);  // 30‑second cooldown
+  const [canResend,   setCanResend]   = useState(false);
  
-  const { target, type } = location.state || {}; // Expecting { target, type }
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const { email, type } = location.state || {};        // { email, type: "userId" | "password" }
  
+  /* ───────── GUARD ───────── */
   useEffect(() => {
-    if (!target || !type) {
-      alert("Invalid navigation. Redirecting to Forgot page.");
+    if (!email || !type) {
+      alert('Invalid navigation – redirecting.');
       navigate('/forgot-password');
     }
-  }, [target, type, navigate]);
+  }, [email, type, navigate]);
  
+  /* ───────── TIMER ───────── */
+  useEffect(() => {
+    if (timer === 0) { setCanResend(true); return; }
+    const id = setInterval(() => setTimer(t => t - 1), 1_000);
+    return () => clearInterval(id);
+  }, [timer]);
+ 
+  /* ───────── VERIFY ───────── */
   const handleVerify = async () => {
-    if (!otp || otp.length !== 6) {
-      alert("Please enter a valid 6-digit OTP.");
-      return;
-    }
- 
+    if (otp.length !== 6) { alert('Enter a 6‑digit OTP'); return; }
     try {
-      // Always verify OTP first
-      const res = await axios.post('http://localhost:8080/api/auth/verify-otp', {
-        emailOrPhone: target,
-        otp: otp
-      });
- 
-      alert(res.data || "OTP Verified Successfully");
- 
+      await axios.post('http://localhost:8080/api/auth/verify-otp', { email, otp });
+      alert('OTP verified ✔️');
       if (type === 'userId') {
-        navigate('/change-userid', { state: { user: target } });
-      } else if (type === 'password') {
-        navigate('/change-password', { state: { user: target, otp } }); // Pass OTP along for confirm
+        navigate('/change-userid', { state: { email } });
+      } else {
+        navigate('/change-password', { state: { email } });
       }
-    } catch (error) {
-      console.error(error);
-      alert("Invalid or expired OTP. Please try again.");
+    } catch (err) {
+      console.error(err);
+      alert('Invalid or expired OTP.');
     }
   };
  
+  /* ───────── RESEND ───────── */
   const handleResend = async () => {
+    if (!canResend) return;
     try {
-      const resendUrl = type === 'userId'
-        ? 'http://localhost:8080/api/auth/send-otp' // Adjust if separate endpoint exists
-        : 'http://localhost:8080/api/auth/forgot-password';
- 
-      await axios.post(resendUrl, {
-        emailOrPhone: target
-      });
- 
-      alert("OTP resent to your email.");
-    } catch (error) {
-      console.error(error);
-      alert("Failed to resend OTP.");
+      await axios.post('http://localhost:8080/api/auth/resend-otp', { email });
+      alert('OTP resent!');
+      setTimer(30);
+      setCanResend(false);
+      setOtp('');
+    } catch (err) {
+      console.error(err);
+      alert('Could not resend OTP.');
     }
   };
  
+  /* ───────── UI ───────── */
   return (
     <div className="otp-container" style={{ backgroundImage: `url(${background})` }}>
       <img src={logo} alt="Logo" className="otp-logo" />
+ 
       <div className="otp-box">
-        <h2>Verify Email Address</h2>
-        <p><strong>OTP has been sent to {target || 'your email'}</strong></p>
+        <h2>Email Verification</h2>
+        <p>We sent a 6‑digit code to <strong>{email}</strong></p>
  
         <label htmlFor="otpInput">Enter OTP</label>
         <input
           id="otpInput"
-          type="password"
-          value={otp}
+          className="otp-input"
           maxLength={6}
-          onChange={(e) => setOtp(e.target.value)}
+          value={otp}
+          onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
         />
  
-        <span className="resend-otp" onClick={handleResend}>Resend OTP</span>
+        <div className="resend-otp">
+          {canResend ? (
+            <button onClick={handleResend} className="resend-btn">Resend OTP</button>
+          ) : (
+            <span className="resend-timer">Resend in {timer}s</span>
+          )}
+        </div>
  
         <div className="otp-buttons">
-          <button onClick={handleVerify} className="verify-btn">Verify</button>
-          <button onClick={() => navigate(-1)} className="back-btn">Back</button>
+          <button className="verify-btn" onClick={handleVerify}>Verify</button>
+          <button className="back-btn"   onClick={() => navigate(-1)}>Back</button>
         </div>
       </div>
     </div>
@@ -90,3 +100,5 @@ const OtpVerification = () => {
 };
  
 export default OtpVerification;
+ 
+ 

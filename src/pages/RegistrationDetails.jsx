@@ -69,24 +69,33 @@ export const RegistrationDetails = ({ id, onBack }) => {
       <div className="status-section">
         <p>
           <strong>Current Status:</strong>{" "}
-          <span className={`status ${registration.status?.toLowerCase()}`}>
-            {registration.status}
-          </span>
+          <span className={`status ${registration.status?.toLowerCase()}`}>{registration.status}</span>
         </p>
 
-        <select
-          value={newStatus}
-          onChange={(e) => setNewStatus(e.target.value)}
-        >
-          <option value="">Select Action</option>
-          <option value="Approved">Approve</option>
-          <option value="Rejected">Reject</option>
-          <option value="Return">Refer Back</option>
-        </select>
+        {/* Only show status update if status is PENDING */}
+        {registration.status === "PENDING" && (
+          <>
+            <select
+              value={newStatus}
+              onChange={(e) => setNewStatus(e.target.value)}
+            >
+              <option value="">Select Action</option>
+              <option value="APPROVED">Approve</option>
+              <option value="REJECTED">Reject</option>
+              <option value="RETURN">Refer Back</option>
+            </select>
+            <button disabled={!newStatus} onClick={handleStatusUpdate}>
+              Update Status
+            </button>
+          </>
+        )}
 
-        <button disabled={!newStatus} onClick={handleStatusUpdate}>
-          Update Status
-        </button>
+        {/* Always show role if it exists */}
+        {registration.role && (
+          <p>
+            <strong>Assigned Role:</strong> {registration.role}
+          </p>
+        )}
       </div>
     </div>
   );

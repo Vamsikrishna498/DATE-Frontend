@@ -19,6 +19,12 @@ import { RegistrationList, FarmerList, EmployeeList } from "./pages/List";
 import { RegistrationDetails } from "./pages/RegistrationDetails";
 import Viewemployee from "./pages/Viewemployee";
 
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import EmployeeDashboard from "./pages/EmployeeDashboard";
+import PrivateRoute from "./PrivateRoute";
+import { AuthProvider } from "./AuthContext";
+
 import logo1 from "./assets/leftlogo.png";
 import logo2 from "./assets/rightlogo.png";
 import "./App.css";
@@ -88,9 +94,11 @@ function AppContent() {
     "/change-password",
     "/otp-verification",
     "/dashboard",
+    "/super-admin/dashboard",
     "/fpo-form",
     "/admin-config",
     "/employee-details",
+    "/test-super-admin",
   ];
 
   // Dynamic View Routes
@@ -133,6 +141,35 @@ function AppContent() {
           path="/profile"
           element={localStorage.getItem("token") ? <UserProfile /> : <Navigate to="/login" />}
         />
+        {/* Role-based dashboards */}
+        <Route element={<PrivateRoute allowedRoles={["SUPER_ADMIN"]} />}>
+          <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
+        </Route>
+        <Route element={<PrivateRoute allowedRoles={["ADMIN"]} />}>
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        </Route>
+        <Route element={<PrivateRoute allowedRoles={["EMPLOYEE"]} />}>
+          <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
+        </Route>
+        
+        {/* TEST ROUTE: Super Admin Dashboard without authentication */}
+        <Route path="/test-super-admin" element={<SuperAdminDashboard />} />
+        
+        {/* SIMPLE TEST ROUTE */}
+        <Route path="/simple-test" element={
+          <div style={{ 
+            padding: '50px', 
+            backgroundColor: 'red', 
+            color: 'white',
+            fontSize: '32px',
+            textAlign: 'center',
+            minHeight: '100vh'
+          }}>
+            <h1>🔴 SIMPLE TEST ROUTE</h1>
+            <p>If you see this red page, routing is working!</p>
+            <p>Time: {new Date().toLocaleString()}</p>
+          </div>
+        } />
       </Routes>
     );
   }
@@ -147,10 +184,16 @@ function AppContent() {
 }
 
 function App() {
+  console.log("App component is rendering");
+  
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <div>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
+    </div>
   );
 }
 

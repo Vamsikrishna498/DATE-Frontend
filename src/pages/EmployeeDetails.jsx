@@ -511,7 +511,7 @@ const handlePhotoChange = (e) => {
   </label>
   <select
     className="input"
-    {...register("address.country", { required: "Country is required" })}
+    {...register("country", { required: "Country is required" })}
   >
     <option value="">Select Country</option>
     <option value="India">India</option>
@@ -520,7 +520,7 @@ const handlePhotoChange = (e) => {
     <option value="Canada">Canada</option>
   </select>
   {errors.address?.country && (
-    <p className="error">{errors.address.country.message}</p>
+    <p className="error">{errors.country?.message}</p>
   )}
 </div>
 
@@ -540,7 +540,7 @@ const handlePhotoChange = (e) => {
               <option value="">Select District</option>
               {districts.map((districts) => ( <option key={districts.id} value={districts.name}> {districts.name}  </option> ))}
             </select>
-            <p className="error">{errors.address?.district?.message}</p>
+            <p className="error">{errors.district?.message}</p>
           </div>
 
           <div>
@@ -549,7 +549,7 @@ const handlePhotoChange = (e) => {
               <option value="">Select Block</option>
               {blocks.map((blocks) => ( <option key={blocks.id} value={blocks.name}> {blocks.name}  </option> ))}
             </select>
-            <p className="error">{errors.address?.block?.message}</p>
+            <p className="error">{errors.block?.message}</p>
           </div>
 
           <div>
@@ -558,7 +558,7 @@ const handlePhotoChange = (e) => {
               <option value="">Select Village</option>
               {villages.map((villages) => ( <option key={villages.id} value={villages.name}> {villages.name}  </option> ))}
             </select>
-            <p className="error">{errors.address?.village?.message}</p>
+            <p className="error">{errors.village?.message}</p>
           </div>
 
           <div>
@@ -569,7 +569,7 @@ const handlePhotoChange = (e) => {
               className="input"
               {...register("address.zipcode")}
             />
-            <p className="error">{errors.address?.zipcode?.message}</p>
+            <p className="error">{errors.zipcode?.message}</p>
           </div>
         </div>
       )}
@@ -590,7 +590,7 @@ const handlePhotoChange = (e) => {
         <option value="Post-Graduate">Post-Graduate</option>
       </select>
       {errors.professional?.education && (
-        <p className="error">{errors.professional.education.message}</p>
+        <p className="error">{errors.education?.message}</p>
       )}
     </div>
 
@@ -604,7 +604,7 @@ const handlePhotoChange = (e) => {
         {...register("professional.experience")}
       />
       {errors.professional?.experience && (
-        <p className="error">{errors.professional.experience.message}</p>
+        <p className="error">{errors.experience?.message}</p>
       )}
     </div>
   </div>
@@ -621,7 +621,7 @@ const handlePhotoChange = (e) => {
         className="input"
         {...register("bank.bankName")}
       />
-      {errors.bank?.bankName && <p className="error">{errors.bank.bankName.message}</p>}
+      {errors.bank?.bankName && <p className="error">{errors.bankName?.message}</p>}
     </div>
 
     {/* Account Number */}
@@ -633,7 +633,7 @@ const handlePhotoChange = (e) => {
         className="input"
         {...register("bank.accountNumber")}
       />
-      {errors.bank?.accountNumber && <p className="error">{errors.bank.accountNumber.message}</p>}
+      {errors.bank?.accountNumber && <p className="error">{errors.accountNumber?.message}</p>}
     </div>
 
     {/* Branch Name */}
@@ -645,7 +645,7 @@ const handlePhotoChange = (e) => {
         className="input"
         {...register("bank.branchName")}
       />
-      {errors.bank?.branchName && <p className="error">{errors.bank.branchName.message}</p>}
+      {errors.bank?.branchName && <p className="error">{errors.branchName?.message}</p>}
     </div>
 
     {/* IFSC Code */}
@@ -657,7 +657,7 @@ const handlePhotoChange = (e) => {
         className="input"
         {...register("bank.ifscCode")}
       />
-      {errors.bank?.ifscCode && <p className="error">{errors.bank.ifscCode.message}</p>}
+      {errors.bank?.ifscCode && <p className="error">{errors.ifscCode?.message}</p>}
     </div>
 
     {/* Passbook */}
@@ -668,7 +668,7 @@ const handlePhotoChange = (e) => {
         className="input"
         {...register("bank.passbook")}
       />
-      {errors.bank?.passbook && <p className="error">{errors.bank.passbook.message}</p>}
+      {errors.bank?.passbook && <p className="error">{errors.passbook?.message}</p>}
     </div>
   </div>
 )}
@@ -867,4 +867,3 @@ const handlePhotoChange = (e) => {
 }
 
 export default EmployeeDetails;
-

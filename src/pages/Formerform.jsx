@@ -151,235 +151,284 @@ import React, { useEffect, useState } from "react";
     const steps = ["Personal Information", "Address","Professional Information","Current Crop Information",
                   "Proposed Crop Information",  "Irrigation Details","Other Information", "Documents",];
  
-    const FarmerForm = ({ currentStep, setCurrentStep, isEditMode }) => {
-    console.log("Edit mode?", isEditMode);
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [countries, setCountries] = useState([]);
-  const [selectedIrrigationTab, setSelectedIrrigationTab] = useState("current");
-  const [selectedState, setSelectedState] = useState("");
-  const [states, setStates] = useState([]);
-   const [selectedDoc, setSelectedDoc] = useState("");
+                  const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+                  const FarmerForm = ({ currentStep, setCurrentStep, isEditMode }) => {
+                  const [selectedCountry, setSelectedCountry] = useState("");
+                  const [countries, setCountries] = useState([]);
+                  const [selectedIrrigationTab, setSelectedIrrigationTab] = useState("current");
+                  const [selectedState, setSelectedState] = useState("");
+                  const [states, setStates] = useState([]);
+                   const [selectedDoc, setSelectedDoc] = useState("");
+                 
+                  const [farmer, setFarmer] = useState(null);
+                 
+                  const [selectedDistrict, setSelectedDistrict] = useState("");
+                  const [districts, setDistricts] = useState([]);
+                 
+                  const [selectedMandal, setSelectedMandal] = useState("");
+                  const [mandals, setMandals] = useState([]);
+                 
+                  const [villages, setVillages] = useState([]);
+                 
+                  const [countryOptions, setCountryOptions] = useState([]);
+                  const [districtOptions, setDistrictOptions] = useState([]);
+                  const [mandalOptions, setMandalOptions] = useState([]);
+                  const [villageOptions, setVillageOptions] = useState([]);
+                 
+                    const totalSteps = steps.length;
+                    const [photoPreviewStep0, setPhotoPreviewStep0] = useState(null);
+                    const [photoPreviewStep3, setPhotoPreviewStep3] = useState(null);
+                    const [farmerData, setFarmerData] = useState(null);
+                 
+                    const navigate = useNavigate();
+                    const { farmerId } = useParams();
+                    const [waterSourceCategory, setWaterSourceCategory] = useState("");
+                    const waterSourceOptions = ["Borewell", "Open Well", "Canal", "Tank", "River", "Drip"];
+                    const [photoPreview, setPhotoPreview] = useState(null);
+                    const [cropCategory, setCropCategory] = useState("");
+                    const [cropCategoryStep3, setCropCategoryStep3] = useState("");
+                    const [cropCategoryStep4, setCropCategoryStep4] = useState("");
+                    const [passbookPreview, setPassbookPreview] = useState(null);
+                    const [documentPreview, setDocumentPreview] = useState(null);
+                    const methods = useForm({
+                      resolver: yupResolver(stepSchemas[currentStep]),
+                       mode: "onChange",
+                    });
+                    const { register, handleSubmit, control, formState: { errors }, setValue, watch, reset, trigger,} = useForm({
+                      resolver: yupResolver(stepSchemas[currentStep]),
+                      mode: "onChange",
+                    });
+                 
+                      const cropOptions = {
+                      Grains: [ "Paddy", "Maize", "Red Gram", "Black Gram", "Bengal Gram", "Groundnut", "Green Gram", "Sweet Corn", ],
+                      Vegetables: [ "Dry Chilli", "Mirchi", "Tomato", "Ladies Finger", "Ridge Gourd", "Broad Beans", "Brinjal",
+                                "Cluster Beans", "Bitter Gourd", "Bottle Gourd", ],
+                      Cotton: ["Cotton"],
+                    };
+                 
+                 const handleFileChange = (e, field, setPreview) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setValue(field, file);
+                      setPreview(URL.createObjectURL(file));
+                    }
+                  };
+                 
+                 
+                 
+                const handlePhotoChangeStep0 = (e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setValue("photo", file);
+                    setPhotoPreviewStep0(URL.createObjectURL(file));
+                  }
+                };
+                 
+                const handlePhotoChangeStep3 = (e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setValue("photoStep3", file);
+                    setPhotoPreviewStep3(URL.createObjectURL(file));
+                  }
+                };
+                 
+                 
+                useEffect(() => {
+                  const fetchFarmer = async () => {
+                    if (!isEditMode || !farmerId) return;
+                    const token = localStorage.getItem("token");
+                    if (!token) {
+                      alert("Please login first!");
+                      window.location.href = "/login";
+                      return;
+                    }
+                    try {
+                      const response = await axios.get(
+                        `http://localhost:8080/api/farmers/${farmerId}`,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      );
+                 
+                      const data = response.data;
+                      setFarmerData(data);
+                      reset(data);
+                 
+                      if (data.photoFileName) {
+                        setPhotoPreviewStep0(`${BASE_URL}${data.photoFileName}`);
+                      }
+                 
+                      if (data.photoStep3FileName) {
+                        setPhotoPreviewStep3(`${BASE_URL}${data.photoStep3FileName}`);
+                      }
+                    } catch (err) {
+                      if (err.response && err.response.status === 403) {
+                        alert("Session expired or unauthorized. Please login again.");
+                        window.location.href = "/login";
+                      } else {
+                        console.error("❌ Failed to fetch farmer", err);
+                      }
+                    }
+                  };
+                 
+                  fetchFarmer();
+                }, [isEditMode, farmerId]);
+                 
+                 
+                const onSubmit = async (data) => {
+                  const formData = new FormData();
+                  const farmerDto = { ...data };
+                 
+                  // Remove file fields from JSON
+                  delete farmerDto.photo;
+                  delete farmerDto.soilTestCertificate;
+                  delete farmerDto.aadhaarFile;
+                  delete farmerDto.panFile;
+                 
+                  formData.append(
+                    "farmerDto",
+                    new Blob([JSON.stringify(farmerDto)], { type: "application/json" })
+                  );
+                 
+                  // Append files conditionally
+                  if (data.photo?.[0]) formData.append("photo", data.photo[0]);
+                  if (data.soilTestCertificate?.[0]) formData.append("soilTestCertificate", data.soilTestCertificate[0]);
+                  if (data.aadhaarFile?.[0]) formData.append("aadhaarFile", data.aadhaarFile[0]);
+                  if (data.panFile?.[0]) formData.append("panFile", data.panFile[0]);
+                 
+                  const token = localStorage.getItem("token");
+                  if (!token) {
+                    alert("You are not logged in. Please log in to continue.");
+                    return;
+                  }
+                 
+                  try {
+                    let response;
+                 
+                    if (isEditMode) {
+                      response = await axios.put(
+                        `http://localhost:8080/api/farmers/${farmerId}`,
+                        formData,
+                        {
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "multipart/form-data",
+                          },
+                        }
+                      );
+                    } else {
+                      response = await axios.post(
+                        "http://localhost:8080/api/farmers",
+                        formData,
+                        {
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "multipart/form-data",
+                          },
+                        }
+                      );
+                    }
+                 
+                    alert("✅ Farmer form submitted successfully!");
+                    const id = response.data.id || farmerId;
+                    navigate(`/view-farmer/${id}`);
+                  } catch (error) {
+                    console.error("❌ Submit Error:", error.response?.data || error.message);
+                    alert("❌ Failed to submit. Please try again.");
+                  }
+                };
+                 
+                  // Edit mode fetch
+                  useEffect(() => {
+                    const fetchFarmer = async () => {
+                      if (!isEditMode || !farmerId) return;
+                      const token = localStorage.getItem("token");
+                 
+                      try {
+                        const { data } = await axios.get(`${BASE_URL}/api/farmers/${farmerId}`, {
+                          headers: { Authorization: `Bearer ${token}` },
+                        });
+                 
+                        Object.entries(data).forEach(([key, value]) => {
+                          if (typeof value !== "object") {
+                            setValue(key, value);
+                          }
+                        });
+                 
+                        if (data.photoFileName) {
+                          setPhotoPreview(`${BASE_URL}/${data.photoFileName}`);
+                        }
+                        if (data.passbookFileName) {
+                          setPassbookPreview(`${BASE_URL}/${data.passbookFileName}`);
+                        }
+                        if (data.documentFileName) {
+                          setDocumentPreview(`${BASE_URL}/${data.documentFileName}`);
+                        }
+                      } catch (err) {
+                        console.error("❌ Failed to fetch farmer:", err);
+                      }
+                    };
+                    fetchFarmer();
+                  }, [farmerId, isEditMode, setValue]);
+                 
+                 
+                 useEffect(() => {
+                  axios.get("http://localhost:8080/api/auth/countries")
+                    .then((res) => {
+                      const formatted = res.data.map(c => ({ label: c.name, value: c.code }));
+                      setCountryOptions(formatted);
+                    })
+                    .catch((err) => console.error("Failed to fetch countries:", err));
+                }, []);
+                 
+                useEffect(() => {
+                  if (selectedCountry) {
+                    axios.get(`http://localhost:8080/api/auth/states/${selectedCountry}`)
+                      .then((res) => {
+                        const formatted = res.data.map(s => ({ label: s.name, value: s.code }));
+                        setStates(formatted);
+                      });
+                  } else {
+                    setStates([]);
+                  }
+                }, [selectedCountry]);
+                 
+                useEffect(() => {
+                  if (selectedState) {
+                    axios.get(`/api/districts?state=${selectedState}`)
+                      .then((res) => {
+                        const formatted = res.data.map(d => ({ label: d.name, value: d.code }));
+                        setDistrictOptions(formatted);
+                      });
+                  } else {
+                    setDistrictOptions([]);
+                  }
+                }, [selectedState]);
+                 
+                useEffect(() => {
+                  if (selectedDistrict) {
+                    axios.get(`/api/mandals?district=${selectedDistrict}`)
+                      .then((res) => {
+                        const formatted = res.data.map(m => ({ label: m.name, value: m.code }));
+                        setMandalOptions(formatted);
+                      });
+                  } else {
+                    setMandalOptions([]);
+                  }
+                }, [selectedDistrict]);
+                 
+                useEffect(() => {
+                  if (selectedMandal) {
+                    axios.get(`/api/villages?mandal=${selectedMandal}`)
+                      .then((res) => {
+                        const formatted = res.data.map(v => ({ label: v.name, value: v.code }));
+                        setVillages(formatted);
+                      });
+                  } else {
+                    setVillages([]);
+                  }
+                }, [selectedMandal]);
  
-  const [farmer, setFarmer] = useState(null);
  
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [districts, setDistricts] = useState([]);
- 
-  const [selectedMandal, setSelectedMandal] = useState("");
-  const [mandals, setMandals] = useState([]);
- 
-  const [villages, setVillages] = useState([]);
- 
-  const [countryOptions, setCountryOptions] = useState([]);
-  const [districtOptions, setDistrictOptions] = useState([]);
-  const [mandalOptions, setMandalOptions] = useState([]);
-  const [villageOptions, setVillageOptions] = useState([]);
- 
-    const totalSteps = steps.length;
-    const [photoPreviewStep0, setPhotoPreviewStep0] = useState(null);
-    const [photoPreviewStep3, setPhotoPreviewStep3] = useState(null);
-    const [farmerData, setFarmerData] = useState(null);
-    const handlePhotoChangeStep0 = (e) => {
-    const file = e.target.files[0];
-      if (file) {
-      setPhotoPreviewStep0(URL.createObjectURL(file));
-      setValue("photoStep0", file);
-     }
-    };
- 
-    const handlePhotoChangeStep3 = (e) => {
-    const file = e.target.files[0];
-     if (file) {
-      setPhotoPreviewStep3(URL.createObjectURL(file));
-      setValue("photoStep3", file);
-     }
-    };
-
-    useEffect(() => {
-  if (farmerData?.photoFileName) {
-    const url = `${process.env.REACT_APP_API_BASE_URL}/uploads/${farmerData.photoFileName}`;
-    setPhotoPreviewStep0(url);
-  }
-}, [farmerData]);
- 
-    const cropOptions = {
-      Grains: [ "Paddy", "Maize", "Red Gram", "Black Gram", "Bengal Gram", "Groundnut", "Green Gram", "Sweet Corn", ],
-      Vegetables: [ "Dry Chilli", "Mirchi", "Tomato", "Ladies Finger", "Ridge Gourd", "Broad Beans", "Brinjal",
-                "Cluster Beans", "Bitter Gourd", "Bottle Gourd", ],
-      Cotton: ["Cotton"],
-    };
- 
-    const [waterSourceCategory, setWaterSourceCategory] = useState("");
-    const waterSourceOptions = ["Borewell", "Open Well", "Canal", "Tank", "River", "Drip"];
- 
-    const [cropCategory, setCropCategory] = useState("");
-    const [cropCategoryStep3, setCropCategoryStep3] = useState("");
-    const [cropCategoryStep4, setCropCategoryStep4] = useState("");
-    const methods = useForm({
-      resolver: yupResolver(stepSchemas[currentStep]),
-       mode: "onChange",
-    });
-    const { register, handleSubmit, control, formState: { errors }, setValue, watch, reset, trigger,} = useForm({
-      resolver: yupResolver(stepSchemas[currentStep]),
-      mode: "onChange",
-    });
-    const soilTestValue = watch("soilTest");
-    console.log("Soil Test Value:", soilTestValue);
-    
-    const navigate = useNavigate();
-    const { farmerId } = useParams();
    
- 
-const onSubmit = async (data) => {
-  const formData = new FormData();
-  const farmerDto = { ...data };
- 
-  // Remove file fields from JSON
-  delete farmerDto.photo;
-  delete farmerDto.soilTestCertificate;
-  delete farmerDto.aadhaarFile;
-  delete farmerDto.panFile;
- 
-  formData.append(
-    "farmerDto",
-    new Blob([JSON.stringify(farmerDto)], { type: "application/json" })
-  );
- 
-  // Append files conditionally
-  if (data.photo?.[0]) formData.append("photo", data.photo[0]);
-  if (data.soilTestCertificate?.[0]) formData.append("soilTestCertificate", data.soilTestCertificate[0]);
-  if (data.aadhaarFile?.[0]) formData.append("aadhaarFile", data.aadhaarFile[0]);
-  if (data.panFile?.[0]) formData.append("panFile", data.panFile[0]);
- 
-  const token = localStorage.getItem("token");
-  if (!token) {
-    alert("You are not logged in. Please log in to continue.");
-    return;
-  }
- 
-  try {
-    let response;
- 
-    if (isEditMode) {
-      response = await axios.put(
-        `http://localhost:8080/api/farmers/${farmerId}`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-    } else {
-      response = await axios.post(
-        "http://localhost:8080/api/farmers",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-    }
- 
-    alert("✅ Farmer form submitted successfully!");
-    const id = response.data.id || farmerId;
-    navigate(`/view-farmer/${id}`);
-  } catch (error) {
-    console.error("❌ Submit Error:", error.response?.data || error.message);
-    alert("❌ Failed to submit. Please try again.");
-  }
-};
- 
- // Fetch farmer data if editing
-  useEffect(() => {
-    if (farmerId) {
-      axios.get(`http://localhost:8080/api/farmers/${farmerId}`)
-        .then(res => {
-          setFarmer(res.data);
-        })
-        .catch(err => console.error("Failed to load farmer", err));
-    }
-  }, [farmerId]);
- 
-  // Populate form fields from farmer data
-  useEffect(() => {
-    if (farmer) {
-      setValue("currentSurveyNumber", farmer.currentSurveyNumber || "");
-      setValue("currentLandHolding", farmer.currentLandHolding || "");
-      setValue("currentGeoTag", farmer.currentGeoTag || "");
-      setValue("currentCrop", farmer.currentCrop || "");
-      setValue("currentNetIncome", farmer.currentNetIncome || "");
-      setValue("currentSoilTest", farmer.currentSoilTest || "");
-      setCropCategoryStep3(farmer.currentCropCategory || "");
-    }
-  }, [farmer, setValue]);
- 
- const [showSuccessPopup, setShowSuccessPopup] = useState(false);
- 
- useEffect(() => {
-  axios.get("http://localhost:8080/api/auth/countries")
-    .then((res) => {
-      const formatted = res.data.map(c => ({ label: c.name, value: c.code }));
-      setCountryOptions(formatted);
-    })
-    .catch((err) => console.error("Failed to fetch countries:", err));
-}, []);
- 
-useEffect(() => {
-  if (selectedCountry) {
-    axios.get(`http://localhost:8080/api/auth/states/${selectedCountry}`)
-      .then((res) => {
-        const formatted = res.data.map(s => ({ label: s.name, value: s.code }));
-        setStates(formatted);
-      });
-  } else {
-    setStates([]);
-  }
-}, [selectedCountry]);
- 
-useEffect(() => {
-  if (selectedState) {
-    axios.get(`/api/districts?state=${selectedState}`)
-      .then((res) => {
-        const formatted = res.data.map(d => ({ label: d.name, value: d.code }));
-        setDistrictOptions(formatted);
-      });
-  } else {
-    setDistrictOptions([]);
-  }
-}, [selectedState]);
- 
-useEffect(() => {
-  if (selectedDistrict) {
-    axios.get(`/api/mandals?district=${selectedDistrict}`)
-      .then((res) => {
-        const formatted = res.data.map(m => ({ label: m.name, value: m.code }));
-        setMandalOptions(formatted);
-      });
-  } else {
-    setMandalOptions([]);
-  }
-}, [selectedDistrict]);
- 
-useEffect(() => {
-  if (selectedMandal) {
-    axios.get(`/api/villages?mandal=${selectedMandal}`)
-      .then((res) => {
-        const formatted = res.data.map(v => ({ label: v.name, value: v.code }));
-        setVillages(formatted);
-      });
-  } else {
-    setVillages([]);
-  }
-}, [selectedMandal]);
- 
- 
-   
- 
- 
   return (
    
     <div className="farmer-wrapper">

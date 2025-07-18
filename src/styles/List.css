@@ -80,6 +80,43 @@ tr:hover {
   color: white;
 }
 
+.status-approved {
+  background: #43a047;
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-block;
+}
+.status-pending {
+  background: #ffd600;
+  color: #333;
+  padding: 4px 14px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-block;
+}
+.status-rejected {
+  background: #e53935;
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-block;
+}
+.status-default {
+  background: #bdbdbd;
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-block;
+}
+
 /* ID styling (e.g., farmer and employee IDs) */
 .farmer-id,
 .employee-id {
@@ -144,6 +181,82 @@ tr:hover {
   color: #333;
 }
 
+.registration-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  overflow: hidden;
+  margin-top: 32px;
+  border: 1.5px solid #f3e7c4;
+}
+.registration-table th, .registration-table td {
+  border-bottom: 1.5px solid #e0e0e0;
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 15px;
+}
+.registration-table th {
+  background: #f8fafc;
+  font-weight: 700;
+  color: #006838;
+  border-bottom: 2.5px solid #d2a854;
+}
+.registration-table tr:last-child td {
+  border-bottom: none;
+}
+.registration-table tr {
+  transition: background 0.18s;
+}
+.registration-table tr:hover {
+  background: #f3f7f4;
+}
+.registration-table td {
+  vertical-align: middle;
+}
+.list-container {
+  background: linear-gradient(135deg, #fffbe7 60%, #e8f5e9 100%);
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(210,168,84,0.13), 0 2px 8px rgba(0,0,0,0.06);
+  padding: 56px 48px 48px 48px;
+  margin: 48px auto 48px auto;
+  max-width: 1400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.registration-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 18px;
+}
+.registration-list-title {
+  display: flex;
+  align-items: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #222;
+  margin-right: 24px;
+}
+.registration-list-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+@media (max-width: 900px) {
+  .registration-table th, .registration-table td {
+    padding: 10px 6px;
+    font-size: 13px;
+  }
+  .list-container {
+    padding: 12px 2vw;
+  }
+}
 
 /* Optional: make the table responsive */
 @media (max-width: 768px) {
