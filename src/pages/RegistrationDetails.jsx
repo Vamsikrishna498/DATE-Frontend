@@ -29,16 +29,31 @@ export const RegistrationDetails = ({ id, onBack }) => {
     if (!newStatus) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
-        `http://localhost:8080/api/auth/users/${id}/status`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert("Status updated successfully");
-      setRegistration((prev) => ({
-        ...prev,
-        status: newStatus,
-      }));
+      if (newStatus === "APPROVED") {
+        // Call the dedicated approval endpoint to trigger approval email
+        await axios.put(
+          `http://localhost:8080/api/auth/users/${id}/approve`,
+          { role: registration.role },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert("User approved and approval email sent");
+        setRegistration((prev) => ({
+          ...prev,
+          status: newStatus,
+        }));
+      } else {
+        // For REJECTED/RETURN, use the existing status update endpoint
+        await axios.put(
+          `http://localhost:8080/api/auth/users/${id}/status`,
+          { status: newStatus },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert("Status updated successfully");
+        setRegistration((prev) => ({
+          ...prev,
+          status: newStatus,
+        }));
+      }
       setNewStatus("");
     } catch (error) {
       console.error("Failed to update status", error);

@@ -88,7 +88,7 @@ export const RegistrationList = () => {
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
-      await axios.delete(`http://localhost:8080/api/super-admin/users/${userId}`, {
+      await axios.delete(`http://localhost:8080/api/auth/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('User deleted successfully');

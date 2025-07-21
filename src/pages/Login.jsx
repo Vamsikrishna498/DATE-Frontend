@@ -53,7 +53,11 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError('Invalid credentials or server error.');
+      setError(
+        err.response?.data?.message ||
+        err.response?.data ||
+        'Invalid credentials or server error.'
+      );
     } finally {
       setLoading(false);
     }
