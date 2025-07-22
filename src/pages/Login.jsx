@@ -21,7 +21,14 @@ const Login = () => {
     try {
       const loginData = { userName, password };
       const response = await api.post('/auth/login', loginData);
-      const { token } = response.data;
+      const { token, forcePasswordChange } = response.data;
+      // If forcePasswordChange is true, redirect to change password page
+      if (forcePasswordChange) {
+        const user = { userName, role: 'FARMER', forcePasswordChange: true };
+        login(user, token);
+        navigate('/change-password');
+        return;
+      }
       try {
         const userResponse = await api.get('/user/profile');
         const userData = userResponse.data;

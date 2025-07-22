@@ -36,37 +36,19 @@ const ChangePassword = () => {
     }
 
     try {
-      // MOCK: Update password in localStorage
-      const mockApprovedUsers = JSON.parse(localStorage.getItem('mockApprovedUsers') || '[]');
-      const userIndex = mockApprovedUsers.findIndex(u => u.email === user.email);
-      
-      if (userIndex !== -1) {
-        mockApprovedUsers[userIndex] = {
-          ...mockApprovedUsers[userIndex],
-          password: form.newPassword // In real app, this would be hashed
-        };
-        localStorage.setItem('mockApprovedUsers', JSON.stringify(mockApprovedUsers));
-      }
-
-      setSuccess('Password changed successfully!');
-      
-      // Update user in context to remove forcePasswordChange flag
-      const updatedUser = { ...user, forcePasswordChange: false };
-      login(updatedUser, localStorage.getItem('token'));
-
-      // Redirect to appropriate dashboard after 2 seconds
+      // Call backend API to change password
+      const response = await api.post('/auth/reset-password/confirm', {
+        emailOrPhone: user?.email || user?.userName,
+        newPassword: form.newPassword,
+        confirmPassword: form.confirmPassword
+      });
+      setSuccess('Password changed successfully! Please log in with your new password.');
       setTimeout(() => {
-        if (user.role === 'SUPER_ADMIN') {
-          navigate('/super-admin/dashboard');
-        } else if (user.role === 'ADMIN') {
-          navigate('/admin/dashboard');
-        } else if (user.role === 'EMPLOYEE') {
-          navigate('/employee/dashboard');
-        } else {
-          navigate('/farmer/dashboard');
-        }
-      }, 2000);
-
+        // Log out and redirect to login
+        window.localStorage.removeItem('user');
+        window.localStorage.removeItem('token');
+        navigate('/login');
+      }, 1500);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to change password.');
     }
