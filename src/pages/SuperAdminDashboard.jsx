@@ -1,16 +1,7 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Dashboard from './Dashboard';
+import React from 'react';
 
 const SuperAdminDashboard = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Redirect to regular dashboard
-    navigate('/dashboard');
-  }, [navigate]);
-
-  return <Dashboard />;
+  return <div style={{padding: 40, fontSize: 32, color: 'green', textAlign: 'center'}}>THIS IS THE SUPERADMIN DASHBOARD</div>;
 };
 
 export default SuperAdminDashboard; 

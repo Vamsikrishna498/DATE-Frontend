@@ -70,6 +70,8 @@ export const RegistrationList = () => {
 
   // Filter registrations based on selected tab
   const filteredRegistrations = registrations.filter((r) => {
+    // Hide admin registrations for ADMIN users only (case-insensitive)
+    if (userRole?.toUpperCase?.() === 'ADMIN' && r.role?.toUpperCase?.() === 'ADMIN') return false;
     // Search filter
     const name = (r.name || r.userName || "").toLowerCase();
     const email = (r.email || "").toLowerCase();
@@ -186,6 +188,22 @@ export const RegistrationList = () => {
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button onClick={() => setSelectedId(r.id)} className="view-btn" style={{ background: '#006838', color: '#fff', borderRadius: '6px', padding: '6px 18px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>View</button>
                     {userRole === 'SUPER_ADMIN' && r.status === 'PENDING' && (
+                      <>
+                        <button
+                          onClick={() => handleApproveUser(r.id)}
+                          style={{ background: '#22c55e', color: '#fff', borderRadius: '6px', padding: '6px 14px', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleRejectUser(r.id)}
+                          style={{ background: '#e53935', color: '#fff', borderRadius: '6px', padding: '6px 14px', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    {userRole === 'ADMIN' && r.status === 'PENDING' && r.role !== 'ADMIN' && (
                       <>
                         <button
                           onClick={() => handleApproveUser(r.id)}

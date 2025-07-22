@@ -99,6 +99,8 @@ function AppContent() {
     "/admin-config",
     "/employee-details",
     "/test-super-admin",
+    "/admin/dashboard",
+    "/employee/dashboard",
   ];
 
   // Dynamic View Routes
@@ -143,13 +145,13 @@ function AppContent() {
         />
         {/* Role-based dashboards */}
         <Route element={<PrivateRoute allowedRoles={["SUPER_ADMIN"]} />}>
-          <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
+          <Route path="/super-admin/dashboard" element={<Dashboard />} />
         </Route>
         <Route element={<PrivateRoute allowedRoles={["ADMIN"]} />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={<Dashboard />} />
         </Route>
         <Route element={<PrivateRoute allowedRoles={["EMPLOYEE"]} />}>
-          <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
+          <Route path="/employee/dashboard" element={<Dashboard />} />
         </Route>
         
         {/* TEST ROUTE: Super Admin Dashboard without authentication */}

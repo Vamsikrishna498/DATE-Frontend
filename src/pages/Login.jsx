@@ -22,6 +22,7 @@ const Login = () => {
       const loginData = { userName, password };
       const response = await api.post('/auth/login', loginData);
       const { token, forcePasswordChange } = response.data;
+      localStorage.setItem('token', token); // Save token for API requests
       // If forcePasswordChange is true, redirect to change password page
       if (forcePasswordChange) {
         const user = { userName, role: 'FARMER', forcePasswordChange: true };
@@ -36,7 +37,7 @@ const Login = () => {
           userName: userData.userName || userName,
           name: userData.name,
           email: userData.email,
-          role: userData.role,
+          role: userData.role, // always use backend role
           forcePasswordChange: userData.forcePasswordChange || false,
           status: userData.status
         };
@@ -51,13 +52,11 @@ const Login = () => {
           navigate('/dashboard');
         }
       } catch (profileErr) {
-        const user = {
-          userName: userName,
-          role: 'FARMER',
-          forcePasswordChange: false
-        };
-        login(user, token);
-        navigate('/dashboard');
+        setError('Failed to fetch user profile. Please login again.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
       }
     } catch (err) {
       setError(
