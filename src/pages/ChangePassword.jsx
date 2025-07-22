@@ -74,9 +74,16 @@ const ChangePassword = () => {
         <div className="login-form">
           <img src={logo} alt="Logo" className="logo" />
           <h2>Change Password</h2>
-          <p style={{ color: '#666', marginBottom: '20px' }}>
-            Welcome! Please change your temporary password to continue.
-          </p>
+          {/* Step-by-step instructions */}
+          <div style={{ background: '#f5f5f5', borderRadius: 8, padding: 12, marginBottom: 18, color: '#333', fontSize: 15 }}>
+            <b>First Login Steps:</b>
+            <ol style={{ margin: '8px 0 0 18px', padding: 0 }}>
+              <li>Enter your <b>temporary password</b> (sent to your email) as the current password.</li>
+              <li>Set a <b>new password</b> of your choice (at least 6 characters, with uppercase, number, and @ symbol).</li>
+              <li>Confirm your new password and submit.</li>
+              <li>After success, log in again with your new password.</li>
+            </ol>
+          </div>
           <form onSubmit={handleSubmit} className="login-form-row">
             <div className="loginform-group">
               <label>Current Password (Temporary Password):</label>
@@ -87,6 +94,7 @@ const ChangePassword = () => {
                 onChange={handleChange}
                 required
                 placeholder="Enter your temporary password"
+                disabled={!!success}
               />
             </div>
             <div className="loginform-group">
@@ -98,7 +106,11 @@ const ChangePassword = () => {
                 onChange={handleChange}
                 required
                 placeholder="Enter your new password"
+                disabled={!!success}
               />
+              <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>
+                Password must be at least 6 characters, include an uppercase letter, a number, and an @ symbol.
+              </div>
             </div>
             <div className="loginform-group">
               <label>Confirm New Password:</label>
@@ -109,14 +121,29 @@ const ChangePassword = () => {
                 onChange={handleChange}
                 required
                 placeholder="Confirm your new password"
+                disabled={!!success}
               />
             </div>
             {error && <div className="login-error">{error}</div>}
             {success && <div className="login-success">{success}</div>}
-            <button type="submit" className="login-btn">
+            <button type="submit" className="login-btn" disabled={!!success}>
               Change Password
             </button>
           </form>
+          {/* Success popup/modal */}
+          {success && (
+            <div style={{
+              position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+            }}>
+              <div style={{ background: '#fff', borderRadius: 10, padding: 32, minWidth: 320, boxShadow: '0 2px 16px #0002', textAlign: 'center' }}>
+                <h2 style={{ color: '#22c55e', marginBottom: 12 }}>Password Changed!</h2>
+                <p style={{ color: '#333', marginBottom: 18 }}>Your password has been updated.<br/>Please log in with your new password.</p>
+                <button className="login-btn" onClick={() => { window.localStorage.removeItem('user'); window.localStorage.removeItem('token'); navigate('/login'); }}>
+                  Go to Login
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

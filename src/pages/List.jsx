@@ -45,10 +45,11 @@ export const RegistrationList = () => {
   // Approve/Reject handlers
   const handleApproveUser = async (userId) => {
     try {
-      await axios.put(`http://localhost:8080/api/auth/users/${userId}/status`, { status: 'APPROVED' }, {
+      // Use the approve endpoint to send temp password
+      await axios.put(`http://localhost:8080/api/auth/users/${userId}/approve`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('User approved successfully');
+      alert('User approved and temporary password sent');
       setRefreshFlag(f => !f);
     } catch (err) {
       alert('Failed to approve user');

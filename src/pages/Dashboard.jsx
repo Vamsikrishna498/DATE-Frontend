@@ -56,7 +56,12 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/farmers/5")
+    const token = localStorage.getItem("token");
+    fetch("http://localhost:8080/api/farmers/5", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
       .then((res) => res.json())
       .then((data) => setFarmerData(data))
       .catch((err) => console.error(err));
@@ -157,6 +162,7 @@ const Dashboard = () => {
                     {openMenu === "employees" && (
                       <ul className="submenu">
                         <li><button className="link-button" onClick={() => setActiveView("employeesList")}>📋 View Employees</button></li>
+                        <li><button className="link-button" onClick={() => navigate('/employee-details')}>➕ Add Employee</button></li>
                       </ul>
                     )}
                   </li>
@@ -168,6 +174,7 @@ const Dashboard = () => {
                 {openMenu === "farmers" && (
                   <ul className="submenu">
                     <li><button className="link-button" onClick={() => setActiveView("farmersList")}>📋 View Farmers</button></li>
+                    <li><button className="link-button" onClick={() => navigate('/farmer-form')}>➕ Add Farmer</button></li>
                   </ul>
                 )}
               </li>
@@ -228,10 +235,12 @@ const Dashboard = () => {
                   </div>
                   <div className="quick-actions">
                     <div className="section-title">Quick Actions</div>
-                    <div className="action-grid">
+                    <div className="action-grid" style={{ flexDirection: 'column', gap: '12px', maxHeight: 'none', overflow: 'visible' }}>
                       <button onClick={() => setActiveView('registrationList')}>👥 View Users</button>
-                      <button onClick={() => setActiveView('farmersList')}>👨‍🌾 View Farmers</button>
-                      <button onClick={() => setActiveView('employeesList')}>👤 View Employees</button>
+                      <button onClick={() => setActiveView('farmersList')}>📋 View Farmers</button>
+                      <button onClick={() => setActiveView('employeesList')}>📋 View Employees</button>
+                      <button onClick={() => navigate('/employee-details')}>➕ Add Employee</button>
+                      <button onClick={() => navigate('/farmer-form')}>➕ Add Farmer</button>
                       <button onClick={handleGenerateReport}>📊 Generate Report</button>
                       <button onClick={handleAnalytics}>📈 View Analytics</button>
                     </div>
