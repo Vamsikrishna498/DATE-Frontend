@@ -52,16 +52,8 @@ const ChangePassword = () => {
     }
   };
 
-  if (!user?.forcePasswordChange) {
-    if (user?.role === 'SUPER_ADMIN') {
-      navigate('/super-admin/dashboard');
-    } else if (user?.role === 'ADMIN') {
-      navigate('/admin/dashboard');
-    } else if (user?.role === 'EMPLOYEE') {
-      navigate('/employee/dashboard');
-    } else {
-      navigate('/farmer/dashboard');
-    }
+  if (!user) {
+    navigate('/login');
     return null;
   }
 
@@ -74,26 +66,16 @@ const ChangePassword = () => {
         <div className="login-form">
           <img src={logo} alt="Logo" className="logo" />
           <h2>Change Password</h2>
-          {/* Step-by-step instructions */}
-          <div style={{ background: '#f5f5f5', borderRadius: 8, padding: 12, marginBottom: 18, color: '#333', fontSize: 15 }}>
-            <b>First Login Steps:</b>
-            <ol style={{ margin: '8px 0 0 18px', padding: 0 }}>
-              <li>Enter your <b>temporary password</b> (sent to your email) as the current password.</li>
-              <li>Set a <b>new password</b> of your choice (at least 6 characters, with uppercase, number, and @ symbol).</li>
-              <li>Confirm your new password and submit.</li>
-              <li>After success, log in again with your new password.</li>
-            </ol>
-          </div>
           <form onSubmit={handleSubmit} className="login-form-row">
             <div className="loginform-group">
-              <label>Current Password (Temporary Password):</label>
+              <label>Current Password:</label>
               <input
                 type="password"
                 name="currentPassword"
                 value={form.currentPassword}
                 onChange={handleChange}
                 required
-                placeholder="Enter your temporary password"
+                placeholder="Enter your current password"
                 disabled={!!success}
               />
             </div>

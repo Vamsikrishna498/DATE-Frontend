@@ -73,6 +73,8 @@ export const RegistrationList = () => {
   const filteredRegistrations = registrations.filter((r) => {
     // Hide admin registrations for ADMIN users only (case-insensitive)
     if (userRole?.toUpperCase?.() === 'ADMIN' && r.role?.toUpperCase?.() === 'ADMIN') return false;
+    // Hide super admin registrations for all except SUPER_ADMIN
+    if (userRole?.toUpperCase?.() !== 'SUPER_ADMIN' && r.role?.toUpperCase?.() === 'SUPER_ADMIN') return false;
     // Search filter
     const name = (r.name || r.userName || "").toLowerCase();
     const email = (r.email || "").toLowerCase();
@@ -338,18 +340,6 @@ export const RegistrationList = () => {
     if (!aadhaar) return "";
     return `****-***-${aadhaar.slice(-4)}`;
   };
-  const filteredFarmers = farmers.filter((f) => {
-    const name = (
-      f.name ||
-      `${f.firstName || ""} ${f.lastName || ""}`
-    ).toLowerCase();
-    const document = (f.documentNumber || "").toLowerCase();
-    return (
-      name.includes(searchTerm.toLowerCase()) ||
-      document.includes(searchTerm.toLowerCase())
-    );
-  });
-
   // ✅ Show loading state
   if (loading) return <p>Loading farmer data...</p>;
 
@@ -429,6 +419,8 @@ export const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const userRole = user?.role;
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -447,6 +439,8 @@ export const EmployeeList = () => {
   }, []);
 
   const filteredEmployees = employees.filter((e) => {
+    // Hide super admin employees for all except SUPER_ADMIN
+    if (userRole?.toUpperCase?.() !== 'SUPER_ADMIN' && e.role?.toUpperCase?.() === 'SUPER_ADMIN') return false;
     const name = (e.name || "").toLowerCase();
     const designation = (e.designation || "").toLowerCase();
     return (
