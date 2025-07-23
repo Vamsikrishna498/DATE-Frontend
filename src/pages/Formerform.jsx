@@ -10,6 +10,7 @@ import React, { useEffect, useState } from "react";
   import { parse, isValid, differenceInYears } from "date-fns";
   import farmImage from "../assets/farmImage.png";
   import "../styles/Farmerform.css";
+
  
  
     const stepSchemas = [
@@ -151,7 +152,7 @@ import React, { useEffect, useState } from "react";
     const steps = ["Personal Information", "Address","Professional Information","Current Crop Information",
                   "Proposed Crop Information",  "Irrigation Details","Other Information", "Documents",];
  
-                  const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+                  const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8081";
                   const FarmerForm = ({ currentStep, setCurrentStep, isEditMode }) => {
                   const [selectedCountry, setSelectedCountry] = useState("");
                   const [countries, setCountries] = useState([]);
@@ -190,6 +191,8 @@ import React, { useEffect, useState } from "react";
                     const [cropCategoryStep4, setCropCategoryStep4] = useState("");
                     const [passbookPreview, setPassbookPreview] = useState(null);
                     const [documentPreview, setDocumentPreview] = useState(null);
+                    const [selectedPhotoName, setSelectedPhotoName] = useState("");
+
                     const methods = useForm({
                       resolver: yupResolver(stepSchemas[currentStep]),
                        mode: "onChange",
@@ -227,7 +230,7 @@ import React, { useEffect, useState } from "react";
                 const handlePhotoChangeStep3 = (e) => {
                   const file = e.target.files[0];
                   if (file) {
-                    setValue("photoStep3", file);
+                    setValue("photo", file);
                     setPhotoPreviewStep3(URL.createObjectURL(file));
                   }
                 };
@@ -248,23 +251,78 @@ import React, { useEffect, useState } from "react";
                         { headers: { Authorization: `Bearer ${token}` } }
                       );
                  
-                      const data = response.data;
+                                            const data = response.data;
                       setFarmerData(data);
-                      reset(data);
-                 
-                      if (data.photoFileName) {
-                        setPhotoPreviewStep0(`${BASE_URL}${data.photoFileName}`);
+                      
+                      // Map the data to form fields properly
+                      const formData = {
+                        ...data,
+                        // Map step-specific fields
+                        surveyNumber: data.surveyNumber || "",
+                        totalLandHolding: data.totalLandHolding || "",
+                        geoTag: data.geoTag || "",
+                        selectCrop: data.selectCrop || "",
+                        netIncome: data.netIncome || "",
+                        soilTest: data.soilTest || "",
+                        cropType: data.cropType || "",
+                        waterSource: data.waterSource || "",
+                        borewellDischarge: data.borewellDischarge || "",
+                        summerDischarge: data.summerDischarge || "",
+                        borewellLocation: data.borewellLocation || "",
+                        // Document fields
+                        aadharNumber: data.aadharNumber || "",
+                        panNumber: data.panNumber || "",
+                        voterId: data.voterId || "",
+                        ppbNumber: data.ppbNumber || "",
+                        // Alternative fields with multiple field name support
+                        alternativeType: data.alternativeType || data.alternativeRelationType || "",
+                        alternativeNumber: data.alternativeContactNumber || data.alternativeNumber || ""
+                      };
+                      
+                      reset(formData);
+ 
+                      // Set photo previews with multiple field name support
+                      if (data.photoFileName || data.photoUrl || data.photo) {
+                        const photoUrl = data.photoFileName 
+                          ? `${BASE_URL}/${data.photoFileName}`
+                          : data.photoUrl 
+                            ? `${BASE_URL}${data.photoUrl}`
+                            : data.photo;
+                        setPhotoPreview(photoUrl);
                       }
                  
-                      if (data.photoStep3FileName) {
-                        setPhotoPreviewStep3(`${BASE_URL}${data.photoStep3FileName}`);
-                      }
                     } catch (err) {
-                      if (err.response && err.response.status === 403) {
-                        alert("Session expired or unauthorized. Please login again.");
-                        window.location.href = "/login";
+                      console.error("❌ Failed to fetch farmer", err);
+                      
+                      if (err.response) {
+                        const status = err.response.status;
+                        
+                        switch (status) {
+                          case 401:
+                            alert("❌ Authentication failed. Please log in again.");
+                            setTimeout(() => {
+                              window.location.href = "/login";
+                            }, 2000);
+                            break;
+                          case 403:
+                            alert("❌ Access denied. Please login again.");
+                            setTimeout(() => {
+                              window.location.href = "/login";
+                            }, 2000);
+                            break;
+                          case 404:
+                            alert("❌ Farmer not found. Please check the ID.");
+                            break;
+                          case 500:
+                            alert("❌ Server error. Please try again later.");
+                            break;
+                          default:
+                            alert(`❌ Error ${status}: Failed to load farmer data.`);
+                        }
+                      } else if (err.request) {
+                        alert("❌ Network error. Please check your internet connection.");
                       } else {
-                        console.error("❌ Failed to fetch farmer", err);
+                        alert("❌ Error loading farmer data. Please try again.");
                       }
                     }
                   };
@@ -274,6 +332,10 @@ import React, { useEffect, useState } from "react";
                  
                  
                 const onSubmit = async (data) => {
+                  console.log("Form submission data:", data);
+                  console.log("Photo file:", data.photo);
+                  console.log("Soil test certificate:", data.soilTestCertificate);
+                  
                   const formData = new FormData();
                   const farmerDto = { ...data };
                  
@@ -282,6 +344,8 @@ import React, { useEffect, useState } from "react";
                   delete farmerDto.soilTestCertificate;
                   delete farmerDto.aadhaarFile;
                   delete farmerDto.panFile;
+                  delete farmerDto.voterFile;
+                  delete farmerDto.ppbFile;
                  
                   formData.append(
                     "farmerDto",
@@ -289,10 +353,12 @@ import React, { useEffect, useState } from "react";
                   );
                  
                   // Append files conditionally
-                  if (data.photo?.[0]) formData.append("photo", data.photo[0]);
-                  if (data.soilTestCertificate?.[0]) formData.append("soilTestCertificate", data.soilTestCertificate[0]);
-                  if (data.aadhaarFile?.[0]) formData.append("aadhaarFile", data.aadhaarFile[0]);
-                  if (data.panFile?.[0]) formData.append("panFile", data.panFile[0]);
+                  if (data.photo) formData.append("photo", data.photo);
+                  if (data.soilTestCertificate) formData.append("soilTestCertificate", data.soilTestCertificate);
+                  if (data.aadhaarFile) formData.append("aadhaarFile", data.aadhaarFile);
+                  if (data.panFile) formData.append("panFile", data.panFile);
+                  if (data.voterFile) formData.append("voterFile", data.voterFile);
+                  if (data.ppbFile) formData.append("ppbFile", data.ppbFile);
                  
                   const token = localStorage.getItem("token");
                   if (!token) {
@@ -332,7 +398,48 @@ import React, { useEffect, useState } from "react";
                     navigate(`/view-farmer/${id}`);
                   } catch (error) {
                     console.error("❌ Submit Error:", error.response?.data || error.message);
-                    alert("❌ Failed to submit. Please try again.");
+                    
+                    // Enhanced error handling with specific messages
+                    let errorMessage = "❌ Failed to submit. Please try again.";
+                    
+                    if (error.response) {
+                      const status = error.response.status;
+                      const data = error.response.data;
+                      
+                      switch (status) {
+                        case 401:
+                          errorMessage = "❌ Authentication failed. Please log in again.";
+                          // Redirect to login after showing message
+                          setTimeout(() => {
+                            window.location.href = "/login";
+                          }, 2000);
+                          break;
+                        case 403:
+                          errorMessage = "❌ Access denied. You don't have permission to perform this action.";
+                          break;
+                        case 404:
+                          errorMessage = "❌ Resource not found. Please check your request.";
+                          break;
+                        case 422:
+                          errorMessage = "❌ Validation error. Please check your form data and try again.";
+                          break;
+                        case 500:
+                          errorMessage = "❌ Server error. Please try again later or contact support.";
+                          break;
+                        default:
+                          if (data && data.message) {
+                            errorMessage = `❌ ${data.message}`;
+                          } else {
+                            errorMessage = `❌ Error ${status}: ${data || 'Unknown error occurred'}`;
+                          }
+                      }
+                    } else if (error.request) {
+                      errorMessage = "❌ Network error. Please check your internet connection and try again.";
+                    } else {
+                      errorMessage = `❌ Error: ${error.message}`;
+                    }
+                    
+                    alert(errorMessage);
                   }
                 };
                  
@@ -345,6 +452,19 @@ import React, { useEffect, useState } from "react";
                       try {
                         const { data } = await axios.get(`${BASE_URL}/api/farmers/${farmerId}`, {
                           headers: { Authorization: `Bearer ${token}` },
+                        });
+                        
+                        console.log("Form - Farmer Data:", data);
+                        console.log("Form - Photo fields:", {
+                          photoFileName: data.photoFileName,
+                          photoUrl: data.photoUrl,
+                          photo: data.photo
+                        });
+                        console.log("Form - Alternative fields:", {
+                          alternativeType: data.alternativeType,
+                          alternativeRelationType: data.alternativeRelationType,
+                          alternativeContactNumber: data.alternativeContactNumber,
+                          alternativeNumber: data.alternativeNumber
                         });
                  
                         Object.entries(data).forEach(([key, value]) => {
@@ -453,6 +573,21 @@ import React, { useEffect, useState } from "react";
         alt="Preview"
         className="photo-preview"
       />
+    ) : photoPreview ? (
+      <>
+        {console.log("👨‍🌾 Fetched photo URL:", photoPreview)}
+        <img
+          src={photoPreview}
+          alt="Farmer Photo"
+          className="photo-preview"
+          onError={(e) => {
+            e.target.style.display = "none";
+            e.target.nextSibling.style.display = "block";
+            console.log("❌ Failed to load fetched photo:", photoPreview);
+          }}
+        />
+        <span style={{ display: "none", color: "#666" }}>Photo not available</span>
+      </>
     ) : (
       <span className="photo-placeholder">No photo selected</span>
     )}
@@ -471,9 +606,18 @@ import React, { useEffect, useState } from "react";
       if (file) {
         setPhotoPreviewStep0(URL.createObjectURL(file));
         setValue("photo", file, { shouldValidate: true }); // Register value for RHF
+        setSelectedPhotoName(file.name); // Track selected file name
       }
     }}
   />
+  {/* Show file name if selected or from backend */}
+  <div style={{ marginTop: "6px", fontSize: "0.95em", color: "#444" }}>
+    {selectedPhotoName
+      ? `Selected: ${selectedPhotoName}`
+      : photoPreview && farmerData && farmerData.photoFileName
+        ? `Current: ${farmerData.photoFileName}`
+        : null}
+  </div>
 
   {/* Validation error message */}
   {errors.photo && (
@@ -567,7 +711,7 @@ import React, { useEffect, useState } from "react";
  
       <label>
         Alternative Type <span className="optional"></span>
-        <select {...register("alternativeRelationType")}>
+        <select {...register("alternativeType")}>
           <option value="">Select Relation</option>
           <option value="Father">Father</option>
           <option value="Mother">Mother</option>
@@ -583,7 +727,7 @@ import React, { useEffect, useState } from "react";
  
       <label>
         Alternative Number <span className="optional"></span>
-        <input type="tel" maxLength={10} {...register("alternativeContactNumber")} placeholder="10-digit number" />
+        <input type="tel" maxLength={10} {...register("alternativeNumber")} placeholder="10-digit number" />
       </label>
       <p className="error">{errors.alternativeNumber?.message}</p>
      
@@ -711,13 +855,19 @@ import React, { useEffect, useState } from "react";
                    <input
                       type="file"
                        accept="image/*"
-                      onChange={handlePhotoChangeStep3}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setPhotoPreviewStep3(URL.createObjectURL(file));
+                          setValue("photo", file, { shouldValidate: true });
+                        }
+                      }}
                       className="photo-input"
                    />
                   </div>
                  
                     <label>Survey Numbers <span className="optional"></span>
-                      <input {...register("surveyNumberStep3")} />
+                      <input {...register("surveyNumber")} />
                     </label>
                     <p>{errors.surveyNumber?.message}</p>
  
@@ -725,7 +875,7 @@ import React, { useEffect, useState } from "react";
                      <input
                      type="number"
                      step="any"
-                   {...register("totalLandHoldingStep3", {
+                   {...register("totalLandHolding", {
                      valueAsNumber: true,
                       })}
                         />
@@ -733,7 +883,7 @@ import React, { useEffect, useState } from "react";
                     <p>{errors.totalLandHolding?.message}</p>
  
                     <label>Geo-tag <span className="optional"></span>
-                     <input {...register("geoTagStep3")} />
+                     <input {...register("geoTag")} />
                     </label>
                     <p>{errors.geoTag?.message}</p>
                     </div>
@@ -746,7 +896,7 @@ import React, { useEffect, useState } from "react";
                   value={cropCategoryStep3}
                   onChange={(e) => {
                  setCropCategoryStep3(e.target.value);
-                 setValue("selectCropStep3", "");
+                 setValue("selectCrop", "");
                  }}
                >
                  <option value="">Select</option>
@@ -759,7 +909,7 @@ import React, { useEffect, useState } from "react";
           {cropCategoryStep3 && (
                 <label>
                   Select Crop Name <span className="optional"></span>
-                 <select {...register("selectCropStep3")} defaultValue="">
+                 <select {...register("selectCrop")} defaultValue="">
                  <option value="">Select</option>
                  {cropOptions[cropCategoryStep3].map((crop) => (
                 <option key={crop} value={crop}>{crop}</option>
@@ -767,10 +917,10 @@ import React, { useEffect, useState } from "react";
                </select>
               </label>
               )}
-              <p className="error">{errors.selectCropStep3?.message}</p>
+              <p className="error">{errors.selectCrop?.message}</p>
  
                     <label>Net Income (As per Current Crop/Yr) <span className="optional"></span>
-                     <input {...register("netIncomeStep3")} />
+                     <input {...register("netIncome")} />
                     </label>
                     <p>{errors.netIncome?.message}</p>
  
@@ -784,7 +934,7 @@ import React, { useEffect, useState } from "react";
                     <p>{errors.soilTest?.message}</p>
  
                     <label>Soil Test Certificate
-       <input type="file" {...register("soilTestCertificateStep3")} />
+       <input type="file" {...register("soilTestCertificate")} />
         {errors.soilTestCertificate && (
           <p className="error">{errors.soilTestCertificate.message}</p>
         )}
@@ -800,7 +950,7 @@ import React, { useEffect, useState } from "react";
                  <div className="proposedform-grid">
                  <div className="proposedform-columnleft">
                 <label>Survey Numbers <span className="optional"></span>
-                 <input {...register("surveyNumberStep4")} />
+                 <input {...register("surveyNumber")} />
                 </label>
                 <p>{errors.surveyNumber?.message}</p>
  
@@ -826,7 +976,7 @@ import React, { useEffect, useState } from "react";
                value={cropCategoryStep4}
                onChange={(e) => {
                setCropCategoryStep4(e.target.value);
-               setValue("selectCropStep4", ""); // unique field name
+               setValue("cropType", ""); // unique field name
                }}
                >
               <option value="">Select</option>
@@ -839,7 +989,7 @@ import React, { useEffect, useState } from "react";
                {cropCategoryStep4 && (
               <label>
                Select Crop Name <span className="optional"></span>
-               <select {...register("selectCropStep4")} defaultValue="">
+               <select {...register("cropType")} defaultValue="">
                <option value="">Select</option>
                 {cropOptions[cropCategoryStep4].map((crop) => (
                   <option key={crop} value={crop}>{crop}</option>
@@ -847,11 +997,11 @@ import React, { useEffect, useState } from "react";
                </select>
               </label>
                )}
-               <p className="error">{errors.selectCropStep4?.message}</p>
+               <p className="error">{errors.cropType?.message}</p>
  
  
                 <label>Soil Test <span className="optional"></span>
-                <select {...register("soilTestStep4")}>
+                <select {...register("soilTest")}>
                   <option value="">Select</option>
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
@@ -865,7 +1015,7 @@ import React, { useEffect, useState } from "react";
                 <input
                      type="number"
                      step="any"
-                   {...register("totalLandHoldingStep4", {
+                   {...register("totalLandHolding", {
                      valueAsNumber: true,
                       })}
                         />
@@ -873,12 +1023,12 @@ import React, { useEffect, useState } from "react";
                 <p>{errors.totalLandHolding?.message}</p>
  
                 <label>Net Income (Per Crop/Yr) <span className="optional"></span>
-                <input type="text" {...register("netIncomeStep4")} />
+                <input type="text" {...register("netIncome")} />
                 </label>
                 <p className="error">{errors.netIncome?.message}</p>
  
                 <label>Soil Test Certificate
-                 <input type="file" {...register("soilTestCertificateStep4")} />
+                 <input type="file" {...register("soilTestCertificate")} />
                    {errors.soilTestCertificate && (
                   <p className="error">{errors.soilTestCertificate.message}</p>
                    )}
@@ -910,30 +1060,30 @@ import React, { useEffect, useState } from "react";
       <div className="tab-content">
         <label>
           Water Source <span className="required">*</span>
-          <select {...register("currentWaterSource")} defaultValue="">
+          <select {...register("waterSource")} defaultValue="">
             <option value="">Select</option>
             {waterSourceOptions.map((source) => (
               <option key={source} value={source}>{source}</option>
             ))}
           </select>
         </label>
-        <p className="error">{errors.currentWaterSource?.message}</p>
+        <p className="error">{errors.waterSource?.message}</p>
  
         <label>
           Borewell wise Discharge in LPH <span className="optional"></span>
-          <input {...register("currentDischargeLPH")} />
+          <input {...register("borewellDischarge")} />
         </label>
         <p className="error">{errors.borewellDischarge?.message}</p>
  
         <label>
           Discharge during summer months <span className="optional"></span>
-          <input {...register("currentSummerDischarge")} />
+          <input {...register("summerDischarge")} />
         </label>
         <p className="error">{errors.summerDischarge?.message}</p>
  
         <label>
           Borewell location <span className="optional"></span>
-          <input {...register("currentBorewellLocation")} />
+          <input {...register("borewellLocation")} />
         </label>
         <p className="error">{errors.borewellLocation?.message}</p>
       </div>
@@ -944,32 +1094,32 @@ import React, { useEffect, useState } from "react";
       <div className="tab-content">
         <label>
           Water Source <span className="required">*</span>
-          <select {...register("proposedWaterSource")} defaultValue="">
+          <select {...register("waterSource")} defaultValue="">
             <option value="">Select</option>
             {waterSourceOptions.map((source) => (
               <option key={source} value={source}>{source}</option>
             ))}
           </select>
         </label>
-        <p className="error">{errors.proposedWaterSource?.message}</p>
+        <p className="error">{errors.waterSource?.message}</p>
  
         <label>
           Borewell wise Discharge in LPH <span className="optional"></span>
-          <input {...register("proposedBorewellDischarge")} />
+          <input {...register("borewellDischarge")} />
         </label>
-        <p className="error">{errors.proposedBorewellDischarge?.message}</p>
+        <p className="error">{errors.borewellDischarge?.message}</p>
  
         <label>
           Discharge during summer months <span className="optional"></span>
-          <input {...register("proposedSummerDischarge")} />
+          <input {...register("summerDischarge")} />
         </label>
-        <p className="error">{errors.proposedSummerDischarge?.message}</p>
+        <p className="error">{errors.summerDischarge?.message}</p>
  
         <label>
           Borewell location <span className="optional"></span>
-          <input {...register("proposedBorewellLocation")} />
+          <input {...register("borewellLocation")} />
         </label>
-        <p className="error">{errors.proposedBorewellLocation?.message}</p>
+        <p className="error">{errors.borewellLocation?.message}</p>
       </div>
     )}
   </div>
@@ -1065,9 +1215,9 @@ import React, { useEffect, useState } from "react";
         <input
           type="file"
           accept="image/*,application/pdf"
-          {...register("aadharFile", { required: "Aadhar File is required" })}
+          {...register("aadhaarFile", { required: "Aadhaar File is required" })}
         />
-        <p className="error-text">{errors.aadharFile?.message}</p>
+        <p className="error-text">{errors.aadhaarFile?.message}</p>
       </>
     )}
 
@@ -1167,6 +1317,8 @@ import React, { useEffect, useState } from "react";
         <img src={farmImage} alt="Farm Field" className="form-image" />
       </div>
     </div>
+    
+
   );
 };
   export default FarmerForm;
