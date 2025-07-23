@@ -154,6 +154,7 @@ import "../styles/EmployeeDetails.css";
           });
           setSelectedDoc(data.documentType);
           setLoading(false);
+          setEmployeeData(data); // Store employee data for photo preview
         })
         .catch((err) => {
           console.error("Failed to fetch employee:", err);
@@ -169,22 +170,56 @@ import "../styles/EmployeeDetails.css";
   }, [documentType]);
 
  const onSubmit = async (data) => {
+  // Validate current step before submission
+  const currentSchema = employeeSchemas[currentStep];
+  try {
+    await currentSchema.validate(data, { abortEarly: false });
+  } catch (validationError) {
+    console.error("Validation errors:", validationError.errors);
+    alert("Please fill all required fields in the current step before submitting.");
+    return;
+  }
+
   const formData = new FormData();
 
-  const fields = [
-    "salutation", "firstName", "middleName", "lastName", "gender", "nationality", "dob",
-    "contactNumber", "email", "relationType", "relationName", "altNumber", "altNumberType",
-    "country", "state", "district", "block", "village", "zipcode", "sector",
-    "education", "experience", "bankName", "accountNumber", "branchName", "ifscCode",
-    "documentType", "documentNumber", "role", "accessStatus"
-  ];
+  // Only submit data that has been collected (from completed steps)
+  const stepFields = {
+    0: ["salutation", "firstName", "middleName", "lastName", "gender", "nationality", "dob"],
+    1: ["contactNumber", "email"],
+    2: ["relationType", "relationName", "altNumber", "altNumberType"],
+    3: ["country", "state", "district", "block", "village", "zipcode"],
+    4: ["education", "experience"],
+    5: ["bankName", "accountNumber", "branchName", "ifscCode"],
+    6: ["documentType", "documentNumber"],
+    7: ["role", "accessStatus"]
+  };
 
-  fields.forEach((field) => formData.append(field, data[field] || ""));
+  // Collect data from all completed steps
+  for (let step = 0; step <= currentStep; step++) {
+    const fields = stepFields[step];
+    fields.forEach((field) => {
+      if (data[field] && data[field] !== "") {
+        formData.append(field, data[field]);
+      }
+    });
+  }
+
+  // Handle document number based on document type
+  if (data.documentType === "voterId" && data.voterId) {
+    formData.append("documentNumber", data.voterId);
+  } else if (data.documentType === "aadharNumber" && data.aadharNumber) {
+    formData.append("documentNumber", data.aadharNumber);
+  } else if (data.documentType === "panNumber" && data.panNumber) {
+    formData.append("documentNumber", data.panNumber);
+  } else if (data.documentType === "ppbNumber" && data.ppbNumber) {
+    formData.append("documentNumber", data.ppbNumber);
+  }
 
   // Files
   if (data.photo?.[0]) formData.append("photo", data.photo[0]);
   if (data.ppbFile?.[0]) formData.append("passbook", data.ppbFile[0]);
 
+  // Handle document files
   if (data.documentType === "aadharNumber" && data.aadhaarFile?.[0]) {
     formData.append("documentFile", data.aadhaarFile[0]);
   } else if (data.documentType === "panNumber" && data.panFile?.[0]) {
@@ -192,6 +227,9 @@ import "../styles/EmployeeDetails.css";
   } else if (data.documentType === "voterId" && data.voterFile?.[0]) {
     formData.append("documentFile", data.voterFile[0]);
   }
+
+  // Debug: Log what's being sent
+  console.log("Form data being sent:", Object.fromEntries(formData.entries()));
 
   const token = localStorage.getItem("token");
   if (!token) {
@@ -201,25 +239,50 @@ import "../styles/EmployeeDetails.css";
   }
 
   try {
-    const response = isEditMode
-      ? await axios.put(`http://localhost:8080/api/employees/${employeeId}`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        })
-      : await axios.post(`http://localhost:8080/api/employees`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        });
+    const response = await fetch(
+      isEditMode 
+        ? `http://localhost:8080/api/employees/${employeeId}`
+        : `http://localhost:8080/api/employees`,
+      {
+        method: isEditMode ? 'PUT' : 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
+
+    console.log("Response status:", response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const responseData = await response.json();
+    console.log("Full response:", response);
+    console.log("Response data:", responseData);
+    
+    // Try multiple possible ID field names from backend response
+    const newEmployeeId = responseData?.id || 
+                         responseData?.employeeId || 
+                         responseData?.employee_id ||
+                         responseData?.empId ||
+                         employeeId;
+    
+    console.log("Extracted employee ID:", newEmployeeId);
+    
+    if (!newEmployeeId) {
+      console.error("No employee ID received from server. Response data:", responseData);
+      alert("✅ Employee form submitted successfully! However, could not retrieve employee ID for viewing.");
+      navigate("/dashboard"); // Navigate to dashboard instead
+      return;
+    }
 
     alert("✅ Employee form submitted successfully!");
-    const id = response.data.id || employeeId;
-    navigate(`/view-employee/${id}`);
+    navigate(`/view-employee/${newEmployeeId}`);
   } catch (error) {
-    console.error("❌ Submit Error:", error.response?.data || error.message);
+    console.error("❌ Submit Error:", error.message);
+    console.error("❌ Full error:", error);
     alert("❌ Failed to submit. Please check all required fields.");
   }
 };
@@ -272,9 +335,27 @@ const handlePhotoChange = (e) => {
             <div className="photo-box">
            {photoPreview ? (
                <img src={photoPreview} alt="Preview" className="photo-preview" />
+          ) : employeeData && employeeData.photoFileName ? (
+            <img
+              src={`http://localhost:8080/uploads/${employeeData.photoFileName}`}
+              alt="Employee Photo"
+              className="photo-preview"
+              onError={e => {
+                e.target.style.display = "none";
+                if (e.target.nextSibling) e.target.nextSibling.style.display = "block";
+              }}
+            />
           ) : (
-           "Photo"
+           <span className="photo-placeholder">No photo selected</span>
            )}
+          </div>
+          {/* Show file name if selected or from backend */}
+          <div style={{ marginTop: "6px", fontSize: "0.95em", color: "#444" }}>
+            {photoPreview && photo && photo[0] && photo[0].name
+              ? `Selected: ${photo[0].name}`
+              : employeeData && employeeData.photoFileName
+                ? `Current: ${employeeData.photoFileName}`
+                : null}
           </div>
             <div>
                <input
@@ -432,32 +513,32 @@ const handlePhotoChange = (e) => {
   <div className="emp-form-two">
     {/* Relation */}
     <div>
-      <label className="label" htmlFor="relation">
+      <label className="label" htmlFor="relationType">
         Select <span className="required">*</span>
       </label>
       <select
-        id="relation"
+        id="relationType"
         className="input"
-        {...register("relation", { required: "Please select a relation" })}
+        {...register("relationType", { required: "Please select a relation" })}
       >
         <option value="">-- Select --</option>
         <option value="do">D/O</option>
         <option value="so">S/O</option>
         <option value="wo">W/O</option>
       </select>
-      {errors.relation && <p className="error">{errors.relation.message}</p>}
+      {errors.relationType && <p className="error">{errors.relationType.message}</p>}
     </div>
 
-    {/* Father Name */}
+    {/* Relation Name */}
     <div>
-      <label className="label">Father Name <span className="required">*</span></label>
+      <label className="label">Relation Name <span className="required">*</span></label>
       <input
         type="text"
         placeholder="Krishna Kumar"
         className="input"
-        {...register("fatherName", { required: "Father Name is required" })}
+        {...register("relationName", { required: "Relation Name is required" })}
       />
-      {errors.fatherName && <p className="error">{errors.fatherName.message}</p>}
+      {errors.relationName && <p className="error">{errors.relationName.message}</p>}
     </div>
 
     {/* Alternative Number */}
@@ -479,13 +560,13 @@ const handlePhotoChange = (e) => {
 
     {/* Alternative Type */}
     <div>
-      <label className="label" htmlFor="alternativeType">
+      <label className="label" htmlFor="altNumberType">
         Alternative Type <span className="required">*</span>
       </label>
       <select
-        id="alternativeType"
+        id="altNumberType"
         className="input"
-        {...register("alternativeType", { required: "Please select an alternative type" })}
+        {...register("altNumberType", { required: "Please select an alternative type" })}
       >
         <option value="">Select Relation</option>
         <option value="Father">Father</option>
@@ -497,7 +578,7 @@ const handlePhotoChange = (e) => {
         <option value="Spouse">Spouse</option>
         <option value="Other">Other</option>
       </select>
-      {errors.alternativeType && <p className="error">{errors.alternativeType.message}</p>}
+      {errors.altNumberType && <p className="error">{errors.altNumberType.message}</p>}
     </div>
   </div>
 )}
@@ -519,7 +600,7 @@ const handlePhotoChange = (e) => {
     <option value="UK">UK</option>
     <option value="Canada">Canada</option>
   </select>
-  {errors.address?.country && (
+  {errors.country && (
     <p className="error">{errors.country?.message}</p>
   )}
 </div>
@@ -527,16 +608,16 @@ const handlePhotoChange = (e) => {
 
           <div>
             <label className="label">State <span className="required">*</span></label>
-            <select {...register("address.state")} className="input">
+            <select {...register("state")} className="input">
               <option value="">Select State</option>
               {states.map((state) => ( <option key={state.id} value={state.name}> {state.name}  </option> ))}
             </select>
-            <p className="error">{errors.address?.state?.message}</p>
+            <p className="error">{errors.state?.message}</p>
           </div>
 
           <div>
             <label className="label">District <span className="required">*</span></label>
-            <select {...register("address.district")} className="input">
+            <select {...register("district")} className="input">
               <option value="">Select District</option>
               {districts.map((districts) => ( <option key={districts.id} value={districts.name}> {districts.name}  </option> ))}
             </select>
@@ -545,7 +626,7 @@ const handlePhotoChange = (e) => {
 
           <div>
             <label className="label">Block (mandal) <span className="required">*</span></label>
-            <select {...register("address.block")} className="input">
+            <select {...register("block")} className="input">
               <option value="">Select Block</option>
               {blocks.map((blocks) => ( <option key={blocks.id} value={blocks.name}> {blocks.name}  </option> ))}
             </select>
@@ -554,7 +635,7 @@ const handlePhotoChange = (e) => {
 
           <div>
             <label className="label">Village <span className="required">*</span></label>
-            <select {...register("address.village")} className="input">
+            <select {...register("village")} className="input">
               <option value="">Select Village</option>
               {villages.map((villages) => ( <option key={villages.id} value={villages.name}> {villages.name}  </option> ))}
             </select>
@@ -567,7 +648,7 @@ const handlePhotoChange = (e) => {
               type="text"
               placeholder="56xxxx"
               className="input"
-              {...register("address.zipcode")}
+              {...register("zipcode")}
             />
             <p className="error">{errors.zipcode?.message}</p>
           </div>
@@ -784,28 +865,28 @@ const handlePhotoChange = (e) => {
       <label className="label">
         Role/Designation <span className="required">*</span>
       </label>
-      <select className="input" {...register("portalAccess.role", { required: true })}>
+      <select className="input" {...register("role", { required: true })}>
         <option value="">Select</option>
         <option value="manager">Manager</option>
         <option value="employee">Employee</option>
       </select>
-      {errors.portalAccess?.role && (
-        <p className="error">{errors.portalAccess.role.message}</p>
-        )}
+      {errors.role && (
+        <p className="error">{errors.role.message}</p>
+      )}
     </div>
 
     <div>
       <label className="label">
         Access <span className="required">*</span>
       </label>
-      <select className="input" {...register("portalAccess.status", { required: true })}>
+      <select className="input" {...register("accessStatus", { required: true })}>
         <option value="">Select</option>
         <option value="active">Active</option>
         <option value="inactive">Inactive</option>
       </select>
-          {errors.portalAccess?.status && (
-  <p className="error">{errors.portalAccess.status.message}</p>
-)}
+      {errors.accessStatus && (
+        <p className="error">{errors.accessStatus.message}</p>
+      )}
     </div>
   </div>
 )}
@@ -814,7 +895,7 @@ const handlePhotoChange = (e) => {
               <button
                 type="button"
                 onClick={async () => {
-                  const isValid = await trigger();
+                  const isValid = await trigger(Object.keys(employeeSchemas[currentStep]));
                   if (isValid) setCurrentStep(currentStep + 1);
                 }}
               >
@@ -835,7 +916,7 @@ const handlePhotoChange = (e) => {
                 <button
                   type="button"
                   onClick={async () => {
-                    const isValid = await trigger();
+                    const isValid = await trigger(Object.keys(employeeSchemas[currentStep]));
                     if (isValid) setCurrentStep(currentStep + 1);
                   }}
                 >

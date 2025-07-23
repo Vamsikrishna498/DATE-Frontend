@@ -105,7 +105,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
     .string()
     .notRequired()
     .matches(/^\d+$/, { message: "Enter valid numeric income", excludeEmptyString: true }),
-  soilTest: yup.string().required("Soil test selection is required"),
+  soilTest: yup.string().notRequired(),
   soilTestCertificate: yup.mixed().notRequired()
 }),
 
@@ -165,7 +165,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
       .matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Enter valid PAN number"),
     ppbNumber: yup
     .string()
-    .required("PPB Number is required"),
+    .nullable()
+    .notRequired(),
     passbookPhoto: yup.mixed()
       .nullable()
       .test("fileSize", "File too large", value => !value || value.size <= 10 * 1024 * 1024),

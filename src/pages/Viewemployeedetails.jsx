@@ -1,12 +1,15 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import logo3 from "../assets/rightlogo.png";
 import logo4 from "../assets/middle.png";
-import '../styles/Adminconfig.css';
+
+import "../styles/Viewemployee.css";
+import fallbackUserImg from "../assets/person.png";
 
 const ViewEmployee = () => {
+  // Debug: Log key variables on every render
   const { employeeId } = useParams();
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,16 +18,19 @@ const ViewEmployee = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  console.log("[ViewEmployee] Render:", { employeeId, employee, loading, error });
 
   const methods = useForm();
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = methods;
+  const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = methods;
 
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       const previewURL = URL.createObjectURL(file);
       setPhotoPreview(previewURL);
-      setValue("photo", file);
+      setValue("photo", [file]); // Set as array to match react-hook-form
     }
   };
 
@@ -64,6 +70,8 @@ const ViewEmployee = () => {
     { id: 2, name: "Village B" },
   ];
 
+  const navigate = useNavigate();
+
 useEffect(() => {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -71,147 +79,414 @@ useEffect(() => {
     return;
   }
 
+  // Check if employeeId is valid
+  if (!employeeId || employeeId === "undefined") {
+    console.error("Invalid employee ID:", employeeId);
+    setError("Invalid employee ID. Please go back and try again.");
+    setLoading(false);
+    return;
+  }
+
+  setLoading(true);
+  console.log("Fetching employee with ID:", employeeId);
+  
   fetch(`http://localhost:8080/api/employees/${employeeId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   })
-    .then((res) => res.json())
-    .then((data) => {
-      console.log("Employee Data:", data);
-      setEmployee(data);
-      setValue("salutation", data.salutation || "");
-      setValue("firstName", data.firstName || "");
-      setValue("middleName", data.middleName || "");
-      setValue("lastName", data.lastName || "");
-      setValue("gender", data.gender || "");
-      setValue("dob", data.dob || "");
-      setValue("nationality", data.nationality || "");
-      setValue("contactNumber", data.contactNumber || "");
-      setValue("email", data.email || "");
-      setValue("relationType", data.relationType || "");
-      setValue("relationName", data.relationName || "");
-      setValue("altNumber", data.altNumber || "");
-      setValue("altNumberType", data.altNumberType || "");
-      setValue("country", data.country || "");
-      setValue("state", data.state || "");
-      setValue("district", data.district || "");
-      setValue("block", data.block || "");
-      setValue("village", data.village || "");
-      setValue("zipcode", data.zipcode || "");
-      setValue("sector", data.sector || "");
-      setValue("education", data.education || "");
-      setValue("experience", data.experience || "");
-      setValue("bankName", data.bankName || "");
-      setValue("accountNumber", data.accountNumber || "");
-      setValue("branchName", data.branchName || "");
-      setValue("ifscCode", data.ifscCode || "");
-      setValue("documentType", data.documentType || "");
-      setValue("documentNumber", data.documentNumber || "");
-      setValue("role", data.role || "");
-      setValue("accessStatus", data.accessStatus || "");
-      setPhotoPreview(data.photoUrl ? `http://localhost:8080${data.photoUrl}` : null);
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.json();
     })
-    .catch((err) => console.error(err));
-}, [employeeId, setValue]);
+    .then((data) => {
+      console.log("API employee data:", data); // Debug log
+      console.log("[ViewEmployee] Fetched employee data:", data);
+      console.log("Photo fields:", {
+        photoFileName: data.photoFileName,
+        photoUrl: data.photoUrl,
+        photo: data.photo
+      });
+      
+      if (!data || !data.id) {
+        setError("Employee data not found or invalid response from server.");
+        setLoading(false);
+        return;
+      }
+      
+      setEmployee(data);
+      setLoading(false);
+      
+      // Map the data to form fields properly - using the same pattern as farmer
+      const formData = {
+        // Employee Details
+        salutation: data.salutation || "",
+        firstName: data.firstName || "",
+        middleName: data.middleName || "",
+        lastName: data.lastName || "",
+        gender: data.gender || "",
+        nationality: data.nationality || "",
+        dob: data.dob ? data.dob.split('T')[0] : "", // Format date for input
+        
+        // Contact Details
+        contactNumber: data.contactNumber || "",
+        email: data.email || "",
+        
+        // Other Details
+        relationType: data.relationType || "",
+        relationName: data.relationName || "",
+        altNumber: data.altNumber || "",
+        altNumberType: data.altNumberType || "",
+        
+        // Address
+        country: data.country || "",
+        state: data.state || "",
+        district: data.district || "",
+        block: data.block || "",
+        village: data.village || "",
+        zipcode: data.zipcode || "",
+        sector: data.sector || "",
+        
+        // Professional Details
+        education: data.education || "",
+        experience: data.experience || "",
+        
+        // Bank Details
+        bankName: data.bankName || "",
+        accountNumber: data.accountNumber || "",
+        branchName: data.branchName || "",
+        ifscCode: data.ifscCode || "",
+        
+        // Documents
+        documentType: data.documentType || "",
+        documentNumber: data.documentNumber || "",
+        
+        // Portal Access
+        role: data.role || "",
+        accessStatus: data.accessStatus || ""
+      };
+      
+      // Reset form with all data at once
+      reset(formData);
+      
+      // Set photo previews if photo exists - check multiple possible field names
+      if (data.photoFileName || data.photoUrl || data.photo) {
+        const photoUrl = data.photoFileName 
+          ? `http://localhost:8080/uploads/${data.photoFileName}`
+          : data.photoUrl 
+            ? `http://localhost:8080${data.photoUrl}`
+            : data.photo;
+        setPhotoPreview(photoUrl);
+        console.log("Photo URL set:", photoUrl);
+      } else {
+        setPhotoPreview(null);
+        console.log("No photo URL found in data");
+      }
+      
+      console.log("Employee data set successfully:", data);
+    })
+    .catch((err) => {
+      console.error("❌ Failed to fetch employee:", err);
+      
+      if (err.response) {
+        const status = err.response.status;
+        
+        switch (status) {
+          case 401:
+            setError("❌ Authentication failed. Please log in again.");
+            break;
+          case 403:
+            setError("❌ Access denied. Please login again.");
+            break;
+          case 404:
+            setError("❌ Employee not found. Please check the ID.");
+            break;
+          case 500:
+            setError("❌ Server error. Please try again later.");
+            break;
+          default:
+            setError(`❌ Error ${status}: Failed to load employee data.`);
+        }
+      } else if (err.request) {
+        setError("❌ Network error. Please check your internet connection.");
+      } else {
+        setError("❌ Error loading employee data. Please try again.");
+      }
+      setLoading(false);
+    });
+}, [employeeId, reset]);
 
  
  
   return (
     <div className="employee-view-container">
-      <div className="employee-view-header">
-        <img src={logo3} alt="Logo" className="emploee-view-logo-img" />
-        <div className="employee-logo-section" onClick={() => setDropdownOpen(!dropdownOpen)}>
-          {photoPreview ? (
-            <img src={photoPreview} alt="User Icon" className="user-icon" />
-          ) : (
-            <span className="user-icon">User</span>
-          )}
-          <div className="one">{employee?.firstName || "Employee Name"}</div>
-          {dropdownOpen && (
-            <div className="employee-dropdown-menu">
-              <div className="dropdown-item">{employee?.firstName || "User Name"}</div>
-              <div className="dropdown-item">👤 My Profile</div>
-              <div className="dropdown-item">⚙️ Account Settings</div>
-              <div className="dropdown-item">❓ Need Help?</div>
-              <div className="dropdown-item">📲 Sign Out</div>
+      {/* Loading State */}
+      {loading && (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          fontSize: '18px',
+          color: '#666'
+        }}>
+          Loading employee data...
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          fontSize: '18px',
+          color: '#d32f2f',
+          background: '#fffbe6',
+          border: '1px solid #ffe082',
+          borderRadius: '8px',
+          margin: '40px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.07)'
+        }}>
+          <div style={{ marginBottom: '20px', fontWeight: 'bold' }}>❌ {error}</div>
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#1976d2',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              marginBottom: '10px'
+            }}
+          >
+            Retry
+          </button>
+          <button 
+            onClick={() => window.history.back()} 
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#4caf50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            Go Back
+          </button>
+        </div>
+      )}
+
+      {/* Main Content - Only show if not loading and no error */}
+      {!loading && !error && (
+        <>
+          <div className="employee-view-header">
+            <img src={logo3} alt="DATE Logo" className="emploee-view-logo-img" />
+            <div className="employee-header-user">
+              <div className="employee-header-avatar">
+                {photoPreview ? (
+                  <img
+                    src={imgError || !employee?.photoFileName ? fallbackUserImg : photoPreview}
+                    alt="User Icon"
+                    className="user-icon"
+                    onError={() => setImgError(true)}
+                  />
+                ) : (
+                  <span className="user-icon">User</span>
+                )}
+              </div>
+              <span className="employee-header-username">{(watch("firstName") ?? "User") || "User"}</span>
             </div>
-          )}
-        </div>
-      </div>
- 
-      <div className="header-background">
-        <img src={logo4} alt="Field" className="employee-bg-img" />
-        <div className="employee-photo-id-card">
-          <div className="edit-photo-box">
-            {photoPreview ? (
-              <img src={photoPreview} alt="Preview" className="photo-preview" />
-            ) : (
-              <span className="photo-placeholder">Employee photo</span>
-            )}
           </div>
-           <div className="farmer-id-name">
-            <div className="farmer-id">ID: <strong>{employee?.id || "--"}</strong></div>
-            <div className="one">{employee?.firstName || "Employee Name"}</div>
-          </div>
-        </div>
-      </div>
- 
-       <div className="e-body-content">
-        <div className="e-sidebar">
-          {sidebarSteps.map((label, idx) => (
-            <div
-              key={idx}
-              className={`e-sidebar-item ${currentStep === idx ? "active" : ""}`}
-              onClick={() => {
-                setCurrentStep(idx);
-                setIsEditMode(false);
-              }}
-            >
-              {label}
+       
+          {/* Center Card with Photo + ID + Name over background image */}
+          <div className="header-background">
+            <img src={logo4} alt="Field" className="employee-bg-img" />
+            <div className="photo-id-card">
+              <div className="edit-photo-box">
+                {photoPreview ? (
+                  <img
+                    src={imgError || !employee?.photoFileName ? fallbackUserImg : photoPreview}
+                    alt="Employee Photo"
+                    className="photo-preview"
+                    style={{ width: "110px", height: "110px", objectFit: "cover", borderRadius: "50%" }}
+                    onError={() => setImgError(true)}
+                  />
+                ) : (
+                  <span className="farmer-photo-placeholder"> Employee photo </span>
+                )}
+                {/* Show file name if present */}
+                <div style={{ marginTop: "6px", fontSize: "0.95em", color: "#444", textAlign: "center" }}>
+                  {employee?.photoFileName ? `Current: ${employee.photoFileName}` : null}
+                </div>
+              </div>
+              <div className="farmer-id-name">
+                <div className="farmer-id">ID: <strong>{employee?.id || employeeId || "--"}</strong></div>
+                <div className="one">{(employee?.firstName || "") + (employee?.lastName ? " " + employee.lastName : "")}</div>
+              </div>
             </div>
-          ))}
-        </div>
-        <FormProvider {...methods}>
-          <form onSubmit={handleSubmit((data) => console.log("Submitted", data))} className="view-employee-form">
-            <div className="employee-step-container">
-     {currentStep === 0 && !isEditMode && (
+          </div>
+
+          <div className="e-body-content">
+            <div className="e-sidebar">
+              {sidebarSteps.map((label, idx) => (
+                <div
+                  key={idx}
+                  className={`e-sidebar-item ${currentStep === idx ? "active" : ""}`}
+                  onClick={() => {
+                    setCurrentStep(idx);
+                    setIsEditMode(false);
+                  }}
+                >
+                  {label}
+                </div>
+              ))}
+              <div className="top-bar">
+                <button
+                  className="go-dashboard-button"
+                  onClick={() => navigate("/dashboard")}
+                  style={{ marginTop: "32px", width: "90%" }}
+                >
+                  ⬅ Go to Dashboard
+                </button>
+              </div>
+            </div>
+            <FormProvider {...methods}>
+              <form onSubmit={handleSubmit((data) => console.log("Submitted", data))} className="view-employee-form">
+                <div className="employee-step-container">
+     {currentStep === 0 && (
   <>
     <h2>Employee Details</h2>
-    <button type="button" onClick={() => setIsEditMode(true)} className="employee-view-button">Edit</button>
-
-    <div className="viewinfo-row">
-      {/* Photo */}
-      <div className="viewinfo-column" style={{ flexBasis: "100%" }}>
-        <strong>Photo:</strong>{" "}
-        {employee?.photoUrl ? (
-          <img
-            src={`http://localhost:8080${employee.photoUrl}`}
-            alt="Employee"
-            style={{
-              height: "100px",
-              borderRadius: "8px",
-              marginTop: "10px",
-              boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
-            }}
-          />
-        ) : (
-          "No photo uploaded"
-        )}
-      </div>
-
-      {/* Text Details */}
-      <div className="viewinfo-column"><strong>Salutation:</strong> {employee?.salutation || "-"}</div>
-      <div className="viewinfo-column"><strong>First Name:</strong> {employee?.firstName || "-"}</div>
-      <div className="viewinfo-column"><strong>Middle Name:</strong> {employee?.middleName || "-"}</div>
-      <div className="viewinfo-column"><strong>Last Name:</strong> {employee?.lastName || "-"}</div>
-      <div className="viewinfo-column"><strong>Gender:</strong> {employee?.gender || "-"}</div>
-      <div className="viewinfo-column">
-        <strong>DOB:</strong>{" "}
-        {employee?.dob ? new Date(employee.dob).toLocaleDateString("en-IN") : "-"}
-      </div>
-      <div className="viewinfo-column"><strong>Nationality:</strong> {employee?.nationality || "-"}</div>
-    </div>
+    {!isEditMode ? (
+      <>
+        <button type="button" onClick={() => setIsEditMode(true)} className="employee-view-button">Edit</button>
+        <div className="details-card">
+          <div className="photo-row">
+            <span className="photo-label">Photo:</span>
+            <div className="photo-box">
+              {photoPreview ? (
+                <>
+                  <img
+                    src={imgError || !employee?.photoFileName ? fallbackUserImg : photoPreview}
+                    alt="Employee"
+                    onError={() => setImgError(true)}
+                  />
+                  <span className="photo-filename">
+                    {employee?.photoFileName ? employee.photoFileName : null}
+                  </span>
+                </>
+              ) : (
+                <span>No photo uploaded</span>
+              )}
+            </div>
+          </div>
+          <div><strong>Salutation:</strong> <span>{watch("salutation") || "-"}</span></div>
+          <div><strong>First Name:</strong> <span>{watch("firstName") || "-"}</span></div>
+          <div><strong>Middle Name:</strong> <span>{watch("middleName") || "-"}</span></div>
+          <div><strong>Last Name:</strong> <span>{watch("lastName") || "-"}</span></div>
+          <div><strong>Gender:</strong> <span>{watch("gender") || "-"}</span></div>
+          <div><strong>DOB:</strong> <span>{watch("dob") ? new Date(watch("dob")).toLocaleDateString("en-IN") : "-"}</span></div>
+          <div><strong>Nationality:</strong> <span>{watch("nationality") || "-"}</span></div>
+        </div>
+      </>
+    ) : (
+      <>
+        <div className="edit-main form-grid">
+          {/* Photo Upload */}
+          <div className="viewform-row">
+            <label>Photo <span className="optional">(Optional)</span></label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => {
+                const file = e.target.files[0];
+                if (file) {
+                  setPhotoPreview(URL.createObjectURL(file));
+                  setValue("photo", [file]);
+                }
+              }}
+            />
+            {photoPreview && (
+              <img
+                src={imgError ? fallbackUserImg : photoPreview}
+                alt="Preview"
+                className="photo-preview"
+                style={{ height: "100px", borderRadius: "8px", marginTop: "10px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)" }}
+                onError={() => setImgError(true)}
+              />
+            )}
+          </div>
+          {/* Salutation */}
+          <div className="viewform-row">
+            <label>Salutation <span className="required">*</span></label>
+            <select {...register("salutation")} className="input">
+              <option value="">Select</option>
+              <option value="Mr">Mr</option>
+              <option value="Mrs.">Mrs.</option>
+              <option value="Ms.">Ms.</option>
+              <option value="Miss.">Miss.</option>
+              <option value="Dr.">Dr.</option>
+            </select>
+            {errors.salutation && <p className="error">{errors.salutation.message}</p>}
+          </div>
+          {/* First Name */}
+          <div className="viewform-row">
+            <label>First Name <span className="required">*</span></label>
+            <input {...register("firstName")} className="input" />
+            {errors.firstName && <p className="error">{errors.firstName.message}</p>}
+          </div>
+          {/* Middle Name */}
+          <div className="viewform-row">
+            <label>Middle Name <span className="required">*</span></label>
+            <input {...register("middleName")} className="input" />
+            {errors.middleName && <p className="error">{errors.middleName.message}</p>}
+          </div>
+          {/* Last Name */}
+          <div className="viewform-row">
+            <label>Last Name <span className="required">*</span></label>
+            <input {...register("lastName")} className="input" />
+            {errors.lastName && <p className="error">{errors.lastName.message}</p>}
+          </div>
+          {/* Gender */}
+          <div className="viewform-row">
+            <label>Gender <span className="required">*</span></label>
+            <select {...register("gender")} className="input">
+              <option value="">Select</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Transgender">Transgender</option>
+            </select>
+            {errors.gender && <p className="error">{errors.gender.message}</p>}
+          </div>
+          {/* DOB */}
+          <div className="viewform-row">
+            <label>DOB <span className="required">*</span></label>
+            <input type="date" {...register("dob")} className="input" />
+            {errors.dob && <p className="error">{errors.dob.message}</p>}
+          </div>
+          {/* Nationality */}
+          <div className="viewform-row">
+            <label>Nationality <span className="required">*</span></label>
+            <select {...register("nationality")} className="input">
+              <option value="">Select</option>
+              <option value="Indian">Indian</option>
+            </select>
+            {errors.nationality && <p className="error">{errors.nationality.message}</p>}
+          </div>
+          <div className="action-buttons">
+            <button type="button" className="employee-view-button" onClick={() => setIsEditMode(false)}>
+              Save
+            </button>
+          </div>
+        </div>
+      </>
+    )}
   </>
 )}
 
@@ -515,7 +790,6 @@ useEffect(() => {
         {currentStep === 4 && (
   <>
     <h2>Professional Details</h2>
- 
     {!isEditMode ? (
       <>
         <button
@@ -525,7 +799,33 @@ useEffect(() => {
         >
           Edit
         </button>
- 
+        {/* Photo display for Professional Details */}
+        <div className="viewinfo-row">
+          <div className="viewinfo-column" style={{ flexBasis: "100%" }}>
+            <strong>Photo:</strong>{" "}
+            {photoPreview ? (
+              <img
+                src={imgError || !employee?.photoFileName ? fallbackUserImg : photoPreview}
+                alt="Employee"
+                style={{
+                  height: "100px",
+                  borderRadius: "8px",
+                  marginTop: "10px",
+                  boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
+                }}
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              "No photo uploaded"
+            )}
+            {/* Show file name if present */}
+            <div style={{ marginTop: "6px", fontSize: "0.95em", color: "#444" }}>
+              {employee?.photoFileName
+                ? `Current: ${employee.photoFileName}`
+                : null}
+            </div>
+          </div>
+        </div>
         <div className="viewinfo-row">
           <div>
             <strong>Education:</strong>{" "}
@@ -579,7 +879,6 @@ useEffect(() => {
       {currentStep === 5 && (
   <>
     <h2>Bank Details</h2>
- 
     {!isEditMode ? (
       <>
         <button
@@ -589,7 +888,33 @@ useEffect(() => {
         >
           Edit
         </button>
- 
+        {/* Photo display for Bank Details */}
+        <div className="viewinfo-row">
+          <div className="viewinfo-column" style={{ flexBasis: "100%" }}>
+            <strong>Photo:</strong>{" "}
+            {photoPreview ? (
+              <img
+                src={imgError || !employee?.photoFileName ? fallbackUserImg : photoPreview}
+                alt="Employee"
+                style={{
+                  height: "100px",
+                  borderRadius: "8px",
+                  marginTop: "10px",
+                  boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
+                }}
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              "No photo uploaded"
+            )}
+            {/* Show file name if present */}
+            <div style={{ marginTop: "6px", fontSize: "0.95em", color: "#444" }}>
+              {employee?.photoFileName
+                ? `Current: ${employee.photoFileName}`
+                : null}
+            </div>
+          </div>
+        </div>
         <div className="viewinfo-row">
           <div><strong>Bank Name:</strong> {watch("bankName") || "-"}</div>
           <div><strong>Account Number:</strong> {watch("accountNumber") || "-"}</div>
@@ -799,9 +1124,12 @@ useEffect(() => {
           </form>
         </FormProvider>
       </div>
+        </>
+      )}
     </div>
   );
 };
  
 export default ViewEmployee;
+ 
  

@@ -254,7 +254,6 @@ export const RegistrationList = () => {
     </div>
   );
 };
- 
 // ------------------ Farmer List ------------------
  export const FarmerList = () => {
   const [farmers, setFarmers] = useState([]);
@@ -274,7 +273,7 @@ export const RegistrationList = () => {
       return;
     }
     try {
-      const res = await axios.get("http://localhost:8080/api/farmers", {
+      const res = await axios.get("http://localhost:8081/api/farmers", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -298,7 +297,7 @@ export const RegistrationList = () => {
     }
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:8080/api/farmers/${farmerId}`, {
+      const res = await axios.get(`http://localhost:8081/api/farmers/${farmerId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -340,6 +339,18 @@ export const RegistrationList = () => {
     if (!aadhaar) return "";
     return `****-***-${aadhaar.slice(-4)}`;
   };
+  const filteredFarmers = farmers.filter((f) => {
+    const name = (
+      f.name ||
+      `${f.firstName || ""} ${f.lastName || ""}`
+    ).toLowerCase();
+    const document = (f.documentNumber || "").toLowerCase();
+    return (
+      name.includes(searchTerm.toLowerCase()) ||
+      document.includes(searchTerm.toLowerCase())
+    );
+  });
+
   // ✅ Show loading state
   if (loading) return <p>Loading farmer data...</p>;
 
@@ -419,14 +430,12 @@ export const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
-  const userRole = user?.role;
 
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:8080/api/employees", {
+        const res = await axios.get("http://localhost:8081/api/employees", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setEmployees(res.data);
@@ -439,8 +448,6 @@ export const EmployeeList = () => {
   }, []);
 
   const filteredEmployees = employees.filter((e) => {
-    // Hide super admin employees for all except SUPER_ADMIN
-    if (userRole?.toUpperCase?.() !== 'SUPER_ADMIN' && e.role?.toUpperCase?.() === 'SUPER_ADMIN') return false;
     const name = (e.name || "").toLowerCase();
     const designation = (e.designation || "").toLowerCase();
     return (

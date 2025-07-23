@@ -17,8 +17,7 @@ import Adminconfig from "./pages/Adminconfig";
 import UserProfile from "./pages/UserProfile";
 import { RegistrationList, FarmerList, EmployeeList } from "./pages/List";
 import { RegistrationDetails } from "./pages/RegistrationDetails";
-import Viewemployee from "./pages/Viewemployee";
-
+import Viewemployeedetails from "./pages/Viewemployeedetails";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
@@ -111,11 +110,10 @@ function AppContent() {
       </Routes>
     );
   }
-
-  if (location.pathname.startsWith("/view-employee")) {
+ if (location.pathname.startsWith("/view-employee")) {
     return (
       <Routes>
-        <Route path="/view-employee/:employeeId" element={<Viewemployee />} />
+        <Route path="/view-employee/:employeeId" element={<Viewemployeedetails />} />
       </Routes>
     );
   }
