@@ -123,6 +123,10 @@ const Dashboard = () => {
             <div className="profile-circle" onClick={handleProfileClick}>
               <span role="img" aria-label="User" style={{fontSize: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%'}}>👤</span>
             </div>
+            {/* Show username next to the icon */}
+            <span style={{ marginLeft: 8, fontWeight: 500, fontSize: '1rem', color: '#333' }}>
+              {user?.userName || user?.name || user?.email || 'User'}
+            </span>
             <span className="chevron-down" onClick={handleProfileClick}>▼</span>
             {profileMenuOpen && (
               <div className="profile-dropdown-menu">
@@ -182,11 +186,24 @@ const Dashboard = () => {
           </div>
           {/* Main */}
           <div className="dashboard-main">
+            {/* Role-based dashboard heading */}
+            {(user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'EMPLOYEE') && activeView === "dashboard" && (
+              <h1 style={{
+                fontSize: '2.1rem',
+                fontWeight: 700,
+                color: user?.role === 'SUPER_ADMIN' ? '#2e7d32' : user?.role === 'ADMIN' ? '#1565c0' : '#6a1b9a',
+                marginBottom: 0,
+                marginTop: 0,
+                letterSpacing: 1
+              }}>
+                {user?.role === 'SUPER_ADMIN' ? 'Super Admin Dashboard' : user?.role === 'ADMIN' ? 'Admin Dashboard' : 'Employee Dashboard'}
+              </h1>
+            )}
             {(user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN') && activeView === "dashboard" && (
               <>
                 <div className="dashboard-filters">
                   <div className="dashboard-title-grid">
-                    <div className="dashboard-title">Dashboard Overview</div>
+                    {/* Remove Dashboard Overview title, only show welcome message */}
                     <h3>Welcome back! Here's what's happening with your agricultural data.</h3>
                   </div>
                   <div className="filter-buttons">
