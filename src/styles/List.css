@@ -183,26 +183,24 @@ tr:hover {
 
 .registration-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-  overflow: hidden;
-  margin-top: 32px;
-  border: 1.5px solid #f3e7c4;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
-.registration-table th, .registration-table td {
-  border-bottom: 1.5px solid #e0e0e0;
-  padding: 14px 18px;
-  text-align: left;
-  font-size: 15px;
+.registration-table th,
+.registration-table td {
+  border: 2px solid #000;
+  padding: 10px 12px;
+  text-align: center;
 }
 .registration-table th {
-  background: #f8fafc;
+  background: #e3e8ff;
+  color: #1e293b;
   font-weight: 700;
-  color: #006838;
-  border-bottom: 2.5px solid #d2a854;
+  border: 2px solid #000;
+}
+.registration-table tr:nth-child(even) {
+  background: #fafbfc;
 }
 .registration-table tr:last-child td {
   border-bottom: none;

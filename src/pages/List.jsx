@@ -34,13 +34,8 @@ export const RegistrationList = () => {
   };
 
   useEffect(() => {
-    if (token) {
-      fetchRegistrations();
-    }
-  }, [token, refreshFlag]); // Add refreshFlag as dependency
-
-  // Only show pending registrations
-  const pendingRegistrations = registrations.filter(r => r.status === "PENDING");
+    fetchRegistrations();
+  }, [fetchRegistrations, token, refreshFlag]); // Add refreshFlag as dependency
 
   // Approve/Reject handlers
   const handleApproveUser = async (userId) => {
@@ -90,10 +85,12 @@ export const RegistrationList = () => {
     return matchesSearch; // ALL
   });
 
+  // RegistrationList: update delete handler
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
-      await axios.delete(`http://localhost:8080/api/auth/users/${userId}`, {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:8080/api/super-admin/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('User deleted successfully');
@@ -260,10 +257,10 @@ export const RegistrationList = () => {
   const [farmers, setFarmers] = useState([]);
    const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const userRole = user?.role;
   const { farmerId } = useParams();
-  const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
   const { reset } = useForm();
 
   // ✅ Fetch all farmers list
@@ -304,9 +301,6 @@ export const RegistrationList = () => {
         },
       });
       reset(res.data);
-      if (res.data.photo) {
-        setPhotoPreview(res.data.photo);
-      }
     } catch (err) {
       console.error("Error fetching farmer data:", err);
       alert("Failed to fetch farmer data.");
@@ -325,7 +319,7 @@ export const RegistrationList = () => {
     if (farmerId) {
       fetchFarmerData();
     }
-  }, [farmerId]);
+  }, [farmerId, fetchFarmerData]);
 
   // ✅ Update status locally
   const handleStatusChange = (id, newStatus) => {
@@ -343,10 +337,26 @@ export const RegistrationList = () => {
   // ✅ Show loading state
   if (loading) return <p>Loading farmer data...</p>;
 
+  // FarmerList: add delete handler and button
+  const handleDeleteFarmer = async (farmerId) => {
+    if (!window.confirm('Are you sure you want to delete this farmer?')) return;
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:8080/api/super-admin/farmers/${farmerId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Farmer deleted successfully');
+      setFarmers(farmers.filter(f => f.id !== farmerId));
+    } catch (err) {
+      alert('Failed to delete farmer');
+      console.error(err);
+    }
+  };
+
   return (
     <div className="list-container">
-      <h3>📋 Farmers List</h3>
-       <div className="search-container">
+      <h3> Farmers List</h3>
+      <div className="search-container">
         <input
           type="text"
           placeholder="🔍 Search..."
@@ -355,61 +365,65 @@ export const RegistrationList = () => {
           className="search-input"
         />
       </div>
-      <table className="farmer-table">
-        <thead>
-          <tr>
-            <th>Farmer ID</th>
-            <th>Name</th>
-            <th>Document</th>
-            <th>State</th>
-            <th>District</th>
-            <th>Mandal</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {farmers.map((f) => (
-            <tr key={f.id}>
-              <td>
-                <span className="farmer-id">{f.id}</span>
-              </td>
-              <td>
-                {f.name?.trim() ||
-                  `${f.firstName || ""} ${f.lastName || ""}`.trim()}
-              </td>
-              <td>
-                {f.documentType?.toLowerCase() === "aadhaar" && f.documentNumber
-                  ? maskAadhaar(f.documentNumber)
-                  : f.documentType || "-"}
-              </td>
-              <td>{f.state || "-"}</td>
-              <td>{f.district || "-"}</td>
-              <td>{f.block || "-"}</td>
-              <td>
-                <select
-                  className="reg-selact"
-                  value={f.status || ""}
-                  onChange={(e) => handleStatusChange(f.id, e.target.value)}
-                >
-                  <option value="">Select status</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Return">Return</option>
-                  <option value="Pending">Pending</option>
-                </select>
-              </td>
-              <td>
-                <button
-                  className="view-button"
-                  onClick={() => navigate(`/view-farmer/${f.id}`)}
-                >
-                  View
-                </button>
-              </td>
+      {farmers.length === 0 ? (
+        <p>No farmers found.</p>
+      ) : (
+        <table className="registration-table">
+          <thead>
+            <tr>
+              <th>Farmer ID</th>
+              <th>Name</th>
+              <th>Document</th>
+              <th>State</th>
+              <th>District</th>
+              <th>Mandal</th>
+              <th>Status</th>
+              <th>Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {farmers.map((f) => (
+              <tr key={f.id}>
+                <td><span className="farmer-id">{f.id}</span></td>
+                <td>{f.name?.trim() || `${f.firstName || ""} ${f.lastName || ""}`.trim()}</td>
+                <td>{f.documentType?.toLowerCase() === "aadhaar" && f.documentNumber ? maskAadhaar(f.documentNumber) : f.documentType || "-"}</td>
+                <td>{f.state || "-"}</td>
+                <td>{f.district || "-"}</td>
+                <td>{f.block || "-"}</td>
+                <td>
+                  <select
+                    className="reg-selact"
+                    value={f.status || ""}
+                    onChange={(e) => handleStatusChange(f.id, e.target.value)}
+                  >
+                    <option value="">Select status</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </td>
+                <td>
+                  <button
+                    className="view-btn"
+                    style={{ background: '#006838', color: '#fff', borderRadius: '6px', padding: '6px 18px', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                    onClick={() => navigate(`/view-farmer/${f.id}`)}
+                  >
+                    View
+                  </button>
+                  {userRole === 'SUPER_ADMIN' && (
+                    <button
+                      className="delete-btn"
+                      style={{ background: '#e53935', color: '#fff', borderRadius: '6px', padding: '6px 18px', border: 'none', fontWeight: 600, cursor: 'pointer', marginLeft: 8 }}
+                      onClick={() => handleDeleteFarmer(f.id)}
+                    >
+                      Delete
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };
@@ -449,10 +463,33 @@ export const EmployeeList = () => {
     );
   });
 
+  // Add a handler for changing employee status
+  const handleEmployeeStatusChange = (id, newStatus) => {
+    const updatedEmployees = employees.map((e) =>
+      e.id === id ? { ...e, status: newStatus } : e
+    );
+    setEmployees(updatedEmployees);
+  };
+
+  // EmployeeList: add delete handler and button
+  const handleDeleteEmployee = async (employeeId) => {
+    if (!window.confirm('Are you sure you want to delete this employee?')) return;
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:8080/api/super-admin/employees/${employeeId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Employee deleted successfully');
+      setEmployees(employees.filter(e => e.id !== employeeId));
+    } catch (err) {
+      alert('Failed to delete employee');
+      console.error(err);
+    }
+  };
+
   return (
     <div className="list-container">
       <h3>📋 Employees List</h3>
-
       <div className="search-container">
         <input
           type="text"
@@ -462,53 +499,65 @@ export const EmployeeList = () => {
           className="search-input"
         />
       </div>
-
-      <table className="employee-table">
-        <thead>
-          <tr>
-            <th>Employee ID</th>
-            <th>Name</th>
-            <th>Designation</th>
-            <th>District</th>
-            <th>Contact Number</th>
-            <th>Onboard Date</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredEmployees.map((e) => (
-            <tr key={e.id}>
-              <td><span className="employee-id">{e.employeeId}</span></td>
-              <td>{e.name}</td>
-              <td>{e.designation}</td>
-              <td>{e.district}</td>
-              <td>{e.contactNumber}</td>
-              <td>{e.onboardDate}</td>
-              <td>
-                <span className={`status ${e.status?.toLowerCase()}`}>
-                  {e.status}
-                </span>
-              </td>
-              <td>
-                <button
-                  className="view-button"
-                  onClick={() => navigate(`/view-employee/${e.id}`)}
-                >
-                  View
-                </button>
-              </td>
-            </tr>
-          ))}
-          {filteredEmployees.length === 0 && (
+      {filteredEmployees.length === 0 ? (
+        <p>No employees found.</p>
+      ) : (
+        <table className="registration-table">
+          <thead>
             <tr>
-              <td colSpan="8" style={{ textAlign: "center" }}>
-                No employees found.
-              </td>
+              <th>Employee ID</th>
+              <th>Name</th>
+              <th>Designation</th>
+              <th>District</th>
+              <th>Contact Number</th>
+              <th>Onboard Date</th>
+              <th>Status</th>
+              <th>Action</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredEmployees.map((e) => (
+              <tr key={e.id}>
+                <td><span className="employee-id">{e.Id}</span></td>
+                <td>{e.firstName}</td>
+                <td>{e.role}</td>
+                <td>{e.district}</td>
+                <td>{e.contactNumber}</td>
+                <td>{e.onboardDate}</td>
+                <td>
+                  <select
+                    className="reg-selact"
+                    value={e.status || ""}
+                    onChange={(ev) => handleEmployeeStatusChange(e.id, ev.target.value)}
+                  >
+                    <option value="">Select status</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </td>
+                <td>
+                  <button
+                    className="view-btn"
+                    style={{ background: '#006838', color: '#fff', borderRadius: '6px', padding: '6px 18px', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                    onClick={() => navigate(`/view-employee/${e.id}`)}
+                  >
+                    View
+                  </button>
+                  {userRole === 'SUPER_ADMIN' && (
+                    <button
+                      className="delete-btn"
+                      style={{ background: '#e53935', color: '#fff', borderRadius: '6px', padding: '6px 18px', border: 'none', fontWeight: 600, cursor: 'pointer', marginLeft: 8 }}
+                      onClick={() => handleDeleteEmployee(e.id)}
+                    >
+                      Delete
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }; 

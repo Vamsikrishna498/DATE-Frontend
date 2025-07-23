@@ -17,7 +17,7 @@ import Adminconfig from "./pages/Adminconfig";
 import UserProfile from "./pages/UserProfile";
 import { RegistrationList, FarmerList, EmployeeList } from "./pages/List";
 import { RegistrationDetails } from "./pages/RegistrationDetails";
-import Viewemployee from "./pages/Viewemployee";
+import Viewemployee from "./pages/Viewemployeedetails";
 
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
