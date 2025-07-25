@@ -376,27 +376,27 @@ const sidebarSteps = [
 
             {/* Remaining View Fields */}
             <div className="viewinfo-row">
-              <div><strong>Salutation:</strong> {watchedFields.salutation}</div>
-              <div><strong>Gender:</strong> {watchedFields.gender}</div>
+              <div><strong>Salutation:</strong> {farmerData?.salutation || ""}</div>
+              <div><strong>Gender:</strong> {farmerData?.gender || ""}</div>
             </div>
             <div className="viewinfo-row">
-              <div><strong>First Name:</strong> {watchedFields.firstName}</div>
-              <div><strong>Last Name:</strong> {watchedFields.lastName}</div>
+              <div><strong>First Name:</strong> {farmerData?.firstName || ""}</div>
+              <div><strong>Last Name:</strong> {farmerData?.lastName || ""}</div>
             </div>
             <div className="viewinfo-row">
-              <div><strong>Middle Name:</strong> {watchedFields.middleName}</div>
-              <div><strong>Date of Birth:</strong> {watchedFields.dateOfBirth}</div>
+              <div><strong>Middle Name:</strong> {farmerData?.middleName || ""}</div>
+              <div><strong>Date of Birth:</strong> {farmerData?.dateOfBirth || ""}</div>
             </div>
             <div className="viewinfo-row">
-              <div><strong>Nationality:</strong> {watchedFields.nationality}</div>
-              <div><strong>Father Name:</strong> {watchedFields.fatherName}</div>
+              <div><strong>Nationality:</strong> {farmerData?.nationality || ""}</div>
+              <div><strong>Father Name:</strong> {farmerData?.fatherName || ""}</div>
             </div>
             <div className="viewinfo-row">
-              <div><strong>Contact Number:</strong> {watchedFields.contactNumber}</div>
-              <div><strong>Alternative Number:</strong> {watchedFields.alternativeNumber}</div>
+              <div><strong>Contact Number:</strong> {farmerData?.contactNumber || ""}</div>
+              <div><strong>Alternative Number:</strong> {farmerData?.alternativeContactNumber || farmerData?.alternativeNumber || ""}</div>
             </div>
             <div className="viewinfo-row">
-              <div><strong>Alternative Type:</strong> {watchedFields.alternativeType}</div>
+              <div><strong>Alternative Type:</strong> {farmerData?.alternativeRelationType || farmerData?.alternativeType || ""}</div>
             </div>
           </>
         ) : (
@@ -527,16 +527,16 @@ const sidebarSteps = [
               <button onClick={() => setIsEditMode(true)} className="viwe-button">Edit</button>
  
               <div className="viewinfo-row">
-                <div><strong>Country:</strong> {watchedFields.country || "Not provided"}</div>
-                <div><strong>State:</strong> {watchedFields.state || "Not provided"}</div>
+                <div><strong>Country:</strong> {farmerData?.country || ""}</div>
+                <div><strong>State:</strong> {farmerData?.state || ""}</div>
               </div>
               <div className="viewinfo-row">
-                <div><strong>District:</strong> {watchedFields.district || "Not provided"}</div>
-                <div><strong>Mandal:</strong> {watchedFields.mandal || "Not provided"}</div>
+                <div><strong>District:</strong> {farmerData?.district || ""}</div>
+                <div><strong>Mandal:</strong> {farmerData?.block || ""}</div>
               </div>
               <div className="viewinfo-row">
-                <div><strong>Village:</strong> {watchedFields.village || "Not provided"}</div>
-                <div><strong>Pincode:</strong> {watchedFields.pincode || "Not provided"}</div>
+                <div><strong>Village:</strong> {farmerData?.village || ""}</div>
+                <div><strong>Pincode:</strong> {farmerData?.pincode || ""}</div>
               </div>
             </>
           ) : (
@@ -595,8 +595,8 @@ const sidebarSteps = [
         <button onClick={() => setIsEditMode(true)} className="viwe-button">Edit</button>
  
         <div className="viewinfo-row">
-          <div><strong>Education:</strong> {watchedFields.education || "Not provided"}</div>
-          <div><strong>Experience:</strong> {watchedFields.experience || "Not provided"}</div>
+          <div><strong>Education:</strong> {farmerData?.education || ""}</div>
+          <div><strong>Experience:</strong> {farmerData?.experience || ""}</div>
         </div>
       </>
     ) : (
@@ -668,15 +668,17 @@ const sidebarSteps = [
               <span style={{ display: "none", color: "#666" }}>Photo not available</span>
             </div>
           ) : null}
-          <div><strong>Survey Number:</strong> {watchedFields.currentSurveyNumber || "Not provided"}</div>
-          <div><strong>Total Land Holding:</strong> {watchedFields.currentLandHolding || "Not provided"}</div>
-          <div><strong>Geo-tag:</strong> {watchedFields.currentGeoTag || "Not provided"}</div>
-          <div><strong>Crop Category:</strong> {cropCategoryStep3 || watchedFields.cropCategory || "Not provided"}</div>
-          <div><strong>Crop Name:</strong> {watchedFields.currentCrop || "Not provided"}</div>
-          <div><strong>Net Income:</strong> {watchedFields.currentNetIncome || "Not provided"}</div>
-          <div><strong>Soil Test:</strong> {watchedFields.currentSoilTest || "Not provided"}</div>
-          {watchedFields.currentSoilTest === "Yes" && (
-            <div><strong>Soil Test Certificate:</strong> {farmerData?.currentSoilTestCertificateFileName ? "Uploaded" : "Not Uploaded"}</div>
+          <div><strong>Survey Number:</strong> {farmerData?.currentSurveyNumber || ""}</div>
+          <div><strong>Total Land Holding:</strong> {farmerData?.currentLandHolding || ""}</div>
+          <div><strong>Geo-tag:</strong> {farmerData?.currentGeoTag || ""}</div>
+          <div><strong>Crop Category:</strong> {farmerData?.cropCategory || ""}</div>
+          <div><strong>Crop Name:</strong> {farmerData?.currentCrop || ""}</div>
+          <div><strong>Net Income:</strong> {farmerData?.currentNetIncome || ""}</div>
+          <div><strong>Soil Test:</strong> {typeof farmerData?.currentSoilTest === 'boolean' ? (farmerData.currentSoilTest ? 'Yes' : 'No') : ""}</div>
+          {farmerData?.currentSoilTestCertificateFileName ? (
+            <div><strong>Soil Test Certificate:</strong> <a href={`http://localhost:8080/uploads/${farmerData.currentSoilTestCertificateFileName}`} target="_blank" rel="noopener noreferrer">View Certificate</a></div>
+          ) : (
+            <div><strong>Soil Test Certificate:</strong> Not Uploaded</div>
           )}
         </div>
       </>
@@ -792,15 +794,14 @@ const sidebarSteps = [
       <>
         <button onClick={() => setIsEditMode(true)} className="viwe-button">Edit</button>
         <div className="viewinfo-row">
-          <div><strong>Survey Number:</strong> {watchedFields.proposedSurveyNumber || "Not provided"}</div>
-          <div><strong>Geo-tag:</strong> {watchedFields.proposedGeoTag || "Not provided"}</div>
-          <div><strong>Crop Name:</strong> {watchedFields.proposedCrop || "Not provided"}</div>
-          <div><strong>Soil Test:</strong> {watchedFields.proposedSoilTest || "Not provided"}</div>
-          <div><strong>Total Land Holding:</strong> {watchedFields.proposedLandHolding || "Not provided"}</div>
-          <div><strong>Net Income:</strong> {watchedFields.proposedNetIncome || "Not provided"}</div>
-          <div>
-            <strong>Soil Test Certificate:</strong> {farmerData?.proposedSoilTestCertificate ? "Uploaded" : "Not Uploaded"}
-          </div>
+          <div><strong>Survey Number:</strong> {farmerData?.proposedSurveyNumber || ""}</div>
+          <div><strong>Geo-tag:</strong> {farmerData?.proposedGeoTag || ""}</div>
+          <div><strong>Crop Name:</strong> {farmerData?.proposedCrop || ""}</div>
+          <div><strong>Net Income:</strong> {farmerData?.proposedNetIncome || ""}</div>
+          <div><strong>Soil Test:</strong> {typeof farmerData?.proposedSoilTest === 'boolean' ? (farmerData.proposedSoilTest ? 'Yes' : 'No') : ""}</div>
+          <div><strong>Total Land Holding:</strong> {farmerData?.proposedLandHolding || ""}</div>
+          <div><strong>Soil Test Certificate:</strong> {farmerData?.proposedSoilTestCertificate ? "Uploaded" : "Not Uploaded"}</div>
+          <div><strong>Crop Category:</strong> {farmerData?.cropCategory || ""}</div>
         </div>
       </>
     ) : (
@@ -871,16 +872,28 @@ const sidebarSteps = [
         </button>
         <div className="viewinfo-row">
           <div>
-            <strong>Water Source:</strong> {watchedFields.currentWaterSource || "Not provided"}
+            <strong>Water Source:</strong> {farmerData?.currentWaterSource || ""}
           </div>
           <div>
-            <strong>Borewell Discharge (LPH):</strong> {watchedFields.currentDischargeLPH || "Not provided"}
+            <strong>Borewell Discharge (LPH):</strong> {farmerData?.currentDischargeLPH || ""}
           </div>
           <div>
-            <strong>Summer Discharge:</strong> {watchedFields.currentSummerDischarge || "Not provided"}
+            <strong>Summer Discharge:</strong> {farmerData?.currentSummerDischarge || ""}
           </div>
           <div>
-            <strong>Borewell Location:</strong> {watchedFields.currentBorewellLocation || "Not provided"}
+            <strong>Borewell Location:</strong> {farmerData?.currentBorewellLocation || ""}
+          </div>
+          <div>
+            <strong>Proposed Water Source:</strong> {farmerData?.proposedWaterSource || ""}
+          </div>
+          <div>
+            <strong>Proposed Borewell Discharge (LPH):</strong> {farmerData?.proposedDischargeLPH || ""}
+          </div>
+          <div>
+            <strong>Proposed Summer Discharge:</strong> {farmerData?.proposedSummerDischarge || ""}
+          </div>
+          <div>
+            <strong>Proposed Borewell Location:</strong> {farmerData?.proposedBorewellLocation || ""}
           </div>
         </div>
       </>
@@ -996,10 +1009,10 @@ const sidebarSteps = [
       <>
         <button onClick={() => setIsEditMode(true)} className="viwe-button">Edit</button>
         <div className="viewinfo-row">
-          <div><strong>Bank Name:</strong> {watchedFields.bankName || "Not provided"}</div>
-          <div><strong>Account Number:</strong> {watchedFields.accountNumber || "Not provided"}</div>
-          <div><strong>Branch Name:</strong> {watchedFields.branchName || "Not provided"}</div>
-          <div><strong>IFSC Code:</strong> {watchedFields.ifscCode || "Not provided"}</div>
+          <div><strong>Bank Name:</strong> {farmerData?.bankName || ""}</div>
+          <div><strong>Account Number:</strong> {farmerData?.accountNumber || ""}</div>
+          <div><strong>Branch Name:</strong> {farmerData?.branchName || ""}</div>
+          <div><strong>IFSC Code:</strong> {farmerData?.ifscCode || ""}</div>
         </div>
         <div className="viewinfo-row">
           <div>
@@ -1081,8 +1094,8 @@ const sidebarSteps = [
       <>
         <button onClick={() => setIsEditMode(true)} className="viwe-button">Edit</button>
         <div className="viewinfo-row">
-          <div><strong>Document Type:</strong> {watchedFields.documentType || "Not provided"}</div>
-          <div><strong>Document Number:</strong> {watchedFields.documentNumber || "Not provided"}</div>
+          <div><strong>Document Type:</strong> {farmerData?.documentType || ""}</div>
+          <div><strong>Document Number:</strong> {farmerData?.documentNumber || ""}</div>
           <div><strong>Document File:</strong> {farmerData?.documentFileName ? (
             <a href={`http://localhost:8080/uploads/${farmerData.documentFileName}`} target="_blank" rel="noopener noreferrer">View Document</a>
           ) : "Not Uploaded"}</div>
