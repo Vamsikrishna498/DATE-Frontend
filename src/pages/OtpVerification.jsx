@@ -66,33 +66,32 @@ const OtpVerification = () => {
  
   /* ───────── UI ───────── */
   return (
-    <div className="otp-container" style={{ backgroundImage: `url(${background})` }}>
-      <img src={logo} alt="Logo" className="otp-logo" />
- 
-      <div className="otp-box">
-        <h2>Email Verification</h2>
-        <p>We sent a 6‑digit code to <strong>{email}</strong></p>
- 
-        <label htmlFor="otpInput">Enter OTP</label>
-        <input
-          id="otpInput"
-          className="otp-input"
-          maxLength={6}
-          value={otp}
-          onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
-        />
- 
-        <div className="resend-otp">
-          {canResend ? (
-            <button onClick={handleResend} className="resend-btn">Resend OTP</button>
-          ) : (
-            <span className="resend-timer">Resend in {timer}s</span>
-          )}
-        </div>
- 
-        <div className="otp-buttons">
-          <button className="verify-btn" onClick={handleVerify}>Verify</button>
-          <button className="back-btn"   onClick={() => navigate(-1)}>Back</button>
+    <div className="login-modern-container" style={{ backgroundImage: `url(${background})` }}>
+      <div className="login-background-overlay"></div>
+      <div className="login-form-wrapper">
+        <div className="login-modern-card">
+          <img src={logo} alt="Logo" className="login-logo" />
+          <h2 className="login-title">Email Verification</h2>
+          <p>We sent a 6-digit code to <strong>{email}</strong></p>
+          <label htmlFor="otpInput">Enter OTP</label>
+          <input
+            id="otpInput"
+            className="otp-input"
+            maxLength={6}
+            value={otp}
+            onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+          />
+          <div className="resend-otp">
+            {canResend ? (
+              <button onClick={handleResend} className="resend-btn">Resend OTP</button>
+            ) : (
+              <span className="resend-timer">Resend in {timer}s</span>
+            )}
+          </div>
+          <div className="otp-buttons">
+            <button className="verify-btn" onClick={handleVerify}>Verify</button>
+            <button className="back-btn"   onClick={() => navigate(-1)}>Back</button>
+          </div>
         </div>
       </div>
     </div>

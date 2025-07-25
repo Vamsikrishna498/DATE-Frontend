@@ -10,7 +10,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px 48px;
+  padding: 0px 48px;
   background: rgba(255,255,255,0.95);
   box-shadow: 0 2px 16px rgba(0,0,0,0.06);
   border-bottom: 1.5px solid #e0e0e0;
@@ -29,7 +29,7 @@
 .dashboard-sections{
   display: flex;
   gap: 50px;
-  margin-top: 50px;
+  margin-top: 20px;
 }
 
 .infologo-right {
@@ -42,13 +42,13 @@
 
 .dashboard-sidebar {
   width: 240px;
-  min-height: 90vh;
+  min-height: 60vh;
   background: linear-gradient(135deg, #005f2f 60%, #d2a854 100%);
   padding: 32px 18px 32px 18px;
   color: white;
   border-radius: 18px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.10);
-  margin: 24px 24px 24px 0;
+  margin: 10px 24px 24px 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -98,7 +98,7 @@
 
 .dashboard-main {
   flex: 1;
-  padding: 32px 32px 32px 0;
+  padding: 0px 32px 0px 0;
   background: transparent;
 }
 
@@ -106,8 +106,7 @@
   background-image: url("../assets/banner.jpg");
   height: 200px;
   background-size: cover;
-  background-position: center;
-  margin-bottom: 28px;
+  background-position: center; 
   border-radius: 12px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.07);
 }
@@ -129,7 +128,7 @@
 .card-wrapper-modern {
   display: flex;
   gap: 2.5rem;
-  margin-top: 2.2rem;
+  margin-top: 1rem;
   justify-content: center;
   margin-left: 0;
   flex-wrap: wrap;
@@ -137,7 +136,7 @@
 
 .modern-card {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   background: rgba(255,255,255,0.82);
   padding: 2.8rem 2.2rem;
   border-radius: 22px;
@@ -145,6 +144,7 @@
   align-items: center;
   width: 340px;
   min-width: 240px;
+  max-height: 240px;
   transition: box-shadow 0.22s, transform 0.22s, background 0.22s;
   border: 1.5px solid #f3e7c4;
   backdrop-filter: blur(2.5px) saturate(1.1);
@@ -242,7 +242,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0 20px;
-  margin-bottom: 18px;
+  
 }
 
 .filter-buttons {
@@ -310,10 +310,10 @@
 .quick-actions {
   flex: 1;
   background: rgba(255,255,255,0.92);
-  padding: 36px 28px;
+  padding: 26px 18px;
   border-radius: 14px;
   box-shadow: 0px 0px 16px rgba(210,168,84,0.07);
-  margin-bottom: 24px;
+  margin-bottom: 10px;
 }
 
 .section-title {
@@ -419,6 +419,8 @@
 
 
 .dashboard-sidebar {
+  width: 300px;
+  min-height: 60vh;
   background: linear-gradient(180deg, #006838, #043114);
   color: white;
   padding: 1rem;

@@ -188,16 +188,8 @@ import "../styles/EmployeeDetails.css";
     1: ["contactNumber", "email"],
     2: ["relationType", "relationName", "altNumber", "altNumberType"],
     3: ["country", "state", "district", "block", "village", "zipcode"],
-    4: [
-      { key: "education", path: "professional.education" },
-      { key: "experience", path: "professional.experience" }
-    ],
-    5: [
-      { key: "bankName", path: "bank.bankName" },
-      { key: "accountNumber", path: "bank.accountNumber" },
-      { key: "branchName", path: "bank.branchName" },
-      { key: "ifscCode", path: "bank.ifscCode" }
-    ],
+    4: ["education", "experience"],
+    5: ["bankName", "accountNumber", "branchName", "ifscCode"],
     6: ["documentType", "documentNumber"],
     7: ["role", "accessStatus"]
   };
@@ -206,16 +198,8 @@ import "../styles/EmployeeDetails.css";
   for (let step = 0; step <= currentStep; step++) {
     const fields = stepFields[step];
     fields.forEach((field) => {
-      if (typeof field === "string") {
-        if (data[field] && data[field] !== "") {
-          formData.append(field, data[field]);
-        }
-      } else if (typeof field === "object" && field.path) {
-        // Support nested fields
-        const value = field.path.split('.').reduce((obj, key) => obj && obj[key], data);
-        if (value && value !== "") {
-          formData.append(field.key, value);
-        }
+      if (data[field] && data[field] !== "") {
+        formData.append(field, data[field]);
       }
     });
   }
@@ -350,10 +334,40 @@ const handlePhotoChange = (e) => {
            </label>
             <div className="photo-box">
            {photoPreview ? (
-               <img src={photoPreview} alt="Preview" className="photo-preview" />
+               <div style={{ position: 'relative', display: 'inline-block' }}>
+                 <img src={photoPreview} alt="Preview" className="photo-preview" />
+                 <button
+                   type="button"
+                   onClick={() => {
+                     setPhotoPreview(null);
+                     setValue("photo", null);
+                     navigate('/dashboard');
+                   }}
+                   style={{
+                     position: 'absolute',
+                     top: 4,
+                     right: 4,
+                     background: 'rgba(0,0,0,0.5)',
+                     color: '#fff',
+                     border: 'none',
+                     borderRadius: '50%',
+                     width: 28,
+                     height: 28,
+                     cursor: 'pointer',
+                     fontWeight: 700,
+                     fontSize: 18,
+                     lineHeight: '28px',
+                     textAlign: 'center',
+                     zIndex: 2
+                   }}
+                   aria-label="Remove photo"
+                 >
+                   ×
+                 </button>
+               </div>
           ) : employeeData && employeeData.photoFileName ? (
             <img
-              src={`http://localhost:8081/uploads/${employeeData.photoFileName}`}
+              src={`http://localhost:8080/uploads/${employeeData.photoFileName}`}
               alt="Employee Photo"
               className="photo-preview"
               onError={e => {

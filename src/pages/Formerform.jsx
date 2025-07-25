@@ -86,15 +86,15 @@ import React, { useEffect, useState } from "react";
      experience: yup.string().nullable(),
      }),
  
-  // Step 3: Current Crop Information
+  // Step 3: Current Crop Information schema
      yup.object().shape({
-     surveyNumber: yup.string().nullable(),
-     totalLandHolding: yup.string().nullable(),
-     geoTag: yup.string().nullable(),
-     selectCrop: yup.string().nullable(),
-     netIncome: yup.string().nullable(),
-     soilTest: yup.string().required("Soil test selection is required"),
-     soilTestCertificate: yup.mixed().nullable().notRequired(),
+     currentSurveyNumber: yup.string().nullable(),
+     currentLandHolding: yup.string().nullable(),
+     currentGeoTag: yup.string().nullable(),
+     currentCrop: yup.string().nullable(),
+     currentNetIncome: yup.string().nullable(),
+     currentSoilTest: yup.string().required("Soil test selection is required"),
+     currentSoilTestCertificateFileName: yup.mixed().nullable().notRequired(),
      }),
  
   // Step 4: Proposed Crop Information
@@ -152,7 +152,7 @@ import React, { useEffect, useState } from "react";
     const steps = ["Personal Information", "Address","Professional Information","Current Crop Information",
                   "Proposed Crop Information",  "Irrigation Details","Other Information", "Documents",];
  
-                  const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8081";
+                  const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
                   const FarmerForm = ({ currentStep, setCurrentStep, isEditMode }) => {
                   const [selectedCountry, setSelectedCountry] = useState("");
                   const [countries, setCountries] = useState([]);
@@ -258,12 +258,12 @@ import React, { useEffect, useState } from "react";
                       const formData = {
                         ...data,
                         // Map step-specific fields
-                        surveyNumber: data.surveyNumber || "",
-                        totalLandHolding: data.totalLandHolding || "",
-                        geoTag: data.geoTag || "",
-                        selectCrop: data.selectCrop || "",
-                        netIncome: data.netIncome || "",
-                        soilTest: data.soilTest || "",
+                        currentSurveyNumber: data.surveyNumber || "",
+                        currentLandHolding: data.totalLandHolding || "",
+                        currentGeoTag: data.geoTag || "",
+                        currentCrop: data.selectCrop || "",
+                        currentNetIncome: data.netIncome || "",
+                        currentSoilTest: data.soilTest || "",
                         cropType: data.cropType || "",
                         waterSource: data.waterSource || "",
                         borewellDischarge: data.borewellDischarge || "",
@@ -331,34 +331,112 @@ import React, { useEffect, useState } from "react";
                 }, [isEditMode, farmerId]);
                  
                  
+                // When preparing the data for submission, map the generic fields to the DTO fields
+                const prepareFarmerDTO = (formData) => {
+                  return {
+                    ...formData,
+                    // Current Crop Info
+                    currentSurveyNumber: formData.currentSurveyNumber || formData.surveyNumber || '',
+                    currentLandHolding: formData.currentLandHolding || formData.totalLandHolding || '',
+                    currentGeoTag: formData.currentGeoTag || formData.geoTag || '',
+                    currentCrop: formData.currentCrop || formData.selectCrop || '',
+                    currentNetIncome: formData.currentNetIncome || formData.netIncome || '',
+                    currentSoilTest: formData.currentSoilTest !== undefined ? formData.currentSoilTest : formData.soilTest,
+                    // Proposed Crop Info
+                    proposedSurveyNumber: formData.proposedSurveyNumber || formData.surveyNumber2 || '',
+                    proposedLandHolding: formData.proposedLandHolding || formData.totalLandHolding2 || '',
+                    proposedGeoTag: formData.proposedGeoTag || formData.geoTag2 || '',
+                    proposedCrop: formData.proposedCrop || formData.selectCrop2 || '',
+                    proposedNetIncome: formData.proposedNetIncome || formData.netIncome2 || '',
+                    proposedSoilTest: formData.proposedSoilTest !== undefined ? formData.proposedSoilTest : formData.soilTest2,
+                    proposedSoilTestCertificate: formData.proposedSoilTestCertificate || '',
+                  };
+                };
+                 
                 const onSubmit = async (data) => {
                   console.log("Form submission data:", data);
                   console.log("Photo file:", data.photo);
                   console.log("Soil test certificate:", data.soilTestCertificate);
                   
                   const formData = new FormData();
-                  const farmerDto = { ...data };
+                  const payload = {
+                    // Map all FarmerDTO fields
+                    id: data.id,
+                    salutation: data.salutation,
+                    firstName: data.firstName,
+                    middleName: data.middleName,
+                    lastName: data.lastName,
+                    dateOfBirth: data.dateOfBirth,
+                    gender: data.gender,
+                    fatherName: data.fatherName,
+                    contactNumber: data.contactNumber,
+                    alternativeRelationType: data.alternativeType,
+                    alternativeContactNumber: data.alternativeNumber,
+                    nationality: data.nationality,
+                    country: data.country,
+                    state: data.state,
+                    district: data.district,
+                    block: data.block,
+                    village: data.village,
+                    pincode: data.pincode,
+                    education: data.education,
+                    experience: data.experience,
+                    cropPhoto: data.cropPhoto,
+                    // Current crop/land/irrigation fields
+                    currentSurveyNumber: data.currentSurveyNumber || data.surveyNumber,
+                    currentLandHolding: data.currentLandHolding || data.totalLandHolding,
+                    currentGeoTag: data.currentGeoTag || data.geoTag,
+                    currentCrop: data.currentCrop || data.selectCrop,
+                    currentNetIncome: data.currentNetIncome || data.netIncome,
+                    currentSoilTest: data.currentSoilTest || data.soilTest,
+                    // Proposed crop/land/irrigation fields
+                    proposedSurveyNumber: data.proposedSurveyNumber || data.surveyNumber,
+                    proposedLandHolding: data.proposedLandHolding || data.totalLandHolding,
+                    proposedGeoTag: data.proposedGeoTag || data.geoTag,
+                    proposedCrop: data.proposedCrop || data.selectCrop,
+                    proposedNetIncome: data.proposedNetIncome || data.netIncome,
+                    proposedSoilTest: data.proposedSoilTest || data.soilTest,
+                    proposedSoilTestCertificate: data.proposedSoilTestCertificate || data.soilTestCertificateFileName,
+                    // Irrigation fields
+                    currentWaterSource: data.currentWaterSource,
+                    currentDischargeLPH: data.currentDischargeLPH,
+                    currentSummerDischarge: data.currentSummerDischarge,
+                    currentBorewellLocation: data.currentBorewellLocation,
+                    proposedWaterSource: data.proposedWaterSource,
+                    proposedDischargeLPH: data.proposedDischargeLPH,
+                    proposedSummerDischarge: data.proposedSummerDischarge,
+                    proposedBorewellLocation: data.proposedBorewellLocation,
+                    // Bank
+                    bankName: data.bankName,
+                    accountNumber: data.accountNumber,
+                    branchName: data.branchName,
+                    ifscCode: data.ifscCode,
+                    // Document
+                    documentType: data.documentType,
+                    documentNumber: data.documentNumber,
+                    // Portal
+                    portalRole: data.portalRole,
+                    portalAccess: data.portalAccess,
+                  };
                  
-                  // Remove file fields from JSON
-                  delete farmerDto.photo;
-                  delete farmerDto.soilTestCertificate;
-                  delete farmerDto.aadhaarFile;
-                  delete farmerDto.panFile;
-                  delete farmerDto.voterFile;
-                  delete farmerDto.ppbFile;
-                 
+                  // Remove file fields from JSON if uploading files
+                  if (data.photo) delete payload.photoFileName;
+                  if (data.passbookFile) delete payload.passbookFileName;
+                  if (data.documentFileName) delete payload.documentFileName;
+                  if (data.currentSoilTestCertificateFileName) delete payload.currentSoilTestCertificateFileName;
+                  if (data.proposedSoilTestCertificate) delete payload.proposedSoilTestCertificate;
+
                   formData.append(
                     "farmerDto",
-                    new Blob([JSON.stringify(farmerDto)], { type: "application/json" })
+                    new Blob([JSON.stringify(payload)], { type: "application/json" })
                   );
                  
                   // Append files conditionally
                   if (data.photo) formData.append("photo", data.photo);
-                  if (data.soilTestCertificate) formData.append("soilTestCertificate", data.soilTestCertificate);
-                  if (data.aadhaarFile) formData.append("aadhaarFile", data.aadhaarFile);
-                  if (data.panFile) formData.append("panFile", data.panFile);
-                  if (data.voterFile) formData.append("voterFile", data.voterFile);
-                  if (data.ppbFile) formData.append("ppbFile", data.ppbFile);
+                  if (data.passbookFile) formData.append("passbookFile", data.passbookFile);
+                  if (data.documentFileName && typeof data.documentFileName !== 'string') formData.append("documentFile", data.documentFileName);
+                  if (data.currentSoilTestCertificateFileName && typeof data.currentSoilTestCertificateFileName !== 'string') formData.append("currentSoilTestCertificate", data.currentSoilTestCertificateFileName);
+                  if (data.proposedSoilTestCertificate && typeof data.proposedSoilTestCertificate !== 'string') formData.append("proposedSoilTestCertificate", data.proposedSoilTestCertificate);
                  
                   const token = localStorage.getItem("token");
                   if (!token) {
@@ -827,7 +905,7 @@ import React, { useEffect, useState } from "react";
                   <option value="Intermediate">Intermediate</option>
                   <option value="Degree">Degree</option>
                  </select>
-                <p>{errors.occupation?.message}</p>
+                <p>{errors.education?.message}</p>
  
                 <label>Experience <span className="optional"></span>
                   <input {...register("experience")} placeholder="e.g. 15 Years" />
@@ -838,136 +916,127 @@ import React, { useEffect, useState } from "react";
             )}
  
             {currentStep === 3 && (
-                <>
-               <div className="current-field">
-               
-                   <div className="currentform-grid">
-                   <div className="cropform-columnleft">
-                   <div className="form-group photo-group">
-                    <label>Photo <span className="optional"></span></label>
-                    <div className="photo-box">
-                    {photoPreviewStep3 ? (
-                    <img src={photoPreviewStep3} alt="Preview" className="photo-preview" />
-                          ) : (
-                     <span className="photo-placeholder">No photo selected</span>
-                    )}
-                  </div>
-                   <input
-                      type="file"
-                       accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          setPhotoPreviewStep3(URL.createObjectURL(file));
-                          setValue("photo", file, { shouldValidate: true });
-                        }
-                      }}
-                      className="photo-input"
-                   />
-                  </div>
-                 
-                    <label>Survey Numbers <span className="optional"></span>
-                      <input {...register("surveyNumber")} />
-                    </label>
-                    <p>{errors.surveyNumber?.message}</p>
- 
-                    <label>Total Land Holding (In Acres Nos) <span className="optional">(Optional)</span>
-                     <input
-                     type="number"
-                     step="any"
-                   {...register("totalLandHolding", {
-                     valueAsNumber: true,
-                      })}
-                        />
-                    </label>
-                    <p>{errors.totalLandHolding?.message}</p>
- 
-                    <label>Geo-tag <span className="optional"></span>
-                     <input {...register("geoTag")} />
-                    </label>
-                    <p>{errors.geoTag?.message}</p>
-                    </div>
- 
-                    <div className="cropform-columnright">
-               
-              <label>
-                   Select Crop Category <span className="optional"></span>
-              <select
-                  value={cropCategoryStep3}
-                  onChange={(e) => {
-                 setCropCategoryStep3(e.target.value);
-                 setValue("selectCrop", "");
-                 }}
-               >
-                 <option value="">Select</option>
-                 {Object.keys(cropOptions).map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-                   ))}
-               </select>
-               </label>
- 
-          {cropCategoryStep3 && (
-                <label>
-                  Select Crop Name <span className="optional"></span>
-                 <select {...register("selectCrop")} defaultValue="">
-                 <option value="">Select</option>
-                 {cropOptions[cropCategoryStep3].map((crop) => (
-                <option key={crop} value={crop}>{crop}</option>
-                 ))}
-               </select>
-              </label>
+  <>
+    <div className="current-field">
+      <div className="currentform-grid">
+        <div className="cropform-columnleft">
+          <div className="form-group photo-group">
+            <label>Photo <span className="optional"></span></label>
+            <div className="photo-box">
+              {photoPreviewStep3 ? (
+                <img src={photoPreviewStep3} alt="Preview" className="photo-preview" />
+              ) : (
+                <span className="photo-placeholder">No photo selected</span>
               )}
-              <p className="error">{errors.selectCrop?.message}</p>
- 
-                    <label>Net Income (As per Current Crop/Yr) <span className="optional"></span>
-                     <input {...register("netIncome")} />
-                    </label>
-                    <p>{errors.netIncome?.message}</p>
- 
-                    <label>Soil Test <span className="optional"></span>
-                    <select {...register("soilTest")}>
-                      <option value="">Select</option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </select>
-                    </label>
-                    <p>{errors.soilTest?.message}</p>
- 
-                    <label>Soil Test Certificate
-       <input type="file" {...register("soilTestCertificate")} />
-        {errors.soilTestCertificate && (
-          <p className="error">{errors.soilTestCertificate.message}</p>
-        )}
-      </label>
-                    </div>
-                    </div>
-                   
-              </div>
-              </>
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  setPhotoPreviewStep3(URL.createObjectURL(file));
+                  setValue("photoFileName", file, { shouldValidate: true });
+                }
+              }}
+              className="photo-input"
+            />
+          </div>
+          <label>Survey Numbers <span className="optional"></span>
+            <input {...register("currentSurveyNumber")} />
+          </label>
+          <p>{errors.currentSurveyNumber?.message}</p>
+          <label>Total Land Holding (In Acres Nos) <span className="optional">(Optional)</span>
+            <input
+              type="number"
+              step="any"
+              {...register("currentLandHolding", { valueAsNumber: true })}
+            />
+          </label>
+          <p>{errors.currentLandHolding?.message}</p>
+          <label>Geo-tag <span className="optional"></span>
+            <input {...register("currentGeoTag")} />
+          </label>
+          <p>{errors.currentGeoTag?.message}</p>
+        </div>
+        <div className="cropform-columnright">
+          <label>
+            Select Crop Category <span className="optional"></span>
+            <select
+              value={cropCategoryStep3}
+              onChange={(e) => {
+                setCropCategoryStep3(e.target.value);
+                setValue("currentCrop", "");
+              }}
+            >
+              <option value="">Select</option>
+              {Object.keys(cropOptions).map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </label>
+          {cropCategoryStep3 && (
+            <label>
+              Select Crop Name <span className="optional"></span>
+              <select {...register("currentCrop")} defaultValue="">
+                <option value="">Select</option>
+                {cropOptions[cropCategoryStep3].map((crop) => (
+                  <option key={crop} value={crop}>{crop}</option>
+                ))}
+              </select>
+            </label>
+          )}
+          <p className="error">{errors.currentCrop?.message}</p>
+          <label>Net Income (As per Current Crop/Yr) <span className="optional"></span>
+            <input {...register("currentNetIncome")} />
+          </label>
+          <p>{errors.currentNetIncome?.message}</p>
+          <label>Soil Test <span className="optional"></span>
+            <select
+              {...register("currentSoilTest")}
+              onChange={e => setValue("currentSoilTest", e.target.value === "true")}
+              value={typeof watch("currentSoilTest") === "boolean" ? String(watch("currentSoilTest")) : ""}
+            >
+              <option value="">Select</option>
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </label>
+          <p>{errors.currentSoilTest?.message}</p>
+          <label>Soil Test Certificate
+            <input type="file" {...register("currentSoilTestCertificateFileName")} />
+            {errors.currentSoilTestCertificateFileName && (
+              <p className="error">{errors.currentSoilTestCertificateFileName.message}</p>
             )}
+          </label>
+        </div>
+      </div>
+    </div>
+  </>
+)}
      {currentStep === 4 && (
               <div className="proposed-field">
                  <div className="proposedform-grid">
                  <div className="proposedform-columnleft">
                 <label>Survey Numbers <span className="optional"></span>
-                 <input {...register("surveyNumber")} />
+                 <input {...register("proposedSurveyNumber")} />
                 </label>
-                <p>{errors.surveyNumber?.message}</p>
+                <p>{errors.proposedSurveyNumber?.message}</p>
  
                 <label>
                  Geo-tag <span className="optional">(Optional)</span>
                 <input
                 type="text"
                 placeholder="Latitude, Longitude"
-              {...register("geoTag", {
+              {...register("proposedGeoTag", {
                 pattern: {
-                  value: /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/, // basic lat,lng pattern
+                  value: /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/,
                  message: "Enter valid Latitude, Longitude (e.g., 17.123, 78.456)"
                 }
                 })}
                />
               </label>
-              <p className="error">{errors.geoTag?.message}</p>
+              <p className="error">{errors.proposedGeoTag?.message}</p>
  
  
                <label>
@@ -1001,13 +1070,17 @@ import React, { useEffect, useState } from "react";
  
  
                 <label>Soil Test <span className="optional"></span>
-                <select {...register("soilTest")}>
+                <select
+                  {...register("proposedSoilTest")}
+                  onChange={e => setValue("proposedSoilTest", e.target.value === "true")}
+                  value={typeof watch("proposedSoilTest") === "boolean" ? String(watch("proposedSoilTest")) : ""}
+                >
                   <option value="">Select</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
                 </select>
                 </label>
-                <p>{errors.soilTest?.message}</p>
+                <p>{errors.proposedSoilTest?.message}</p>
                 </div>
  
                 <div className="proposedform-columnright">
@@ -1015,12 +1088,12 @@ import React, { useEffect, useState } from "react";
                 <input
                      type="number"
                      step="any"
-                   {...register("totalLandHolding", {
+                   {...register("proposedLandHolding", {
                      valueAsNumber: true,
                       })}
                         />
                 </label>
-                <p>{errors.totalLandHolding?.message}</p>
+                <p>{errors.proposedLandHolding?.message}</p>
  
                 <label>Net Income (Per Crop/Yr) <span className="optional"></span>
                 <input type="text" {...register("netIncome")} />
@@ -1060,32 +1133,29 @@ import React, { useEffect, useState } from "react";
       <div className="tab-content">
         <label>
           Water Source <span className="required">*</span>
-          <select {...register("waterSource")} defaultValue="">
+          <select {...register("currentWaterSource")} defaultValue="">
             <option value="">Select</option>
             {waterSourceOptions.map((source) => (
               <option key={source} value={source}>{source}</option>
             ))}
           </select>
         </label>
-        <p className="error">{errors.waterSource?.message}</p>
- 
+        <p className="error">{errors.currentWaterSource?.message}</p>
         <label>
           Borewell wise Discharge in LPH <span className="optional"></span>
-          <input {...register("borewellDischarge")} />
+          <input {...register("currentDischargeLPH")} />
         </label>
-        <p className="error">{errors.borewellDischarge?.message}</p>
- 
+        <p className="error">{errors.currentDischargeLPH?.message}</p>
         <label>
           Discharge during summer months <span className="optional"></span>
-          <input {...register("summerDischarge")} />
+          <input {...register("currentSummerDischarge")} />
         </label>
-        <p className="error">{errors.summerDischarge?.message}</p>
- 
+        <p className="error">{errors.currentSummerDischarge?.message}</p>
         <label>
           Borewell location <span className="optional"></span>
-          <input {...register("borewellLocation")} />
+          <input {...register("currentBorewellLocation")} />
         </label>
-        <p className="error">{errors.borewellLocation?.message}</p>
+        <p className="error">{errors.currentBorewellLocation?.message}</p>
       </div>
     )}
  
@@ -1094,32 +1164,29 @@ import React, { useEffect, useState } from "react";
       <div className="tab-content">
         <label>
           Water Source <span className="required">*</span>
-          <select {...register("waterSource")} defaultValue="">
+          <select {...register("proposedWaterSource")} defaultValue="">
             <option value="">Select</option>
             {waterSourceOptions.map((source) => (
               <option key={source} value={source}>{source}</option>
             ))}
           </select>
         </label>
-        <p className="error">{errors.waterSource?.message}</p>
- 
+        <p className="error">{errors.proposedWaterSource?.message}</p>
         <label>
           Borewell wise Discharge in LPH <span className="optional"></span>
-          <input {...register("borewellDischarge")} />
+          <input {...register("proposedDischargeLPH")} />
         </label>
-        <p className="error">{errors.borewellDischarge?.message}</p>
- 
+        <p className="error">{errors.proposedDischargeLPH?.message}</p>
         <label>
           Discharge during summer months <span className="optional"></span>
-          <input {...register("summerDischarge")} />
+          <input {...register("proposedSummerDischarge")} />
         </label>
-        <p className="error">{errors.summerDischarge?.message}</p>
- 
+        <p className="error">{errors.proposedSummerDischarge?.message}</p>
         <label>
           Borewell location <span className="optional"></span>
-          <input {...register("borewellLocation")} />
+          <input {...register("proposedBorewellLocation")} />
         </label>
-        <p className="error">{errors.borewellLocation?.message}</p>
+        <p className="error">{errors.proposedBorewellLocation?.message}</p>
       </div>
     )}
   </div>
@@ -1160,8 +1227,8 @@ import React, { useEffect, useState } from "react";
   )}
  
         {currentStep === 7 && (
-          <div className="other-field">
-       <label className="label">
+  <div className="other-field">
+    <label className="label">
       Add Document <span className="optional"></span>
     </label>
 
@@ -1180,84 +1247,22 @@ import React, { useEffect, useState } from "react";
       <option value="ppbNumber">PPB Number</option>
     </select>
     <p className="error-text">{errors.documentType?.message}</p>
-
-    {/* Voter ID */}
-    {selectedDoc === "voterId" && (
+    {/* Document Number and File */}
+    {selectedDoc && (
       <>
         <input
           type="text"
-          placeholder="Voter ID"
+          placeholder={selectedDoc === "voterId" ? "Voter ID" : selectedDoc === "aadharNumber" ? "Aadhar Number" : selectedDoc === "panNumber" ? "PAN Number" : "PPB Number"}
           className="input"
-          {...register("voterId", { required: "Voter ID is required" })}
+          {...register("documentNumber", { required: `${selectedDoc === "voterId" ? "Voter ID" : selectedDoc === "aadharNumber" ? "Aadhar Number" : selectedDoc === "panNumber" ? "PAN Number" : "PPB Number"} is required` })}
         />
-        <p className="error-text">{errors.voterId?.message}</p>
-
+        <p className="error-text">{errors.documentNumber?.message}</p>
         <input
           type="file"
           accept="image/*,application/pdf"
-          {...register("voterFile", { required: "Voter ID File is required" })}
+          {...register("documentFileName", { required: `${selectedDoc === "voterId" ? "Voter ID" : selectedDoc === "aadharNumber" ? "Aadhar" : selectedDoc === "panNumber" ? "PAN" : "PPB"} File is required` })}
         />
-        <p className="error-text">{errors.voterFile?.message}</p>
-      </>
-    )}
-
-    {/* Aadhar */}
-    {selectedDoc === "aadharNumber" && (
-      <>
-        <input
-          type="text"
-          placeholder="Aadhar Number"
-          className="input"
-          {...register("aadharNumber", { required: "Aadhar Number is required" })}
-        />
-        <p className="error-text">{errors.aadharNumber?.message}</p>
-
-        <input
-          type="file"
-          accept="image/*,application/pdf"
-          {...register("aadhaarFile", { required: "Aadhaar File is required" })}
-        />
-        <p className="error-text">{errors.aadhaarFile?.message}</p>
-      </>
-    )}
-
-    {/* PAN */}
-    {selectedDoc === "panNumber" && (
-      <>
-        <input
-          type="text"
-          placeholder="PAN Number"
-          className="input"
-          {...register("panNumber", { required: "PAN Number is required" })}
-        />
-        <p className="error-text">{errors.panNumber?.message}</p>
-
-        <input
-          type="file"
-          accept="image/*,application/pdf"
-          {...register("panFile", { required: "PAN File is required" })}
-        />
-        <p className="error-text">{errors.panFile?.message}</p>
-      </>
-    )}
-
-    {/* PPB (Optional) */}
-    {selectedDoc === "ppbNumber" && (
-      <>
-        <input
-          type="text"
-          placeholder="PPB Number"
-          className="input"
-          {...register("ppbNumber")}
-        />
-        <p className="error-text">{errors.ppbNumber?.message}</p>
-
-        <input
-          type="file"
-          accept="image/*,application/pdf"
-          {...register("ppbFile")}
-        />
-        <p className="error-text">{errors.ppbFile?.message}</p>
+        <p className="error-text">{errors.documentFileName?.message}</p>
       </>
     )}
   </div>
@@ -1313,7 +1318,31 @@ import React, { useEffect, useState } from "react";
           </form>
         </FormProvider>
       </div>
-      <div className="form-right">
+      <div className="form-right" style={{ position: 'relative' }}>
+        <button
+          type="button"
+          onClick={() => navigate('/dashboard')}
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            background: 'rgba(0,0,0,0.45)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '50%',
+            width: 32,
+            height: 32,
+            cursor: 'pointer',
+            fontWeight: 700,
+            fontSize: 20,
+            lineHeight: '32px',
+            textAlign: 'center',
+            zIndex: 2
+          }}
+          aria-label="Close and go to dashboard"
+        >
+          ×
+        </button>
         <img src={farmImage} alt="Farm Field" className="form-image" />
       </div>
     </div>

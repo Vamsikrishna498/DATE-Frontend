@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/RegistrationDetails.css";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUser, faEnvelope, faPhone, faVenusMars, faGlobeAsia, faMapMarkerAlt, faKey, faBirthdayCake } from '@fortawesome/free-solid-svg-icons';
 
 export const RegistrationDetails = ({ id, onBack }) => {
   console.log("RegistrationDetails got id:", id);
@@ -69,15 +71,15 @@ export const RegistrationDetails = ({ id, onBack }) => {
       <h2>Registration Details</h2>
       <div className="details-card"> 
         <div className="info-section">
-          <p><strong>First Name:</strong> {registration.firstName}</p>
-          <p><strong>Last Name:</strong> {registration.lastName}</p>
-          <p><strong>DOB:</strong> {registration.dateOfBirth}</p>
-          <p><strong>Gender:</strong> {registration.gender}</p>
-          <p><strong>Email:</strong> {registration.email}</p>
-          <p><strong>Mobile:</strong> {registration.mobileNumber}</p>
-          <p><strong>Country:</strong> {registration.country}</p>
-          <p><strong>State:</strong> {registration.state}</p>
-          <p><strong>Pin Code:</strong> {registration.pinCode}</p>
+          <p><span className="icon"><FontAwesomeIcon icon={faUser} /></span><strong>First Name:</strong> {registration.firstName}</p>
+          <p><span className="icon"><FontAwesomeIcon icon={faUser} /></span><strong>Last Name:</strong> {registration.lastName}</p>
+          <p><span className="icon"><FontAwesomeIcon icon={faBirthdayCake} /></span><strong>DOB:</strong> {registration.dateOfBirth}</p>
+          <p><span className="icon"><FontAwesomeIcon icon={faVenusMars} /></span><strong>Gender:</strong> {registration.gender}</p>
+          <p><span className="icon"><FontAwesomeIcon icon={faEnvelope} /></span><strong>Email:</strong> {registration.email}</p>
+          <p><span className="icon"><FontAwesomeIcon icon={faPhone} /></span><strong>Mobile:</strong> {registration.mobileNumber}</p>
+          <p><span className="icon"><FontAwesomeIcon icon={faGlobeAsia} /></span><strong>Country:</strong> {registration.country}</p>
+          <p><span className="icon"><FontAwesomeIcon icon={faMapMarkerAlt} /></span><strong>State:</strong> {registration.state}</p>
+          <p><span className="icon"><FontAwesomeIcon icon={faKey} /></span><strong>Pin Code:</strong> {registration.pinCode}</p>
         </div>
       </div>
 

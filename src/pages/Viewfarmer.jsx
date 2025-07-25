@@ -127,22 +127,23 @@ const handlePhotoChangeStep3 = (e) => {
         experience: data.experience || "",
         
         // Current Crop
-        surveyNumber: data.surveyNumber || "",
-        totalLandHolding: data.totalLandHolding || "",
-        geoTag: data.geoTag || "",
-        selectCrop: data.selectCrop || data.cropName || "",
-        netIncome: data.netIncome || "",
-        soilTest: data.soilTest || "",
+        currentSurveyNumber: data.surveyNumber || "",
+        currentLandHolding: data.totalLandHolding || "",
+        currentGeoTag: data.geoTag || "",
+        currentCrop: data.cropName || "",
+        currentNetIncome: data.netIncome || "",
+        currentSoilTest: data.soilTest || "",
+        currentSoilTestCertificateFileName: data.soilTestCertificateFileName || null,
         cropCategory: data.cropCategory || "",
         
         // Proposed Crop
-        cropType: data.cropType || "",
+        proposedSurveyNumber: data.cropType || "",
         
         // Irrigation
-        waterSource: data.waterSource || "",
-        borewellDischarge: data.borewellDischarge || "",
-        summerDischarge: data.summerDischarge || "",
-        borewellLocation: data.borewellLocation || "",
+        currentWaterSource: data.waterSource || "",
+        currentDischargeLPH: data.borewellDischarge || "",
+        currentSummerDischarge: data.summerDischarge || "",
+        currentBorewellLocation: data.borewellLocation || "",
         
         // Bank
         bankName: data.bankName || "",
@@ -263,7 +264,7 @@ const sidebarSteps = [
     <img src={logo4} alt="Field" className="bg-img" />
 
     {/* Center Card with Photo + ID + Name */}
-    <div className="photo-id-card">
+    <div className="farmer-id-card">
        <div className="edit-photo-box">
             {photoPreviewStep0 ? (
              <img src={photoPreviewStep0} alt="Farmer Photo" className="farmer-photo-preview" />
@@ -637,7 +638,10 @@ const sidebarSteps = [
     )}
   </div>
 )}
-      {currentStep === 3 && (
+ 
+ 
+
+   {currentStep === 3 && (
   <div className="current-container">
     {!isEditMode ? (
       <>
@@ -664,15 +668,15 @@ const sidebarSteps = [
               <span style={{ display: "none", color: "#666" }}>Photo not available</span>
             </div>
           ) : null}
-          <div><strong>Survey Number:</strong> {watchedFields.surveyNumber || "Not provided"}</div>
-          <div><strong>Total Land Holding:</strong> {watchedFields.totalLandHolding || "Not provided"}</div>
-          <div><strong>Geo-tag:</strong> {watchedFields.geoTag || "Not provided"}</div>
+          <div><strong>Survey Number:</strong> {watchedFields.currentSurveyNumber || "Not provided"}</div>
+          <div><strong>Total Land Holding:</strong> {watchedFields.currentLandHolding || "Not provided"}</div>
+          <div><strong>Geo-tag:</strong> {watchedFields.currentGeoTag || "Not provided"}</div>
           <div><strong>Crop Category:</strong> {cropCategoryStep3 || watchedFields.cropCategory || "Not provided"}</div>
-          <div><strong>Crop Name:</strong> {watchedFields.selectCrop || "Not provided"}</div>
-          <div><strong>Net Income:</strong> {watchedFields.netIncome || "Not provided"}</div>
-          <div><strong>Soil Test:</strong> {watchedFields.soilTest || "Not provided"}</div>
-          {watchedFields.soilTest === "Yes" && (
-            <div><strong>Soil Test Certificate:</strong> {farmerData?.soilTestCertificateFileName ? "Uploaded" : "Not Uploaded"}</div>
+          <div><strong>Crop Name:</strong> {watchedFields.currentCrop || "Not provided"}</div>
+          <div><strong>Net Income:</strong> {watchedFields.currentNetIncome || "Not provided"}</div>
+          <div><strong>Soil Test:</strong> {watchedFields.currentSoilTest || "Not provided"}</div>
+          {watchedFields.currentSoilTest === "Yes" && (
+            <div><strong>Soil Test Certificate:</strong> {farmerData?.currentSoilTestCertificateFileName ? "Uploaded" : "Not Uploaded"}</div>
           )}
         </div>
       </>
@@ -690,7 +694,7 @@ const sidebarSteps = [
  
             <div className="viewform-row">
               <label>Survey Number <span className="required">*</span></label>
-              <input {...register("surveyNumber")} className="viweinput" />
+              <input {...register("currentSurveyNumber")} className="viweinput" />
               {errors.surveyNumber && <p className="error">{errors.surveyNumber.message}</p>}
             </div>
  
@@ -699,7 +703,7 @@ const sidebarSteps = [
               <input
                 type="number"
                 step="any"
-                {...register("totalLandHolding", { valueAsNumber: true })}
+                {...register("currentLandHolding", { valueAsNumber: true })}
                 className="viweinput"
               />
               {errors.totalLandHolding && <p className="error">{errors.totalLandHolding.message}</p>}
@@ -707,7 +711,7 @@ const sidebarSteps = [
  
             <div className="viewform-row">
               <label>Geo-tag</label>
-              <input {...register("geoTag")} className="viweinput" />
+              <input {...register("currentGeoTag")} className="viweinput" />
               {errors.geoTag && <p className="error">{errors.geoTag.message}</p>}
             </div>
           </div>
@@ -719,7 +723,7 @@ const sidebarSteps = [
                   value={cropCategoryStep3}
                   onChange={(e) => {
                     setCropCategoryStep3(e.target.value);
-                    setValue("selectCrop", "");
+                    setValue("currentCrop", "");
                   }}
                   className="viweinput"
                 >
@@ -733,7 +737,7 @@ const sidebarSteps = [
               {cropCategoryStep3 && (
                 <div className="viewform-row">
                   <label>Select Crop Name</label>
-                  <select {...register("selectCrop")} className="viweinput">
+                  <select {...register("currentCrop")} className="viweinput">
                     <option value="">Select</option>
                     {cropOptions[cropCategoryStep3].map((crop) => (
                       <option key={crop} value={crop}>{crop}</option>
@@ -745,13 +749,13 @@ const sidebarSteps = [
  
               <div className="viewform-row">
                 <label>Net Income (As per Current Crop/Yr)</label>
-                <input {...register("netIncome")} className="viweinput" />
+                <input {...register("currentNetIncome")} className="viweinput" />
                 {errors.netIncome && <p className="error">{errors.netIncome.message}</p>}
               </div>
  
               <div className="viewform-row">
                 <label>Soil Test</label>
-                <select {...register("soilTest")} className="viweinput">
+                <select {...register("currentSoilTest")} className="viweinput">
                   <option value="">Select</option>
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
@@ -762,7 +766,7 @@ const sidebarSteps = [
               {watch("soilTest") === "Yes" && (
                 <div className="viewform-row">
                   <label>Soil Test Certificate</label>
-                  <input type="file" {...register("soilTestCertificate")} />
+                  <input type="file" {...register("currentSoilTestCertificate")} />
                   {errors.soilTestCertificate && (
                     <p className="error">{errors.soilTestCertificate.message}</p>
                   )}
@@ -787,17 +791,15 @@ const sidebarSteps = [
     {!isEditMode ? (
       <>
         <button onClick={() => setIsEditMode(true)} className="viwe-button">Edit</button>
- 
         <div className="viewinfo-row">
-          <div><strong>Survey Number:</strong> {watchedFields.surveyNumber || "Not provided"}</div>
-          <div><strong>Geo-tag:</strong> {watchedFields.geoTag || "Not provided"}</div>
-          <div><strong>Crop Type:</strong> {watchedFields.cropType || "Not provided"}</div>
-          <div><strong>Soil Test:</strong> {watchedFields.soilTest || "Not provided"}</div>
-          <div><strong>Total Land Holding:</strong> {watchedFields.totalLandHolding || "Not provided"}</div>
-          <div><strong>Net Income:</strong> {watchedFields.netIncome || "Not provided"}</div>
+          <div><strong>Survey Number:</strong> {watchedFields.proposedSurveyNumber || "Not provided"}</div>
+          <div><strong>Geo-tag:</strong> {watchedFields.proposedGeoTag || "Not provided"}</div>
+          <div><strong>Crop Name:</strong> {watchedFields.proposedCrop || "Not provided"}</div>
+          <div><strong>Soil Test:</strong> {watchedFields.proposedSoilTest || "Not provided"}</div>
+          <div><strong>Total Land Holding:</strong> {watchedFields.proposedLandHolding || "Not provided"}</div>
+          <div><strong>Net Income:</strong> {watchedFields.proposedNetIncome || "Not provided"}</div>
           <div>
-            <strong>Soil Test Certificate:</strong>{" "}
-            {farmerData?.soilTestCertificateFileName ? "Uploaded" : "Not Uploaded"}
+            <strong>Soil Test Certificate:</strong> {farmerData?.proposedSoilTestCertificate ? "Uploaded" : "Not Uploaded"}
           </div>
         </div>
       </>
@@ -806,69 +808,49 @@ const sidebarSteps = [
         <div className="proposedform-columnleft">
           <div className="viewform-row">
             <label>Survey Number <span className="required">*</span></label>
-            <input {...register("surveyNumber")} className="viweinput" />
-            {errors.surveyNumber && <p className="error">{errors.surveyNumber.message}</p>}
+            <input {...register("proposedSurveyNumber")} className="viweinput" />
+            {errors.proposedSurveyNumber && <p className="error">{errors.proposedSurveyNumber.message}</p>}
           </div>
- 
           <div className="viewform-row">
             <label>Geo-tag <span className="required">*</span></label>
-            <input
-              {...register("geoTag")}
-              placeholder="Latitude, Longitude"
-              className="viweinput"
-            />
-            {errors.geoTag && <p className="error">{errors.geoTag.message}</p>}
+            <input {...register("proposedGeoTag")} placeholder="Latitude, Longitude" className="viweinput" />
+            {errors.proposedGeoTag && <p className="error">{errors.proposedGeoTag.message}</p>}
           </div>
- 
           <div className="viewform-row">
-            <label>Crop Type <span className="required">*</span></label>
-            <select {...register("cropType")} className="viweinput">
-              <option value="">Select</option>
-              <option value="Grains">Grains</option>
-              <option value="Vegetables">Vegetables</option>
-              <option value="Cotton">Cotton</option>
-            </select>
-            {errors.cropType && <p className="error">{errors.cropType.message}</p>}
+            <label>Crop Name <span className="required">*</span></label>
+            <input {...register("proposedCrop")} className="viweinput" />
+            {errors.proposedCrop && <p className="error">{errors.proposedCrop.message}</p>}
           </div>
- 
           <div className="viewform-row">
             <label>Soil Test <span className="required">*</span></label>
-            <select {...register("soilTest")} className="viweinput">
+            <select {...register("proposedSoilTest")} className="viweinput">
               <option value="">Select</option>
               <option value="Yes">Yes</option>
               <option value="No">No</option>
             </select>
-            {errors.soilTest && <p className="error">{errors.soilTest.message}</p>}
+            {errors.proposedSoilTest && <p className="error">{errors.proposedSoilTest.message}</p>}
           </div>
         </div>
- 
         <div className="proposedform-columnright">
           <div className="viewform-row">
             <label>Total Land Holding (In Acres) <span className="required">*</span></label>
-            <input {...register("totalLandHolding")} className="viweinput" />
-            {errors.totalLandHolding && <p className="error">{errors.totalLandHolding.message}</p>}
+            <input {...register("proposedLandHolding")} className="viweinput" />
+            {errors.proposedLandHolding && <p className="error">{errors.proposedLandHolding.message}</p>}
           </div>
- 
           <div className="viewform-row">
             <label>Net Income (Per Crop/Yr) <span className="required">*</span></label>
-            <input {...register("netIncome")} className="viweinput" />
-            {errors.netIncome && <p className="error">{errors.netIncome.message}</p>}
+            <input {...register("proposedNetIncome")} className="viweinput" />
+            {errors.proposedNetIncome && <p className="error">{errors.proposedNetIncome.message}</p>}
           </div>
- 
-          {watch("soilTest") === "Yes" && (
+          {watch("proposedSoilTest") === "Yes" && (
             <div className="viewform-row">
               <label>Soil Test Certificate</label>
-              <input
-                type="file"
-                {...register("soilTestCertificate")}
-                className="viweinput"
-              />
-              {errors.soilTestCertificate && (
-                <p className="error">{errors.soilTestCertificate.message}</p>
+              <input type="file" {...register("proposedSoilTestCertificate")} className="viweinput" />
+              {errors.proposedSoilTestCertificate && (
+                <p className="error">{errors.proposedSoilTestCertificate.message}</p>
               )}
             </div>
           )}
- 
           <div className="action-buttons">
             <button type="button" className="viwe-button" onClick={() => setIsEditMode(false)}>
               Save
@@ -889,16 +871,16 @@ const sidebarSteps = [
         </button>
         <div className="viewinfo-row">
           <div>
-            <strong>Water Source:</strong> {watchedFields.waterSource || "Not provided"}
+            <strong>Water Source:</strong> {watchedFields.currentWaterSource || "Not provided"}
           </div>
           <div>
-            <strong>Borewell Discharge (LPH):</strong> {watchedFields.borewellDischarge || "Not provided"}
+            <strong>Borewell Discharge (LPH):</strong> {watchedFields.currentDischargeLPH || "Not provided"}
           </div>
           <div>
-            <strong>Summer Discharge:</strong> {watchedFields.summerDischarge || "Not provided"}
+            <strong>Summer Discharge:</strong> {watchedFields.currentSummerDischarge || "Not provided"}
           </div>
           <div>
-            <strong>Borewell Location:</strong> {watchedFields.borewellLocation || "Not provided"}
+            <strong>Borewell Location:</strong> {watchedFields.currentBorewellLocation || "Not provided"}
           </div>
         </div>
       </>
@@ -925,7 +907,7 @@ const sidebarSteps = [
           <div className="tab-content">
             <label>
               Water Source <span className="required">*</span>
-              <select {...register("waterSource")} defaultValue="">
+              <select {...register("currentWaterSource")} defaultValue="">
                 <option value="">Select</option>
                 {waterSourceOptions.map((source) => (
                   <option key={source} value={source}>
@@ -934,25 +916,25 @@ const sidebarSteps = [
                 ))}
               </select>
             </label>
-            <p className="error">{errors.waterSource?.message}</p>
+            <p className="error">{errors.currentWaterSource?.message}</p>
 
             <label>
               Borewell wise Discharge in LPH <span className="optional"></span>
-              <input {...register("borewellDischarge")} />
+              <input {...register("currentDischargeLPH")} />
             </label>
-            <p className="error">{errors.borewellDischarge?.message}</p>
+            <p className="error">{errors.currentDischargeLPH?.message}</p>
 
             <label>
               Discharge during summer months <span className="optional"></span>
-              <input {...register("summerDischarge")} />
+              <input {...register("currentSummerDischarge")} />
             </label>
-            <p className="error">{errors.summerDischarge?.message}</p>
+            <p className="error">{errors.currentSummerDischarge?.message}</p>
 
             <label>
               Borewell location <span className="optional"></span>
-              <input {...register("borewellLocation")} />
+              <input {...register("currentBorewellLocation")} />
             </label>
-            <p className="error">{errors.borewellLocation?.message}</p>
+            <p className="error">{errors.currentBorewellLocation?.message}</p>
           </div>
         )}
 
@@ -961,7 +943,7 @@ const sidebarSteps = [
           <div className="tab-content">
             <label>
               Water Source <span className="required">*</span>
-              <select {...register("waterSource")} defaultValue="">
+              <select {...register("proposedWaterSource")} defaultValue="">
                 <option value="">Select</option>
                 {waterSourceOptions.map((source) => (
                   <option key={source} value={source}>
@@ -970,25 +952,25 @@ const sidebarSteps = [
                 ))}
               </select>
             </label>
-            <p className="error">{errors.waterSource?.message}</p>
+            <p className="error">{errors.proposedWaterSource?.message}</p>
 
             <label>
               Borewell wise Discharge in LPH <span className="optional"></span>
-              <input {...register("borewellDischarge")} />
+              <input {...register("proposedDischargeLPH")} />
             </label>
-            <p className="error">{errors.borewellDischarge?.message}</p>
+            <p className="error">{errors.proposedDischargeLPH?.message}</p>
 
             <label>
               Discharge during summer months <span className="optional"></span>
-              <input {...register("summerDischarge")} />
+              <input {...register("proposedSummerDischarge")} />
             </label>
-            <p className="error">{errors.summerDischarge?.message}</p>
+            <p className="error">{errors.proposedSummerDischarge?.message}</p>
 
             <label>
               Borewell location <span className="optional"></span>
-              <input {...register("borewellLocation")} />
+              <input {...register("proposedBorewellLocation")} />
             </label>
-            <p className="error">{errors.borewellLocation?.message}</p>
+            <p className="error">{errors.proposedBorewellLocation?.message}</p>
           </div>
         )}
 
@@ -1099,73 +1081,35 @@ const sidebarSteps = [
       <>
         <button onClick={() => setIsEditMode(true)} className="viwe-button">Edit</button>
         <div className="viewinfo-row">
-          <div><strong>Aadhaar Number:</strong> {watchedFields.aadharNumber || "Not provided"}</div>
-          <div><strong>PAN Number:</strong> {watchedFields.panNumber || "Not provided"}</div>
-          <div><strong>Voter ID:</strong> {watchedFields.voterId || "Not provided"}</div>
-          <div><strong>PPB Number:</strong> {watchedFields.ppbNumber || "Not provided"}</div>
-          <div><strong>Aadhaar File:</strong> {farmerData?.aadhaarFileName ? "Uploaded" : "Not Uploaded"}</div>
-          <div><strong>PAN File:</strong> {farmerData?.panFileName ? "Uploaded" : "Not Uploaded"}</div>
-          <div><strong>Voter ID File:</strong> {farmerData?.voterIdFileName ? "Uploaded" : "Not Uploaded"}</div>
-          <div><strong>PPB File:</strong> {farmerData?.ppbFileName ? "Uploaded" : "Not Uploaded"}</div>
+          <div><strong>Document Type:</strong> {watchedFields.documentType || "Not provided"}</div>
+          <div><strong>Document Number:</strong> {watchedFields.documentNumber || "Not provided"}</div>
+          <div><strong>Document File:</strong> {farmerData?.documentFileName ? (
+            <a href={`http://localhost:8080/uploads/${farmerData.documentFileName}`} target="_blank" rel="noopener noreferrer">View Document</a>
+          ) : "Not Uploaded"}</div>
         </div>
       </>
     ) : (
       <div className="edit-main documentform-grid">
         <div className="left-column">
           <div className="viewform-row">
-            <label>Aadhaar Number <span className="required">*</span></label>
-            <input {...register("aadharNumber")} className="viweinput" />
-            {errors.aadharNumber && <p className="error">{errors.aadharNumber.message}</p>}
+            <label>Document Type <span className="required">*</span></label>
+            <input {...register("documentType")} className="viweinput" />
+            {errors.documentType && <p className="error">{errors.documentType.message}</p>}
           </div>
- 
           <div className="viewform-row">
-            <label>PAN Number</label>
-            <input {...register("panNumber")} className="viweinput" />
-            {errors.panNumber && <p className="error">{errors.panNumber.message}</p>}
-          </div>
- 
-          <div className="viewform-row">
-            <label>Voter ID</label>
-            <input {...register("voterId")} className="viweinput" />
-            {errors.voterId && <p className="error">{errors.voterId.message}</p>}
-          </div>
- 
-          <div className="viewform-row">
-            <label>PPB Number</label>
-            <input {...register("ppbNumber")} className="viweinput" />
-            {errors.ppbNumber && <p className="error">{errors.ppbNumber.message}</p>}
+            <label>Document Number <span className="required">*</span></label>
+            <input {...register("documentNumber")} className="viweinput" />
+            {errors.documentNumber && <p className="error">{errors.documentNumber.message}</p>}
           </div>
         </div>
- 
         <div className="right-column">
           <div className="viewform-row">
-            <label>Aadhaar Upload</label>
-            <input
-              type="file"
-              accept="image/*,application/pdf"
-              {...register("aadhaarFile")}
-              className="viweinput"
-            />
-            {errors.aadhaarFile && <p className="error">{errors.aadhaarFile.message}</p>}
+            <label>Document Upload</label>
+            <input type="file" {...register("documentFileName")} className="viweinput" />
+            {errors.documentFileName && <p className="error">{errors.documentFileName.message}</p>}
           </div>
- 
-          <div className="viewform-row">
-            <label>PAN Upload</label>
-            <input
-              type="file"
-              accept="image/*,application/pdf"
-              {...register("panFile")}
-              className="viweinput"
-            />
-            {errors.panFile && <p className="error">{errors.panFile.message}</p>}
-          </div>
- 
           <div className="action-buttons">
-            <button
-              type="button"
-              className="viwe-button"
-              onClick={() => setIsEditMode(false)}
-            >
+            <button type="button" className="viwe-button" onClick={() => setIsEditMode(false)}>
               Save
             </button>
           </div>

@@ -70,17 +70,15 @@ const Login = () => {
   };
 
   return (
-    <div
-      className="login-container"
-      style={{ backgroundImage: `url(${background})` }}
-    >
-      <div className="login-content">
-        <div className="login-form">
-          <img src={logo} alt="Logo" className="logo" />
-          <h2>Login</h2>
-          <form onSubmit={handleSubmit} className="login-form-row">
+    <div className="login-modern-container" style={{ backgroundImage: `url(${background})` }}>
+      <div className="login-background-overlay"></div>
+      <div className="login-form-wrapper">
+        <div className="login-modern-card">
+          <img src={logo} alt="Logo" className="login-logo" />
+          <h2 className="login-title">Login</h2>
+          <form onSubmit={handleSubmit} className="login-form-modern">
             <div className="loginform-group">
-              <label>Email/Username:</label>
+              <label>Email:</label>
               <input
                 type="text"
                 value={userName}
@@ -107,7 +105,7 @@ const Login = () => {
             </button>
           </form>
           <div className="loginform-links">
-            <a href="/forgot-username">Forgot Username?</a>&nbsp;|&nbsp;
+           
             <a href="/forgot-password">Forgot Password?</a>
           </div>
         </div>

@@ -58,15 +58,13 @@ const ChangePassword = () => {
   }
 
   return (
-    <div
-      className="login-container"
-      style={{ backgroundImage: `url(${background})` }}
-    >
-      <div className="login-content">
-        <div className="login-form">
-          <img src={logo} alt="Logo" className="logo" />
-          <h2>Change Password</h2>
-          <form onSubmit={handleSubmit} className="login-form-row">
+    <div className="login-modern-container" style={{ backgroundImage: `url(${background})` }}>
+      <div className="login-background-overlay"></div>
+      <div className="login-form-wrapper">
+        <div className="login-modern-card">
+          <img src={logo} alt="Logo" className="login-logo" />
+          <h2 className="login-title">Change Password</h2>
+          <form onSubmit={handleSubmit} className="login-form-modern">
             <div className="loginform-group">
               <label>Current Password:</label>
               <input

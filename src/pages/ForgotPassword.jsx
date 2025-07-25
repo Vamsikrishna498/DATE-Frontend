@@ -68,45 +68,39 @@ const ForgotPassword = () => {
  
  
   return (
-    <div className="ForgotPassword-page" style={{ backgroundImage: `url(${background})` }}>
-      <img src={logo} alt="Logo" className="ForgotPassword-logo" />
- 
-      <div className="ForgotPassword-container">
-        <h2>Forgot Password</h2>
-        <p>
-          Enter your email address, click “Reset password”, and we’ll send you a link to reset your password.
-        </p>
- 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <label>
-            Email<span className="required">*</span>
-          </label>
-          <input
-            {...register("userInput")}
-            placeholder="Enter your Email"
-          />
-          {errors.userInput && <p className="error">{errors.userInput.message}</p>}
- 
-          <button type="submit">Reset password</button>
-        </form>
-      </div>
- 
-      <div className="ForgotPassword-image">
-        <img src={illustration} alt="Illustration" />
-      </div>
- 
-      {/* ✅ Success Popup */}
-      {showPopup && (
-        <div className="popup">
-          <div className="popup-content">
-            <h3>Success!</h3>
-            <h4>
-              A reset link has been sent to <strong>{target}</strong>
-            </h4>
-            <button onClick={handlePopupClose}>OK</button>
-          </div>
+    <div className="login-modern-container" style={{ backgroundImage: `url(${background})` }}>
+      <div className="login-background-overlay"></div>
+      <div className="login-form-wrapper">
+        <div className="login-modern-card">
+          <img src={logo} alt="Logo" className="login-logo" />
+          <h2 className="login-title">Forgot Password</h2>
+          <p>Enter your email address, click "Reset password", and we’ll send you a link to reset your password.</p>
+          <form onSubmit={handleSubmit(onSubmit)} className="login-form-modern">
+            <div className="loginform-group">
+              <label>Email<span className="reg-required">*</span></label>
+              <input
+                {...register("userInput")}
+                placeholder="Enter your Email"
+                className={errors.userInput ? 'reg-error' : ''}
+              />
+              {errors.userInput && <span className="login-error">{errors.userInput.message}</span>}
+            </div>
+            <button type="submit" className="login-btn">Reset password</button>
+          </form>
+          {/* Success Popup */}
+          {showPopup && (
+            <div className="popup">
+              <div className="popup-content">
+                <h3>Success!</h3>
+                <h4>
+                  A reset link has been sent to <strong>{target}</strong>
+                </h4>
+                <button onClick={handlePopupClose}>OK</button>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

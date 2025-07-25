@@ -24,6 +24,7 @@ const ViewEmployee = () => {
 
   const methods = useForm();
   const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = methods;
+  const watchedFields = watch();
 
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
@@ -176,7 +177,7 @@ useEffect(() => {
         const photoUrl = data.photoFileName 
           ? `http://localhost:8080/uploads/${data.photoFileName}`
           : data.photoUrl 
-            ? `http://localhost:8081${data.photoUrl}`
+            ? `http://localhost:8080${data.photoUrl}`
             : data.photo;
         setPhotoPreview(photoUrl);
         console.log("Photo URL set:", photoUrl);
@@ -217,276 +218,208 @@ useEffect(() => {
       setLoading(false);
     });
 }, [employeeId, reset]);
-
  
  
   return (
     <div className="employee-view-container">
-      {/* Loading State */}
-      {loading && (
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '100vh',
-          fontSize: '18px',
-          color: '#666'
-        }}>
-          Loading employee data...
+      <div className="employee-view-header">
+        <img src={logo3} alt="Logo" className="emploee-view-logo-img" />
+        <div className="employee-logo-section" onClick={() => setDropdownOpen(!dropdownOpen)}>
+          {photoPreview ? (
+            <img src={photoPreview} alt="User Icon" className="user-icon" />
+          ) : (
+            <span className="user-icon">User</span>
+          )}
+        <div className="one">{watchedFields.firstName || "Employee Name"}</div>
+          {dropdownOpen && (
+            <div className="employee-dropdown-menu">
+            <div className="dropdown-item">{watchedFields.firstName || "User Name"}</div>
+              <div className="dropdown-item">👤 My Profile</div>
+              <div className="dropdown-item">⚙️ Account Settings</div>
+              <div className="dropdown-item">❓ Need Help?</div>
+              <div className="dropdown-item">📲 Sign Out</div>
+            </div>
+          )}
         </div>
-      )}
-
-      {/* Error State */}
-      {error && !loading && (
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '100vh',
-          fontSize: '18px',
-          color: '#d32f2f',
-          background: '#fffbe6',
-          border: '1px solid #ffe082',
-          borderRadius: '8px',
-          margin: '40px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.07)'
-        }}>
-          <div style={{ marginBottom: '20px', fontWeight: 'bold' }}>❌ {error}</div>
-          <button 
-            onClick={() => window.location.reload()} 
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#1976d2',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              marginBottom: '10px'
-            }}
-          >
-            Retry
-          </button>
-          <button 
-            onClick={() => window.history.back()} 
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#4caf50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
-          >
-            Go Back
-          </button>
+      </div>
+ 
+      <div className="header-background">
+        <img src={logo4} alt="Field" className="employee-bg-img" />
+        <div className="employee-photo-id-card">
+          <div className="edit-photo-box">
+            {photoPreview ? (
+              <img src={photoPreview} alt="Preview" className="photo-preview" />
+            ) : (
+              <span className="photo-placeholder">Employee photo</span>
+            )}
+          </div>
+        <div className="employee-id-name">
+            <div className="farmer-id">ID: <strong>{employee?.id || "--"}</strong></div>
+          <div className="one">{watchedFields.firstName || "Employee Name"}</div>
+          </div>
         </div>
-      )}
+      </div>
+ 
+       <div className="e-body-content">
+        <div className="e-sidebar">
+          {sidebarSteps.map((label, idx) => (
+            <div
+              key={idx}
+              className={`e-sidebar-item ${currentStep === idx ? "active" : ""}`}
+              onClick={() => {
+                setCurrentStep(idx);
+                setIsEditMode(false);
+              }}
+            >
+              {label}
+            </div>
+          ))}
+          <div className="top-bar">
+      <button
+        className="go-dashboard-button"
+        onClick={() => navigate("/dashboard")}
+      >
+        ⬅ Go to Dashboard
+      </button>
+        </div>
+      </div> 
 
-      {/* Main Content - Only show if not loading and no error */}
-      {!loading && !error && (
-        <>
-          <div className="employee-view-header">
-            <img src={logo3} alt="DATE Logo" className="emploee-view-logo-img" />
-            <div className="employee-header-user">
-              <div className="employee-header-avatar">
-                {photoPreview ? (
-                  <img
-                    src={imgError || !employee?.photoFileName ? fallbackUserImg : photoPreview}
-                    alt="User Icon"
-                    className="user-icon"
-                    onError={() => setImgError(true)}
-                  />
-                ) : (
-                  <span className="user-icon">User</span>
-                )}
-              </div>
-              <span className="employee-header-username">{(watch("firstName") ?? "User") || "User"}</span>
-            </div>
-          </div>
-       
-          {/* Center Card with Photo + ID + Name over background image */}
-          <div className="header-background">
-            <img src={logo4} alt="Field" className="employee-bg-img" />
-            <div className="photo-id-card">
-              <div className="edit-photo-box">
-                {photoPreview ? (
-                  <img
-                    src={imgError || !employee?.photoFileName ? fallbackUserImg : photoPreview}
-                    alt="Employee Photo"
-                    className="photo-preview"
-                    style={{ width: "110px", height: "110px", objectFit: "cover", borderRadius: "50%" }}
-                    onError={() => setImgError(true)}
-                  />
-                ) : (
-                  <span className="farmer-photo-placeholder"> Employee photo </span>
-                )}
-                {/* Show file name if present */}
-                <div style={{ marginTop: "6px", fontSize: "0.95em", color: "#444", textAlign: "center" }}>
-                  {employee?.photoFileName ? `Current: ${employee.photoFileName}` : null}
-                </div>
-              </div>
-              <div className="farmer-id-name">
-                <div className="farmer-id">ID: <strong>{employee?.id || employeeId || "--"}</strong></div>
-                <div className="one">{(employee?.firstName || "") + (employee?.lastName ? " " + employee.lastName : "")}</div>
-              </div>
-            </div>
-          </div>
 
-          <div className="e-body-content">
-            <div className="e-sidebar">
-              {sidebarSteps.map((label, idx) => (
-                <div
-                  key={idx}
-                  className={`e-sidebar-item ${currentStep === idx ? "active" : ""}`}
-                  onClick={() => {
-                    setCurrentStep(idx);
-                    setIsEditMode(false);
-                  }}
-                >
-                  {label}
-                </div>
-              ))}
-              <div className="top-bar">
-                <button
-                  className="go-dashboard-button"
-                  onClick={() => navigate("/dashboard")}
-                  style={{ marginTop: "32px", width: "90%" }}
-                >
-                  ⬅ Go to Dashboard
-                </button>
-              </div>
-            </div>
-            <FormProvider {...methods}>
-              <form onSubmit={handleSubmit((data) => console.log("Submitted", data))} className="view-employee-form">
-                <div className="employee-step-container">
+        <FormProvider {...methods}>
+          <form onSubmit={handleSubmit((data) => console.log("Submitted", data))} className="view-employee-form">
+            <div className="employee-step-container">
      {currentStep === 0 && (
   <>
     <h2>Employee Details</h2>
-    {!isEditMode ? (
-      <>
-        <button type="button" onClick={() => setIsEditMode(true)} className="employee-view-button">Edit</button>
-        <div className="details-card">
-          <div className="photo-row">
-            <span className="photo-label">Photo:</span>
-            <div className="photo-box">
-              {photoPreview ? (
-                <>
-                  <img
-                    src={imgError || !employee?.photoFileName ? fallbackUserImg : photoPreview}
-                    alt="Employee"
-                    onError={() => setImgError(true)}
-                  />
-                  <span className="photo-filename">
-                    {employee?.photoFileName ? employee.photoFileName : null}
-                  </span>
-                </>
-              ) : (
-                <span>No photo uploaded</span>
+    <div className="employee-details-row">
+      {/* Left: Photo, Name, ID */}
+      <div className="employee-details-left">
+        <div className="employee-photo-glass">
+          {photoPreview ? (
+            <img
+              src={imgError || !employee?.photoFileName ? fallbackUserImg : photoPreview}
+            alt="Employee"
+              onError={() => setImgError(true)}
+          />
+        ) : (
+            <span style={{ color: '#888', fontSize: '1.1em' }}>No photo uploaded</span>
+        )}
+      </div>
+        {employee?.photoFileName && (
+          <div className="photo-filename">{employee.photoFileName}</div>
+        )}
+        <div className="employee-name-id">
+          <div className="emp-name">{(employee?.firstName || "") + (employee?.lastName ? " " + employee.lastName : "")}</div>
+          <div className="emp-id">ID: <strong>{employee?.id || employeeId || "--"}</strong></div>
+      </div>
+      </div>
+      {/* Right: Details or Edit Form */}
+      <div className="employee-details-right">
+        {!isEditMode ? (
+          <>
+            <button type="button" onClick={() => setIsEditMode(true)} className="employee-view-button">Edit</button>
+            <div className="employee-details-list">
+              <div className="row"><span className="label">Salutation:</span> <span className="value">{watch("salutation") || "-"}</span></div>
+              <div className="row"><span className="label">First Name:</span> <span className="value">{watch("firstName") || "-"}</span></div>
+              <div className="row"><span className="label">Middle Name:</span> <span className="value">{watch("middleName") || "-"}</span></div>
+              <div className="row"><span className="label">Last Name:</span> <span className="value">{watch("lastName") || "-"}</span></div>
+              <div className="row"><span className="label">Gender:</span> <span className="value">{watch("gender") || "-"}</span></div>
+              <div className="row"><span className="label">DOB:</span> <span className="value">{watch("dob") ? new Date(watch("dob")).toLocaleDateString("en-IN") : "-"}</span></div>
+              <div className="row"><span className="label">Nationality:</span> <span className="value">{watch("nationality") || "-"}</span></div>
+            </div>
+          </>
+        ) : (
+          <div className="edit-main form-grid">
+            {/* Photo Upload */}
+            <div className="viewform-row">
+              <label>Photo <span className="optional">(Optional)</span></label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setPhotoPreview(URL.createObjectURL(file));
+                    setValue("photo", [file]);
+                  }
+                }}
+              />
+              {photoPreview && (
+                <img
+                  src={imgError ? fallbackUserImg : photoPreview}
+                  alt="Preview"
+                  className="photo-preview"
+                  style={{ height: "100px", borderRadius: "8px", marginTop: "10px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)" }}
+                  onError={() => setImgError(true)}
+                />
               )}
             </div>
+            {/* Salutation */}
+            <div className="viewform-row">
+              <label>Salutation <span className="required">*</span></label>
+              <select {...register("salutation")} className="input">
+                <option value="">Select</option>
+                <option value="Mr">Mr</option>
+                <option value="Mrs.">Mrs.</option>
+                <option value="Ms.">Ms.</option>
+                <option value="Miss.">Miss.</option>
+                <option value="Dr.">Dr.</option>
+              </select>
+              {errors.salutation && <p className="error">{errors.salutation.message}</p>}
+            </div>
+            {/* First Name */}
+            <div className="viewform-row">
+              <label>First Name <span className="required">*</span></label>
+              <input {...register("firstName")} className="input" />
+              {errors.firstName && <p className="error">{errors.firstName.message}</p>}
+            </div>
+            {/* Middle Name */}
+            <div className="viewform-row">
+              <label>Middle Name <span className="required">*</span></label>
+              <input {...register("middleName")} className="input" />
+              {errors.middleName && <p className="error">{errors.middleName.message}</p>}
+            </div>
+            {/* Last Name */}
+            <div className="viewform-row">
+              <label>Last Name <span className="required">*</span></label>
+              <input {...register("lastName")} className="input" />
+              {errors.lastName && <p className="error">{errors.lastName.message}</p>}
+            </div>
+            {/* Gender */}
+            <div className="viewform-row">
+              <label>Gender <span className="required">*</span></label>
+              <select {...register("gender")} className="input">
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Transgender">Transgender</option>
+              </select>
+              {errors.gender && <p className="error">{errors.gender.message}</p>}
+            </div>
+            {/* DOB */}
+            <div className="viewform-row">
+              <label>DOB <span className="required">*</span></label>
+              <input type="date" {...register("dob")} className="input" />
+              {errors.dob && <p className="error">{errors.dob.message}</p>}
+            </div>
+            {/* Nationality */}
+            <div className="viewform-row">
+              <label>Nationality <span className="required">*</span></label>
+              <select {...register("nationality")} className="input">
+                <option value="">Select</option>
+                <option value="Indian">Indian</option>
+              </select>
+              {errors.nationality && <p className="error">{errors.nationality.message}</p>}
+            </div>
+            <div className="action-buttons">
+              <button type="button" className="employee-view-button" onClick={() => setIsEditMode(false)}>
+                Save
+              </button>
+            </div>
           </div>
-          <div><strong>Salutation:</strong> <span>{watch("salutation") || "-"}</span></div>
-          <div><strong>First Name:</strong> <span>{watch("firstName") || "-"}</span></div>
-          <div><strong>Middle Name:</strong> <span>{watch("middleName") || "-"}</span></div>
-          <div><strong>Last Name:</strong> <span>{watch("lastName") || "-"}</span></div>
-          <div><strong>Gender:</strong> <span>{watch("gender") || "-"}</span></div>
-          <div><strong>DOB:</strong> <span>{watch("dob") ? new Date(watch("dob")).toLocaleDateString("en-IN") : "-"}</span></div>
-          <div><strong>Nationality:</strong> <span>{watch("nationality") || "-"}</span></div>
-        </div>
-      </>
-    ) : (
-      <>
-        <div className="edit-main form-grid">
-          {/* Photo Upload */}
-          <div className="viewform-row">
-            <label>Photo <span className="optional">(Optional)</span></label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={e => {
-                const file = e.target.files[0];
-                if (file) {
-                  setPhotoPreview(URL.createObjectURL(file));
-                  setValue("photo", [file]);
-                }
-              }}
-            />
-            {photoPreview && (
-              <img
-                src={imgError ? fallbackUserImg : photoPreview}
-                alt="Preview"
-                className="photo-preview"
-                style={{ height: "100px", borderRadius: "8px", marginTop: "10px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)" }}
-                onError={() => setImgError(true)}
-              />
-            )}
-          </div>
-          {/* Salutation */}
-          <div className="viewform-row">
-            <label>Salutation <span className="required">*</span></label>
-            <select {...register("salutation")} className="input">
-              <option value="">Select</option>
-              <option value="Mr">Mr</option>
-              <option value="Mrs.">Mrs.</option>
-              <option value="Ms.">Ms.</option>
-              <option value="Miss.">Miss.</option>
-              <option value="Dr.">Dr.</option>
-            </select>
-            {errors.salutation && <p className="error">{errors.salutation.message}</p>}
-          </div>
-          {/* First Name */}
-          <div className="viewform-row">
-            <label>First Name <span className="required">*</span></label>
-            <input {...register("firstName")} className="input" />
-            {errors.firstName && <p className="error">{errors.firstName.message}</p>}
-          </div>
-          {/* Middle Name */}
-          <div className="viewform-row">
-            <label>Middle Name <span className="required">*</span></label>
-            <input {...register("middleName")} className="input" />
-            {errors.middleName && <p className="error">{errors.middleName.message}</p>}
-          </div>
-          {/* Last Name */}
-          <div className="viewform-row">
-            <label>Last Name <span className="required">*</span></label>
-            <input {...register("lastName")} className="input" />
-            {errors.lastName && <p className="error">{errors.lastName.message}</p>}
-          </div>
-          {/* Gender */}
-          <div className="viewform-row">
-            <label>Gender <span className="required">*</span></label>
-            <select {...register("gender")} className="input">
-              <option value="">Select</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Transgender">Transgender</option>
-            </select>
-            {errors.gender && <p className="error">{errors.gender.message}</p>}
-          </div>
-          {/* DOB */}
-          <div className="viewform-row">
-            <label>DOB <span className="required">*</span></label>
-            <input type="date" {...register("dob")} className="input" />
-            {errors.dob && <p className="error">{errors.dob.message}</p>}
-          </div>
-          {/* Nationality */}
-          <div className="viewform-row">
-            <label>Nationality <span className="required">*</span></label>
-            <select {...register("nationality")} className="input">
-              <option value="">Select</option>
-              <option value="Indian">Indian</option>
-            </select>
-            {errors.nationality && <p className="error">{errors.nationality.message}</p>}
-          </div>
-          <div className="action-buttons">
-            <button type="button" className="employee-view-button" onClick={() => setIsEditMode(false)}>
-              Save
-            </button>
-          </div>
-        </div>
-      </>
-    )}
+        )}
+      </div>
+    </div>
   </>
 )}
 
@@ -799,33 +732,6 @@ useEffect(() => {
         >
           Edit
         </button>
-        {/* Photo display for Professional Details */}
-        <div className="viewinfo-row">
-          <div className="viewinfo-column" style={{ flexBasis: "100%" }}>
-            <strong>Photo:</strong>{" "}
-            {photoPreview ? (
-              <img
-                src={imgError || !employee?.photoFileName ? fallbackUserImg : photoPreview}
-                alt="Employee"
-                style={{
-                  height: "100px",
-                  borderRadius: "8px",
-                  marginTop: "10px",
-                  boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
-                }}
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              "No photo uploaded"
-            )}
-            {/* Show file name if present */}
-            <div style={{ marginTop: "6px", fontSize: "0.95em", color: "#444" }}>
-              {employee?.photoFileName
-                ? `Current: ${employee.photoFileName}`
-                : null}
-            </div>
-          </div>
-        </div>
         <div className="viewinfo-row">
           <div>
             <strong>Education:</strong>{" "}
@@ -838,40 +744,29 @@ useEffect(() => {
         </div>
       </>
     ) : (
-      <>
         <div className="edit-main form-grid">
-          <div className="employeeform-leftgrid">
-            {/* Education */}
-            <div>
-              <label className="label">Education</label>
-              <select className="input" {...register("education")}>
-                <option value="">Select</option>
-                <option value="Primary Schooling">Primary Schooling</option>
-                <option value="High School">High School</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Degree">Degree</option>
-                <option value="Graduate">Graduate</option>
-                <option value="Post-Graduate">Post-Graduate</option>
-              </select>
+        <div className="viewform-row">
+          <label>Education <span className="required">*</span></label>
+          <input
+            type="text"
+            className="input"
+            {...register("education", { required: "Education is required" })}
+          />
+          {errors.education && <p className="error">{errors.education.message}</p>}
             </div>
- 
-            {/* Experience */}
-            <div>
-              <label className="label">Experience</label>
+        <div className="viewform-row">
+          <label>Experience <span className="required">*</span></label>
               <input
                 type="text"
-                placeholder="e.g. 15 Years"
                 className="input"
-                {...register("experience")}
+            {...register("experience", { required: "Experience is required" })}
               />
+          {errors.experience && <p className="error">{errors.experience.message}</p>}
             </div>
             <div className="action-buttons">
           <button type="submit" className="employee-view-button">Save</button>
         </div>
           </div>
-        </div>
- 
-      </>
     )}
   </>
 )}
@@ -888,33 +783,6 @@ useEffect(() => {
         >
           Edit
         </button>
-        {/* Photo display for Bank Details */}
-        <div className="viewinfo-row">
-          <div className="viewinfo-column" style={{ flexBasis: "100%" }}>
-            <strong>Photo:</strong>{" "}
-            {photoPreview ? (
-              <img
-                src={imgError || !employee?.photoFileName ? fallbackUserImg : photoPreview}
-                alt="Employee"
-                style={{
-                  height: "100px",
-                  borderRadius: "8px",
-                  marginTop: "10px",
-                  boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
-                }}
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              "No photo uploaded"
-            )}
-            {/* Show file name if present */}
-            <div style={{ marginTop: "6px", fontSize: "0.95em", color: "#444" }}>
-              {employee?.photoFileName
-                ? `Current: ${employee.photoFileName}`
-                : null}
-            </div>
-          </div>
-        </div>
         <div className="viewinfo-row">
           <div><strong>Bank Name:</strong> {watch("bankName") || "-"}</div>
           <div><strong>Account Number:</strong> {watch("accountNumber") || "-"}</div>
@@ -931,74 +799,59 @@ useEffect(() => {
         </div>
       </>
     ) : (
-      <>
         <div className="edit-main form-grid">
-          <div className="employeeform-leftgrid">
-            <div>
-              <label className="label">Bank Name</label>
+        <div className="viewform-row">
+          <label>Bank Name <span className="required">*</span></label>
               <input
                 type="text"
-                placeholder="HDFC Bank"
                 className="input"
-                {...register("bankName")}
+            {...register("bankName", { required: "Bank Name is required" })}
               />
+          {errors.bankName && <p className="error">{errors.bankName.message}</p>}
             </div>
- 
-            <div>
-              <label className="label">Account Number</label>
+        <div className="viewform-row">
+          <label>Account Number <span className="required">*</span></label>
               <input
                 type="text"
-                placeholder="281398301653"
                 className="input"
-                {...register("accountNumber")}
+            {...register("accountNumber", { required: "Account Number is required" })}
               />
+          {errors.accountNumber && <p className="error">{errors.accountNumber.message}</p>}
             </div>
- 
-            <div>
-              <label className="label">Branch Name</label>
+        <div className="viewform-row">
+          <label>Branch Name <span className="required">*</span></label>
               <input
                 type="text"
-                placeholder="Madhapur"
                 className="input"
-                {...register("branchName")}
+            {...register("branchName", { required: "Branch Name is required" })}
               />
+          {errors.branchName && <p className="error">{errors.branchName.message}</p>}
             </div>
-             <div className="action-buttons">
-          <button type="submit" className="employee-view-button">Save</button>
-   
-        </div>
-          </div>
- 
-          <div className="employeeform-rightgrid">
-            <div>
-              <label className="label">IFSC Code</label>
+        <div className="viewform-row">
+          <label>IFSC Code <span className="required">*</span></label>
               <input
                 type="text"
-                placeholder="HDFC0028"
                 className="input"
-                {...register("ifscCode")}
+            {...register("ifscCode", { required: "IFSC Code is required" })}
               />
+          {errors.ifscCode && <p className="error">{errors.ifscCode.message}</p>}
             </div>
- 
-            <div>
-              <label className="label">Passbook</label>
+        <div className="viewform-row">
+          <label>Passbook <span className="optional">(Optional)</span></label>
               <input
                 type="file"
                 className="input"
-                onChange={(e) => {
-                  setValue("passbook", e.target.files[0]);
-                }}
+            accept="application/pdf,image/*"
+            onChange={e => setValue("passbook", e.target.files?.[0])}
               />
               {watch("passbook")?.name && (
                 <p>Uploaded: {watch("passbook").name}</p>
               )}
             </div>
+        <div className="action-buttons">
+          <button type="submit" className="employee-view-button">Save</button>
           </div>
-         
         </div>
- 
-       
-      </>
     )}
   </>
 )}
@@ -1124,12 +977,11 @@ useEffect(() => {
           </form>
         </FormProvider>
       </div>
-        </>
-      )}
     </div>
   );
 };
  
 export default ViewEmployee;
+
  
  

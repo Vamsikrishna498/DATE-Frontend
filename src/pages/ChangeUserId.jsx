@@ -46,33 +46,36 @@ const handleChangeUserId = async () => {
 };
 
   return (
-    <div className="change-userid-container" style={{ backgroundImage: `url(${background})` }}>
-       <img src={logo} alt="Logo" className="otp-logo" />
-      <div className="change-userid-box">
-        <h2>User ID</h2>
-          <h4>Set a strong User id to prevent unauthorized access to your account.</h4>
-
-        <label htmlFor="newUserId">New User ID</label>
-        <input
-          id="newUserId"
-          type="text"
-          value={newUserId}
-          onChange={(e) => setNewUserId(e.target.value)}
-        />
-
-        <label htmlFor="confirmUserId">Confirm User ID</label>
-        <input
-          id="confirmUserId"
-          type="text"
-          value={confirmUserId}
-          onChange={(e) => setConfirmUserId(e.target.value)}
-        />
-
-        {error && <p className="error-text">{error}</p>}
-
-        <button className="change-btn" onClick={handleChangeUserId}>
-          Change User ID
-        </button>
+    <div className="login-modern-container" style={{ backgroundImage: `url(${background})` }}>
+      <div className="login-background-overlay"></div>
+      <div className="login-form-wrapper">
+        <div className="login-modern-card">
+          <img src={logo} alt="Logo" className="login-logo" />
+          <h2 className="login-title">User ID</h2>
+          <h4 style={{textAlign: 'center', color: '#666', marginBottom: '1.5rem'}}>Set a strong User id to prevent unauthorized access to your account.</h4>
+          <div className="loginform-group">
+            <label htmlFor="newUserId">New User ID</label>
+            <input
+              id="newUserId"
+              type="text"
+              value={newUserId}
+              onChange={(e) => setNewUserId(e.target.value)}
+            />
+          </div>
+          <div className="loginform-group">
+            <label htmlFor="confirmUserId">Confirm User ID</label>
+            <input
+              id="confirmUserId"
+              type="text"
+              value={confirmUserId}
+              onChange={(e) => setConfirmUserId(e.target.value)}
+            />
+          </div>
+          {error && <p className="login-error">{error}</p>}
+          <button className="login-btn" onClick={handleChangeUserId}>
+            Change User ID
+          </button>
+        </div>
       </div>
     </div>
   );
