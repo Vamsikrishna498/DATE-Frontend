@@ -1,5 +1,6 @@
 .otp-container {
   height: 100vh;
+  background: #1a5f1a;
   background-size: cover;
   background-position: center;
   display: flex;

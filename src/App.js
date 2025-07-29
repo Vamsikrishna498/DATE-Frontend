@@ -17,7 +17,6 @@ import Adminconfig from "./pages/Adminconfig";
 import UserProfile from "./pages/UserProfile";
 import { RegistrationList, FarmerList, EmployeeList } from "./pages/List";
 import { RegistrationDetails } from "./pages/RegistrationDetails";
-import Viewemployee from "./pages/Viewemployeedetails";
 
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -28,6 +27,7 @@ import { AuthProvider } from "./AuthContext";
 import logo1 from "./assets/leftlogo.png";
 import logo2 from "./assets/rightlogo.png";
 import "./App.css";
+import Viewemployeedetails from "./pages/Viewemployeedetails";
 
 function Layout({ children, currentStep = 0, onStepChange }) {
   const steps = [
@@ -99,8 +99,6 @@ function AppContent() {
     "/admin-config",
     "/employee-details",
     "/test-super-admin",
-    "/admin/dashboard",
-    "/employee/dashboard",
   ];
 
   // Dynamic View Routes
@@ -115,7 +113,7 @@ function AppContent() {
   if (location.pathname.startsWith("/view-employee")) {
     return (
       <Routes>
-        <Route path="/view-employee/:employeeId" element={<Viewemployee />} />
+        <Route path="/view-employee/:employeeId" element={<Viewemployeedetails />} />
       </Routes>
     );
   }
@@ -145,13 +143,13 @@ function AppContent() {
         />
         {/* Role-based dashboards */}
         <Route element={<PrivateRoute allowedRoles={["SUPER_ADMIN"]} />}>
-          <Route path="/super-admin/dashboard" element={<Dashboard />} />
+          <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
         </Route>
         <Route element={<PrivateRoute allowedRoles={["ADMIN"]} />}>
-          <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Route>
         <Route element={<PrivateRoute allowedRoles={["EMPLOYEE"]} />}>
-          <Route path="/employee/dashboard" element={<Dashboard />} />
+          <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
         </Route>
         
         {/* TEST ROUTE: Super Admin Dashboard without authentication */}
@@ -179,8 +177,13 @@ function AppContent() {
   // Default route for farmer form
   return (
     <Routes>
-      <Route path="/" element={<Register />} /> 
-      <Route path="/farmer-form" element={<FarmerFormWrapper />} /> 
+      <Route path="/" element={<Login />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/register-employee" element={<Register />} />
+      <Route path="/register-farmer" element={<Register />} />
+      <Route path="/register-fpo" element={<AddFPOForm />} />
+      <Route path="/farmer-form" element={<FarmerFormWrapper />} />
     </Routes>
   );
 }

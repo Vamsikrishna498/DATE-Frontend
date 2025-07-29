@@ -222,6 +222,15 @@ useEffect(() => {
   }
 }, [farmerData]);
 
+// Utility function for robust photo URL selection
+const getFarmerPhotoUrl = (farmerData) => {
+  if (!farmerData) return null;
+  if (farmerData.photoFileName) return `http://localhost:8080/uploads/${farmerData.photoFileName}`;
+  if (farmerData.photoUrl) return `http://localhost:8080${farmerData.photoUrl}`;
+  if (farmerData.photo) return farmerData.photo;
+  return null;
+};
+
 const sidebarSteps = [
   "Personal Information",
   "Address",
@@ -322,49 +331,19 @@ const sidebarSteps = [
             <div className="viewinfo-row">
               <strong>Photo:</strong>
               <div className="photo-box">
-                {/* If in edit mode and preview exists, show preview */}
-                {photoPreviewStep0 ? (
-                  <img
-                    src={photoPreviewStep0}
-                    alt="Preview"
-                    className="edit-photo-preview"
-                    style={{
-                      width: "200px",
-                      height: "auto",
-                      marginTop: "10px",
-                      objectFit: "cover",
-                      borderRadius: "8px",
-                    }}
-                  />
-                ) : farmerData?.photoFileName || farmerData?.photoUrl || farmerData?.photo ? (
-                  <div className="view-photo-box">
+                {(() => {
+                  const photoUrl = getFarmerPhotoUrl(farmerData);
+                  console.log("[ViewFarmer] Photo URL:", photoUrl);
+                  return photoUrl ? (
                     <img
-                      src={
-                        farmerData.photoFileName
-                          ? `http://localhost:8080/uploads/${farmerData.photoFileName}`
-                          : farmerData.photoUrl
-                          ? `http://localhost:8080${farmerData.photoUrl}`
-                          : farmerData.photo
-                      }
-                      alt={`Farmer ${farmerData.firstName || ""} ${farmerData.lastName || ""}`}
-                      className="view-photo"
-                      style={{
-                        width: "200px",
-                        height: "auto",
-                        objectFit: "cover",
-                        borderRadius: "8px",
-                      }}
-                      onError={(e) => {
-                        console.error("Failed to load photo:", e);
-                        e.target.style.display = "none";
-                        e.target.nextSibling.style.display = "block";
-                      }}
+                      src={photoUrl}
+                      alt="Farmer Photo"
+                      style={{ width: "200px", height: "200px", objectFit: "cover", borderRadius: "8px" }}
+                      onError={e => { e.target.style.display = "none"; e.target.nextSibling.style.display = "block"; }}
                     />
-                    <span style={{ display: "none", color: "#666" }}>Photo not available</span>
-                  </div>
-                ) : (
-                  <span className="text-muted">No Photo Uploaded</span>
-                )}
+                  ) : null;
+                })()}
+                <span style={{ display: getFarmerPhotoUrl(farmerData) ? "none" : "block", color: "#666" }}>No Photo Uploaded</span>
               </div>
               {/* Show file name if present */}
               <div style={{ marginTop: "6px", fontSize: "0.95em", color: "#444" }}>
@@ -648,26 +627,23 @@ const sidebarSteps = [
         <button onClick={() => setIsEditMode(true)} className="viwe-button">Edit</button>
  
         <div className="viewinfo-row">
-          {(farmerData?.photoFileName || farmerData?.photoUrl || farmerData?.photo) ? (
-            <div className="photo-box">
-              <strong>Photo:</strong>
-              <img 
-                src={farmerData.photoFileName 
-                  ? `http://localhost:8080/uploads/${farmerData.photoFileName}`
-                  : farmerData.photoUrl 
-                    ? `http://localhost:8080${farmerData.photoUrl}`
-                    : farmerData.photo} 
-                alt="Farmer Photo" 
-                className="photo-preview"
-                onError={(e) => {
-                  console.error("Failed to load photo:", e);
-                  e.target.style.display = "none";
-                  e.target.nextSibling.style.display = "block";
-                }}
-              />
-              <span style={{ display: "none", color: "#666" }}>Photo not available</span>
-            </div>
-          ) : null}
+          {(() => {
+            const photoUrl = getFarmerPhotoUrl(farmerData);
+            console.log("[ViewFarmer] Step 3 Photo URL:", photoUrl);
+            return photoUrl ? (
+              <div className="photo-box">
+                <strong>Photo:</strong>
+                <img
+                  src={photoUrl}
+                  alt="Farmer Photo"
+                  className="photo-preview"
+                  style={{ width: "200px", height: "200px", objectFit: "cover", borderRadius: "8px" }}
+                  onError={e => { e.target.style.display = "none"; e.target.nextSibling.style.display = "block"; }}
+                />
+                <span style={{ display: "none", color: "#666" }}>Photo not available</span>
+              </div>
+            ) : null;
+          })()}
           <div><strong>Survey Number:</strong> {farmerData?.currentSurveyNumber || ""}</div>
           <div><strong>Total Land Holding:</strong> {farmerData?.currentLandHolding || ""}</div>
           <div><strong>Geo-tag:</strong> {farmerData?.currentGeoTag || ""}</div>

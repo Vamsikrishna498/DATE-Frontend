@@ -1,6 +1,7 @@
 .change-userid-container, 
 .password-container {
- background-size: cover;
+ background: #1a5f1a;
+  background-size: cover;
   background-position: center;
   height: 100vh;
   width: 100%;

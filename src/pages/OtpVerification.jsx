@@ -5,7 +5,7 @@ import axios from 'axios';
  
 import background from '../assets/background-image.png';
 import logo       from '../assets/rightlogo.png';
-import '../styles/OtpVerification.css';
+import '../styles/Login.css';
  
 const OtpVerification = () => {
   /* ───────── STATE ───────── */
@@ -66,31 +66,123 @@ const OtpVerification = () => {
  
   /* ───────── UI ───────── */
   return (
-    <div className="login-modern-container" style={{ backgroundImage: `url(${background})` }}>
-      <div className="login-background-overlay"></div>
-      <div className="login-form-wrapper">
-        <div className="login-modern-card">
-          <img src={logo} alt="Logo" className="login-logo" />
-          <h2 className="login-title">Email Verification</h2>
-          <p>We sent a 6-digit code to <strong>{email}</strong></p>
-          <label htmlFor="otpInput">Enter OTP</label>
-          <input
-            id="otpInput"
-            className="otp-input"
-            maxLength={6}
-            value={otp}
-            onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
-          />
-          <div className="resend-otp">
-            {canResend ? (
-              <button onClick={handleResend} className="resend-btn">Resend OTP</button>
-            ) : (
-              <span className="resend-timer">Resend in {timer}s</span>
-            )}
+    <div className="kerala-login-container">
+      {/* Top Navigation Bar */}
+      <nav className="nic-navbar">
+        <div className="nic-logo">
+          <span>DATE</span>
+        </div>
+        <div className="nav-links">
+          <a href="#dashboard">Dashboard</a>
+          <span className="nav-dot">•</span>
+          <a href="#enrollment">Check Enrollment Status</a>
+          <span className="nav-dot">•</span>
+          <a href="#csc">Login with CSC</a>
+        </div>
+      </nav>
+
+      <div className="main-content">
+        {/* Left Section - Information Panel */}
+        <div className="info-panel">
+          <div className="agri-stack-header">
+            <h1 className="agri-stack-title">
+              <span className="agri-text">Date</span>
+              <span className="agri-text">Agri</span>
+              <span className="leaf-icon">🌿</span>
+              <span className="stack-text">Stack</span>
+            </h1>
+            <h2 className="registry-title">India Farmer Registry</h2>
           </div>
-          <div className="otp-buttons">
-            <button className="verify-btn" onClick={handleVerify}>Verify</button>
-            <button className="back-btn"   onClick={() => navigate(-1)}>Back</button>
+          <div className="registry-info">
+            <h3>Digital Agristack Transaction Enterprises</h3>
+            <p className="help-desk">
+              Empowering Agricultural Excellence
+            </p>
+          </div>
+          
+          {/* Enhanced Agricultural Content */}
+          <div className="agricultural-highlights">
+            <div className="highlight-item">
+              <span className="highlight-icon">🌾</span>
+              <div className="highlight-content">
+                <h4>Revolutionizing Indian Agriculture</h4>
+                <p>Connecting 140+ million farmers with cutting-edge digital solutions</p>
+              </div>
+            </div>
+            
+            <div className="highlight-item">
+              <span className="highlight-icon">📱</span>
+              <div className="highlight-content">
+                <h4>Smart Farming Technology</h4>
+                <p>AI-powered crop monitoring and precision agriculture tools</p>
+              </div>
+            </div>
+            
+            <div className="highlight-item">
+              <span className="highlight-icon">💰</span>
+              <div className="highlight-content">
+                <h4>Financial Inclusion</h4>
+                <p>Direct benefit transfers and digital payment solutions</p>
+              </div>
+            </div>
+            
+            <div className="highlight-item">
+              <span className="highlight-icon">🌱</span>
+              <div className="highlight-content">
+                <h4>Sustainable Practices</h4>
+                <p>Promoting eco-friendly farming and climate-smart agriculture</p>
+              </div>
+            </div>
+            
+            <div className="highlight-item">
+              <span className="highlight-icon">🏆</span>
+              <div className="highlight-content">
+                <h4>National Recognition</h4>
+                <p>Government of India's flagship agricultural digitization initiative</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Section - OTP Verification Form */}
+        <div className="login-form-section">
+          <div className="login-card">
+            {/* DATE Logo at Top */}
+            <div className="date-logo-section">
+              <img src={logo} alt="DATE Logo" className="date-logo" />
+              <div className="date-text">
+                <h3>Digital Agristack Transaction Enterprises</h3>
+                <p>Empowering Agricultural Excellence</p>
+              </div>
+            </div>
+
+            <div className="otp-verification-content">
+              <h2>Email Verification</h2>
+              <p>We sent a 6-digit code to <strong>{email}</strong></p>
+              <form>
+                <div className="form-field">
+                  <label htmlFor="otpInput">Enter OTP</label>
+                  <input
+                    id="otpInput"
+                    className="otp-input"
+                    maxLength={6}
+                    value={otp}
+                    onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+                  />
+                </div>
+                <div className="resend-otp">
+                  {canResend ? (
+                    <button onClick={handleResend} className="resend-btn">Resend OTP</button>
+                  ) : (
+                    <span className="resend-timer">Resend in {timer}s</span>
+                  )}
+                </div>
+                <div className="otp-buttons">
+                  <button className="login-btn" onClick={handleVerify}>Verify</button>
+                  <button className="create-account-btn" onClick={() => navigate(-1)}>Back</button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>

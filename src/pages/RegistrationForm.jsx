@@ -8,10 +8,9 @@ import '../styles/RegistrationForm.css';
 import background from '../assets/background-image.png';
 import logo from '../assets/rightlogo.png';
 
-//Updated Yup schema for yyyy-MM-dd format
+//Updated Yup schema for minimal registration
 const schema = yup.object().shape({
-  firstName: yup.string().required('First Name is required'),
-  lastName: yup.string().required('Last Name is required'),
+  Name: yup.string().required('Name is required'),
   dateOfBirth: yup
     .string()
     .required('Date of Birth is required')
@@ -19,21 +18,12 @@ const schema = yup.object().shape({
       if (!value) return false;
       const dob = new Date(value);
       const today = new Date();
-
       const ageDifMs = today - dob;
       const ageDate = new Date(ageDifMs);
       const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-
       return age >= 18 && age <= 90;
     }),
   gender: yup.string().required('Gender is required'),
-  country: yup.string().required('Country is required'),
-  state: yup.string().required('State is required'),
-  pinCode: yup
-    .string()
-    .matches(/^\d{6}$/, 'Enter a valid 6-digit Pin Code')
-    .required('Pin Code is required'),
-  role: yup.string().required('Role is required'),
   email: yup.string()
     .required('Email is required')
     .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email must include @ and be valid'),
@@ -41,16 +31,6 @@ const schema = yup.object().shape({
     .string()
     .matches(/^\d{10}$/, 'Enter a valid 10-digit phone number')
     .required('Phone number is required'),
-  password: yup.string()
-    .required('Password is required')
-    .min(6, 'Password must be at least 6 characters')
-    .matches(/[A-Z]/, 'Must contain at least one uppercase letter')
-    .matches(/\d/, 'Must contain at least one number')
-    .matches(/@/, 'Must include an @'),
-  confirmPassword: yup
-    .string()
-    .oneOf([yup.ref('password')], 'Passwords must match')
-    .required('Confirm Password is required'),
 });
 
 const RegistrationForm = () => {
@@ -75,9 +55,6 @@ const RegistrationForm = () => {
   const navigate = useNavigate();
   const [resendTimer, setResendTimer] = useState(0);
 
-  
-
- 
   useEffect(() => {
     axios.get("http://localhost:8080/api/auth/countries")
       .then((res) => setCountries(res.data))
@@ -121,12 +98,11 @@ const RegistrationForm = () => {
     }
   };
    
-   
-    // ✅ Handle Verify OTP
+  // ✅ Handle Verify OTP
   const handleVerifyOTP = async () => {
     try {
       await axios.post("http://localhost:8080/api/auth/verify-otp", {
-        emailOrPhone: emailValue,  // 🔄 corrected key
+        emailOrPhone: emailValue,
         otp: otp,
       });
       alert("Email verified successfully!");
@@ -167,269 +143,188 @@ const RegistrationForm = () => {
   };
 
   return (
-    <div className="reg-modern-registration-container">
-      <div className="reg-background-overlay"></div>
-      <div className="reg-form-wrapper">
-        <div className="reg-modern-form-card">
-          <div className="reg-form-logo-info">
-            <div className="reg-company-info">
-              <h1 className="reg-company-title">Digital Agristack Transaction Enterprises</h1>
-              <p className="reg-company-subtitle">Join our agricultural community</p>
-            </div>
-            <div className="reg-logo-container">
-              <img src={logo} alt="DATE Logo" className="reg-form-logo" />
+    <div className="reg-main-content">
+      {/* Left Info Panel */}
+      <div className="info-panel">
+        <div className="agri-stack-header">
+          <h1 className="agri-stack-title">
+            <span className="agri-text">Date</span>
+            <span className="agri-text">Agri</span>
+            <span className="leaf-icon">🌿</span>
+            <span className="stack-text">Stack</span>
+          </h1>
+          <h2 className="registry-title">India Farmer Registry</h2>
+        </div>
+        <div className="registry-info">
+          <h3>Digital Agristack Transaction Enterprises</h3>
+          <p className="help-desk">Empowering Agricultural Excellence</p>
+        </div>
+        {/* Enhanced Agricultural Content */}
+        <div className="agricultural-highlights">
+          <div className="highlight-item">
+            <span className="highlight-icon">🌾</span>
+            <div className="highlight-content">
+              <h4>Revolutionizing Indian Agriculture</h4>
+              <p>Connecting 140+ million farmers with cutting-edge digital solutions</p>
             </div>
           </div>
-
+          <div className="highlight-item">
+            <span className="highlight-icon">📱</span>
+            <div className="highlight-content">
+              <h4>Smart Farming Technology</h4>
+              <p>AI-powered crop monitoring and precision agriculture tools</p>
+            </div>
+          </div>
+          <div className="highlight-item">
+            <span className="highlight-icon">💰</span>
+            <div className="highlight-content">
+              <h4>Financial Inclusion</h4>
+              <p>Direct benefit transfers and digital payment solutions</p>
+            </div>
+          </div>
+          <div className="highlight-item">
+            <span className="highlight-icon">🌱</span>
+            <div className="highlight-content">
+              <h4>Sustainable Practices</h4>
+              <p>Promoting eco-friendly farming and climate-smart agriculture</p>
+            </div>
+          </div>
+          <div className="highlight-item">
+            <span className="highlight-icon">🏆</span>
+            <div className="highlight-content">
+              <h4>National Recognition</h4>
+              <p>Government of India's flagship agricultural digitization initiative</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Right Registration Form Card */}
+      <div className="reg-form-section">
+        <div className="reg-modern-form-card">
+          <div className="date-logo-section">
+            <img src={logo} alt="DATE Logo" className="date-logo" />
+            <div className="date-text">
+              <h3>Digital Agristack Transaction Enterprises</h3>
+              <p>Empowering Agricultural Excellence</p>
+            </div>
+          </div>
           <div className="reg-form-header">
             <h2 className="reg-form-title">Registration Form</h2>
             <p className="reg-form-subtitle">Enter your details to get started</p>
           </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="reg-modern-form">
-            {/* Personal Information Section */}
-            <div className="reg-form-section">
-              <h3 className="reg-section-title">Personal Information</h3>
-              <div className="reg-form-row">
-                <div className="reg-form-group">
-                  <label>First Name <span className="reg-required">*</span></label>
-                  <input 
-                    type="text" 
-                    {...register('firstName')} 
-                    className={errors.firstName ? 'reg-error' : ''}
-                    placeholder="Enter your first name"
-                  />
-                  {errors.firstName && <span className="reg-error-message">{errors.firstName.message}</span>}
-                </div>
-
-                <div className="reg-form-group">
-                  <label>Last Name <span className="reg-required">*</span></label>
-                  <input 
-                    type="text" 
-                    {...register('lastName')} 
-                    className={errors.lastName ? 'reg-error' : ''}
-                    placeholder="Enter your last name"
-                  />
-                  {errors.lastName && <span className="reg-error-message">{errors.lastName.message}</span>}
-                </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="reg-modern-form reg-form-grid">
+            <div className="reg-form-col">
+              <div className="reg-form-group">
+                <label> Name <span className="reg-required">*</span></label>
+                <input 
+                  type="text" 
+                  {...register('Name')} 
+                  className={errors.Name ? 'reg-error' : ''}
+                  placeholder="Enter your first name"
+                />
+                {errors.Name && <span className="reg-error-message">{errors.Name.message}</span>}
               </div>
-
-              <div className="reg-form-row">
-                <div className="reg-form-group">
-                  <label>Date of Birth <span className="reg-required">*</span></label>
-                  <input
-                    type="date"
-                    {...register('dateOfBirth')}
-                    className={errors.dateOfBirth ? 'reg-error' : ''}
-                  />
-                  {errors.dateOfBirth && <span className="reg-error-message">{errors.dateOfBirth.message}</span>}
-                </div>
-
-                <div className="reg-form-group">
-                  <label>Gender <span className="reg-required">*</span></label>
-                  <select {...register('gender')} className={errors.gender ? 'reg-error' : ''}>
-                    <option value="">Select gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  {errors.gender && <span className="reg-error-message">{errors.gender.message}</span>}
-                </div>
+              <div className="reg-form-group">
+                <label>Gender <span className="reg-required">*</span></label>
+                <select {...register('gender')} className={errors.gender ? 'reg-error' : ''}>
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                {errors.gender && <span className="reg-error-message">{errors.gender.message}</span>}
+              </div>
+              <div className="reg-form-group">
+                <label>Date of Birth <span className="reg-required">*</span></label>
+                <input
+                  type="date"
+                  {...register('dateOfBirth')}
+                  className={errors.dateOfBirth ? 'reg-error' : ''}
+                />
+                {errors.dateOfBirth && <span className="reg-error-message">{errors.dateOfBirth.message}</span>}
               </div>
             </div>
-
-            {/* Location Section */}
-            <div className="reg-form-section">
-              <h3 className="reg-section-title">Location</h3>
-              <div className="reg-form-row">
-                <div className="reg-form-group">
-                  <label>Country <span className="reg-required">*</span></label>
-                  <select
-                    {...register('country')}
-                    value={selectedCountry}
-                    onChange={(e) => {
-                      const selected = e.target.value;
-                      setSelectedCountry(selected);
-                      setValue('country', selected);
-                    }}
-                    className={errors.country ? 'reg-error' : ''}
-                  >
-                    <option value="">Select country</option>
-                    {countries.map((country) => (
-                      <option key={country.id} value={country.iso2}>
-                        {country.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.country && <span className="reg-error-message">{errors.country.message}</span>}
-                </div>
-
-                <div className="reg-form-group">
-                  <label>State <span className="reg-required">*</span></label>
-                  <select
-                    {...register('state')}
-                    value={selectedState}
-                    onChange={(e) => setValue('state', e.target.value)}
-                    className={errors.state ? 'reg-error' : ''}
-                  >
-                    <option value="">Select state</option>
-                    {states.map((state) => (
-                      <option key={state.id} value={state.name}>
-                        {state.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.state && <span className="reg-error-message">{errors.state.message}</span>}
-                </div>
+            <div className="reg-form-col">
+              <div className="reg-form-group">
+                <label>Phone Number <span className="reg-required">*</span></label>
+                <input 
+                  type="text" 
+                  {...register('phoneNumber')} 
+                  className={errors.phoneNumber ? 'reg-error' : ''}
+                  placeholder="Enter 10-digit number"
+                />
+                {errors.phoneNumber && <span className="reg-error-message">{errors.phoneNumber.message}</span>}
               </div>
-
-              <div className="reg-form-row">
-                <div className="reg-form-group">
-                  <label>Pin Code <span className="reg-required">*</span></label>
-                  <input 
-                    type="text" 
-                    {...register('pinCode')} 
-                    className={errors.pinCode ? 'reg-error' : ''}
-                    placeholder="Enter 6-digit pin code"
-                  />
-                  {errors.pinCode && <span className="reg-error-message">{errors.pinCode.message}</span>}
-                </div>
-
-                <div className="reg-form-group">
-                  <label>Role <span className="reg-required">*</span></label>
-                  <select {...register("role")} className={errors.role ? 'reg-error' : ''}>
-                    <option value="">Select role</option>
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="F.P.O">F.P.O</option>
-                    <option value="FARMER">FARMER</option>
-                    <option value="EMPLOYEE">EMPLOYEE</option>
-                  </select>
-                  {errors.role && <span className="reg-error-message">{errors.role.message}</span>}
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Section */}
-            <div className="reg-form-section">
-              <h3 className="reg-section-title">Contact Information</h3>
-              <div className="reg-form-row">
-                <div className="reg-form-group">
-                  <label>Email Address <span className="reg-required">*</span></label>
-                  <input
-                    type="email"
-                    {...register('email')}
-                    value={emailValue}
-                    onChange={(e) => {
-                      setEmailValue(e.target.value);
-                      setOtpSent(false);
-                      setEmailVerified(false);
-                    }}
-                    className={errors.email ? 'reg-error' : ''}
-                    placeholder="Enter your email"
-                  />
-                  {errors.email && <span className="reg-error-message">{errors.email.message}</span>}
-                </div>
-
-                <div className="reg-form-group">
-                  <label>Phone Number <span className="reg-required">*</span></label>
-                  <input 
-                    type="text" 
-                    {...register('phoneNumber')} 
-                    className={errors.phoneNumber ? 'reg-error' : ''}
-                    placeholder="Enter 10-digit number"
-                  />
-                  {errors.phoneNumber && <span className="reg-error-message">{errors.phoneNumber.message}</span>}
-                </div>
-              </div>
-
-              {/* Email Verification */}
-              <div className="reg-email-verification">
-                {(!otpSent && !emailVerified) && (
-                  <button
-                    type="button"
-                    onClick={handleSendOTP}
-                    className="reg-otp-btn reg-primary"
-                  >
-                    Send OTP
-                  </button>
-                )}
-
-                {(otpSent && !emailVerified) && (
-                  <div className="reg-otp-container">
-                    <input
-                      type="text"
-                      placeholder="Enter OTP"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      className="reg-otp-input"
-                    />
-                    <div className="reg-otp-buttons">
-                      <button
-                        type="button"
-                        onClick={handleSendOTP}
-                        className="reg-otp-btn reg-secondary"
-                        disabled={resendTimer > 0}
-                      >
-                        {resendTimer > 0 ? `Resend (${resendTimer}s)` : 'Resend'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleVerifyOTP}
-                        className="reg-otp-btn reg-primary"
-                      >
-                        Verify
-                      </button>
+              <div className="reg-form-group">
+                <label>Email Address <span className="reg-required">*</span></label>
+                <input
+                  type="email"
+                  {...register('email')}
+                  value={emailValue}
+                  onChange={(e) => {
+                    setEmailValue(e.target.value);
+                    setOtpSent(false);
+                    setEmailVerified(false);
+                  }}
+                  className={errors.email ? 'reg-error' : ''}
+                  placeholder="Enter your email"
+                />
+                {errors.email && <span className="reg-error-message">{errors.email.message}</span>}
+                {/* Email Verification */}
+                <div className="reg-email-verification">
+                  {(!otpSent && !emailVerified) && (
+                    <button
+                      type="button"
+                      onClick={handleSendOTP}
+                      className="reg-otp-btn reg-primary"
+                    >
+                      Send OTP
+                    </button>
+                  )}
+                  {(otpSent && !emailVerified) && (
+                    <div className="reg-otp-container">
+                      <input
+                        type="text"
+                        placeholder="Enter OTP"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        className="reg-otp-input"
+                      />
+                      <div className="reg-otp-buttons">
+                        <button
+                          type="button"
+                          onClick={handleSendOTP}
+                          className="reg-otp-btn reg-secondary"
+                          disabled={resendTimer > 0}
+                        >
+                          {resendTimer > 0 ? `Resend (${resendTimer}s)` : 'Resend'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleVerifyOTP}
+                          className="reg-otp-btn reg-primary"
+                        >
+                          Verify
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {emailVerified && (
-                  <div className="reg-verification-success">
-                    <span className="reg-success-icon">✓</span>
-                    Email Verified
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Password Section */}
-            <div className="reg-form-section">
-              <h3 className="reg-section-title">Security</h3>
-              <div className="reg-form-row">
-                <div className="reg-form-group">
-                  <label>Create Password <span className="reg-required">*</span></label>
-                  <input 
-                    type="password" 
-                    {...register('password')} 
-                    className={errors.password ? 'reg-error' : ''}
-                    placeholder="Create a strong password"
-                  />
-                  {errors.password && <span className="reg-error-message">{errors.password.message}</span>}
-                </div>
-
-                <div className="reg-form-group">
-                  <label>Confirm Password <span className="reg-required">*</span></label>
-                  <input 
-                    type="password" 
-                    {...register('confirmPassword')} 
-                    className={errors.confirmPassword ? 'reg-error' : ''}
-                    placeholder="Confirm your password"
-                  />
-                  {errors.confirmPassword && <span className="reg-error-message">{errors.confirmPassword.message}</span>}
+                  )}
+                  {emailVerified && (
+                    <div className="reg-verification-success">
+                      <span className="reg-success-icon">✓</span>
+                      Email Verified
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-
-            {/* Submit Button */}
-            <div className="reg-form-actions">
+            <div className="reg-form-actions reg-form-actions-full">
               <button type="submit" className="reg-submit-btn">
-                Create Account
+                Register Now ...
               </button>
             </div>
-
-            {/* Login Link */}
-            <div className="reg-login-link">
-              <p>Already have an account? <Link to="/login">Sign In</Link></p>
+            <div className="reg-login-link reg-form-actions-full">
+              <h4>Already have an account? <Link to="/login">Sign In</Link></h4>
             </div>
           </form>
         </div>
