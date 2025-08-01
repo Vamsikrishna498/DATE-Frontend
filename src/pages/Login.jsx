@@ -68,7 +68,8 @@ const Login = () => {
           status: userData.status
         };
         login(user, token);
-        if (loginType === 'official') {
+        // Redirect based on user role only
+        if (user.role === 'SUPERADMIN') {
           navigate('/super-admin/dashboard');
         } else if (user.role === 'ADMIN') {
           navigate('/admin/dashboard');
