@@ -41,13 +41,24 @@ const ForgotPassword = () => {
    const navigate = useNavigate();
    const onSubmit = async (data) => {
     try {
-      await authAPI.forgotPassword(data.userInput);
- 
+      console.log('Sending forgot password request for:', data.userInput);
+      const response = await authAPI.forgotPassword(data.userInput);
+      console.log('Forgot password response:', response);
+
       setTarget(data.userInput);
       setShowPopup(true); // Show popup on success
     } catch (error) {
       console.error("Error sending reset request:", error);
-      alert("Failed to send reset link. Please try again.");
+      
+      // Handle specific error messages from backend
+      let errorMessage = "Failed to send reset link. Please try again.";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
     }
   };
  

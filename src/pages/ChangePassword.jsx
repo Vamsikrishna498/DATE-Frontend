@@ -2,7 +2,9 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import api from '../api/apiService';
+import { authAPI } from '../api/apiService';
+import axios from 'axios';
+import TokenValidator from '../components/TokenValidator';
 
 import '../styles/Login.css';
 
@@ -15,6 +17,8 @@ const ChangePassword = () => {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [debugInfo, setDebugInfo] = useState('');
+  const [useAlternativeEndpoint, setUseAlternativeEndpoint] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -24,6 +28,7 @@ const ChangePassword = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setDebugInfo('');
 
     if (form.newPassword !== form.confirmPassword) {
       setError('New password and confirm password do not match.');
@@ -43,22 +48,81 @@ const ChangePassword = () => {
       setError('Password must include an uppercase letter, a number, and an @ symbol.');
       return;
     }
+
+    // Check if backend server is running
     try {
-      console.log('Attempting to change password for user:', user?.email || user?.userName);
+      await axios.get('http://localhost:8080/api/test');
+    } catch (error) {
+      console.log('Backend test failed, but continuing with password change...');
+      // Don't block the password change attempt
+    }
+
+    try {
+      // Debug: Check authentication state
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
       
-      // Use reset-password/confirm endpoint for first-time password change
-      // This endpoint doesn't require current password
-      const response = await api.post('/auth/reset-password/confirm', {
-        emailOrPhone: user?.email || user?.userName,
+      console.log('🔍 DEBUG INFO:');
+      console.log('User from context:', user);
+      console.log('Token exists:', !!token);
+      console.log('User data exists:', !!userData);
+      console.log('Using alternative endpoint:', useAlternativeEndpoint);
+      
+      if (token) {
+        try {
+          const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+          console.log('Token payload:', tokenPayload);
+          console.log('Token expires at:', new Date(tokenPayload.exp * 1000));
+          console.log('Current time:', new Date());
+          console.log('Token is expired:', Date.now() >= tokenPayload.exp * 1000);
+        } catch (tokenError) {
+          console.log('Token parsing error:', tokenError);
+        }
+      }
+
+      setDebugInfo(`Debug: User ID: ${user?.id}, Token: ${token ? 'Present' : 'Missing'}, Endpoint: ${useAlternativeEndpoint ? 'Alternative' : 'Original'}`);
+      
+      console.log('Attempting to change password for user:', user?.email || user?.userName);
+      console.log('Request payload:', {
         newPassword: form.newPassword,
         confirmPassword: form.confirmPassword
       });
-      console.log('Password change response:', response.data);
+      
+      let response;
+      
+             if (useAlternativeEndpoint) {
+         // Use the alternative reset-password endpoint
+         console.log('🔄 Using alternative endpoint: /api/auth/reset-password/confirm');
+         response = await axios.post('http://localhost:8080/api/auth/reset-password/confirm', {
+           newPassword: form.newPassword,
+           confirmPassword: form.confirmPassword
+         }, {
+           headers: {
+             'Authorization': `Bearer ${token}`,
+             'Content-Type': 'application/json'
+           }
+         });
+               } else {
+          // Use the Java backend change-password endpoint
+          console.log('🔄 Using Java backend endpoint: /api/auth/change-password');
+          response = await axios.post('http://localhost:8080/api/auth/change-password', {
+            currentPassword: 'Employee@123', // Default password for force change
+            newPassword: form.newPassword,
+            confirmPassword: form.confirmPassword
+          }, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        }
+      
+      console.log('Password change response:', response);
       
       setSuccess('Password changed successfully! Redirecting to dashboard...');
       
-      // Update user data to remove forcePasswordChange flag
-      const updatedUser = {
+      // Update user data with the response from server
+      const updatedUser = response.data?.user || response.user || {
         ...user,
         forcePasswordChange: false
       };
@@ -80,15 +144,18 @@ const ChangePassword = () => {
         }
       }, 1500);
     } catch (err) {
-      console.error('Password change error:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
+      console.error('❌ Password change error:', err);
+      console.error('❌ Error response:', err.response?.data);
+      console.error('❌ Error status:', err.response?.status);
+      console.error('❌ Error headers:', err.response?.headers);
       
       // Provide more specific error messages
       if (err.response?.status === 400) {
         setError(err.response?.data?.message || 'Invalid password format. Please check the requirements.');
       } else if (err.response?.status === 401) {
         setError('Session expired. Please log in again.');
+      } else if (err.response?.status === 403) {
+        setError(`Access denied (403). Token: ${localStorage.getItem('token') ? 'Present' : 'Missing'}. Please check your credentials or contact administrator.`);
       } else if (err.response?.status === 404) {
         setError('User not found. Please contact administrator.');
       } else if (err.response?.status === 500) {
@@ -199,6 +266,97 @@ const ChangePassword = () => {
 
             <div className="change-password-content">
               <h2>Change Password</h2>
+              
+                             {/* Debug Token Validator */}
+               <TokenValidator />
+               
+               {/* Quick Fix Buttons */}
+               <div style={{ 
+                 background: '#fff3cd', 
+                 padding: '15px', 
+                 marginBottom: '15px', 
+                 borderRadius: '4px',
+                 border: '1px solid #ffeaa7'
+               }}>
+                 <h4 style={{ margin: '0 0 10px 0', color: '#856404' }}>🔧 Quick Fixes</h4>
+                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                   <button 
+                     onClick={() => {
+                       localStorage.removeItem('token');
+                       localStorage.removeItem('user');
+                       window.location.href = '/login';
+                     }}
+                     style={{ 
+                       padding: '8px 16px',
+                       backgroundColor: '#dc3545',
+                       color: 'white',
+                       border: 'none',
+                       borderRadius: '4px',
+                       cursor: 'pointer',
+                       fontSize: '12px'
+                     }}
+                   >
+                     🔄 Refresh Token (Logout & Login)
+                   </button>
+                                       <button 
+                      onClick={() => {
+                        // Test Java backend connection
+                        window.open('http://localhost:8080/api/auth/login', '_blank');
+                      }}
+                      style={{ 
+                        padding: '8px 16px',
+                        backgroundColor: '#17a2b8',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                    >
+                      🔍 Test Java Backend
+                    </button>
+                 </div>
+                                   <div style={{ fontSize: '12px', color: '#856404', marginTop: '8px' }}>
+                    If you're getting 403 errors, try refreshing your token or check if the backend is running.
+                    <br />
+                                         <strong>Note:</strong> Your Java backend is running. Make sure the token is valid.
+                  </div>
+               </div>
+              
+              {/* Endpoint Toggle */}
+              <div style={{ 
+                background: '#f8f9fa', 
+                padding: '10px', 
+                marginBottom: '15px', 
+                borderRadius: '4px',
+                border: '1px solid #dee2e6'
+              }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={useAlternativeEndpoint}
+                    onChange={(e) => setUseAlternativeEndpoint(e.target.checked)}
+                    style={{ margin: 0 }}
+                  />
+                  Use Alternative Endpoint (reset-password/confirm)
+                </label>
+                                 <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                   {useAlternativeEndpoint ? 'Using: /api/auth/reset-password/confirm' : 'Using: /api/auth/change-password (Java Backend)'}
+                 </div>
+              </div>
+              
+              {debugInfo && (
+                <div style={{ 
+                  background: '#f0f0f0', 
+                  padding: '10px', 
+                  marginBottom: '15px', 
+                  fontSize: '12px', 
+                  color: '#666',
+                  borderRadius: '4px'
+                }}>
+                  {debugInfo}
+                </div>
+              )}
               <form onSubmit={handleSubmit}>
                 <div className="form-field">
                   <label>New Password:</label>

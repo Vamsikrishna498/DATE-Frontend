@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { farmersAPI } from '../api/apiService';
 import '../styles/FarmerRegistration.css';
 
 const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClose }) => {
@@ -121,8 +122,51 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
     try {
       console.log('Form submitted with data:', data);
       
-      // Here you would typically send the data to your backend
-      // For now, we'll just log it and show a success message
+      // Create FormData for multipart/form-data submission
+      const formData = new FormData();
+      
+      // Create farmerDto object
+      const farmerDto = {
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        email: data.contactNumber + '@farmer.com', // Using phone as email
+        contactNumber: data.contactNumber || '',
+        dateOfBirth: data.dateOfBirth || '',
+        gender: data.gender || '',
+        state: data.state || '',
+        district: data.district || '',
+        village: data.village || '',
+        pincode: data.pincode || '',
+        bankName: data.bankName || '',
+        accountNumber: data.accountNumber || '',
+        ifscCode: data.ifscCode || ''
+      };
+      
+      // Add farmerDto as JSON string
+      formData.append('farmerDto', JSON.stringify(farmerDto));
+      
+      // Add files if they exist
+      if (data.photo) {
+        formData.append('photo', data.photo);
+      }
+      if (data.passbookFile) {
+        formData.append('passbookPhoto', data.passbookFile);
+      }
+      if (data.documentFileName) {
+        formData.append('aadhaar', data.documentFileName);
+      }
+      if (data.soilTestCertificate) {
+        formData.append('soilTestCertificate', data.soilTestCertificate);
+      }
+      
+      console.log('Submitting farmer registration to backend...');
+      
+      // Submit to backend
+      const response = await farmersAPI.createFarmer(formData);
+      console.log('Farmer registration response:', response);
+      
+      // Show success message
+      alert('Farmer registration completed successfully! Registration ID: ' + response.id);
       
       if (isInDashboard) {
         // If in dashboard mode, close the form
@@ -132,10 +176,19 @@ const FarmerRegistrationForm = ({ isInDashboard = false, editData = null, onClos
         navigate('/admin/dashboard');
       }
       
-      alert('Farmer registration completed successfully!');
     } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('Error submitting form. Please try again.');
+      console.error('Error submitting farmer registration:', error);
+      
+      // Handle specific error messages from backend
+      let errorMessage = 'Error submitting form. Please try again.';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert('Registration failed: ' + errorMessage);
     }
   };
 

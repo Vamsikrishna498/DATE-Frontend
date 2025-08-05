@@ -301,12 +301,78 @@
 }
 
 .rejection-reason-text {
-  background: #fee2e2;
+  background: #fef2f2;
   color: #dc2626;
-  padding: 8px 12px;
+  padding: 12px;
   border-radius: 6px;
+  border-left: 4px solid #dc2626;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+.role-selection {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f0f9ff;
+  border-radius: 8px;
+  border: 1px solid #bae6fd;
+}
+
+.role-selection label {
+  display: block;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 8px;
+}
+
+.role-selection select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  background: white;
   font-size: 14px;
-  line-height: 1.5;
+  color: #374151;
+}
+
+.role-selection select:focus {
+  outline: none;
+  border-color: #0369a1;
+  box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.1);
+}
+
+.reject-confirm-btn {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.reject-confirm-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+}
+
+.reject-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.role-admin {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+}
+
+.role-super-admin {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
 }
 
 .modal-footer {

@@ -1,12 +1,12 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { authAPI } from '../api/apiService';
 import logo from '../assets/rightlogo.png';
 import '../styles/Login.css';
 
-const generateCaptcha = () => {
-  // Random captcha generation
+const generateClientCaptcha = () => {
+  // Fallback client-side captcha generation
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let captcha = '';
   for (let i = 0; i < 5; i++) {
@@ -16,232 +16,167 @@ const generateCaptcha = () => {
 };
 
 const Login = () => {
-  const { login } = useContext(AuthContext);
+  const { login, logout } = useContext(AuthContext);
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [loginType, setLoginType] = useState('official'); // 'official', 'fpo', 'employee', 'farmer'
   const [captcha, setCaptcha] = useState('');
-  const [captchaValue, setCaptchaValue] = useState(generateCaptcha());
+  const [captchaValue, setCaptchaValue] = useState('');
+  const [captchaLoading, setCaptchaLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Load captcha on component mount
+  useEffect(() => {
+    loadCaptcha();
+  }, []);
+
+  const loadCaptcha = async () => {
+    try {
+      setCaptchaLoading(true);
+      const response = await authAPI.generateCaptcha();
+      setCaptchaValue(response.captcha);
+      setCaptcha('');
+    } catch (error) {
+      console.error('Failed to load captcha from server, using fallback:', error);
+      setCaptchaValue(generateClientCaptcha());
+    } finally {
+      setCaptchaLoading(false);
+    }
+  };
+
   const handleLoginType = (type) => {
     setLoginType(type);
     setError('');
     setCaptcha('');
-    setCaptchaValue(generateCaptcha());
+    loadCaptcha();
   };
 
   const handleRefreshCaptcha = () => {
-    setCaptchaValue(generateCaptcha());
-    setCaptcha('');
+    loadCaptcha();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    if (captcha.trim().toLowerCase() !== captchaValue.toLowerCase()) {
-      setError('Captcha does not match.');
+    
+    // Validate captcha
+    if (!captcha.trim()) {
+      setError('Please enter the captcha.');
       setLoading(false);
-      setCaptchaValue(generateCaptcha());
-      setCaptcha('');
       return;
     }
+
+    // Verify captcha with server
+    try {
+      const captchaVerification = await authAPI.verifyCaptcha(captcha);
+      if (!captchaVerification.success) {
+        setError('Invalid captcha. Please try again.');
+        setLoading(false);
+        loadCaptcha();
+        return;
+      }
+    } catch (captchaError) {
+      console.error('Captcha verification failed:', captchaError);
+      // Fallback to client-side verification if server verification fails
+      if (captcha.trim().toLowerCase() !== captchaValue.toLowerCase()) {
+        setError('Captcha does not match.');
+        setLoading(false);
+        loadCaptcha();
+        return;
+      }
+    }
+    
     try {
       const loginData = { userName, password };
+      console.log('Login - Attempting login with:', { userName, password: '***' });
+      
       const response = await authAPI.login(loginData);
       console.log('Login - Full login response:', response);
-      console.log('Login - Login response data keys:', Object.keys(response || {}));
-      const { token } = response;
-      try {
-        // Get user profile with token
-        const userData = await authAPI.getProfile();
-        console.log('Login - Profile response data:', userData);
-        console.log('Login - Profile response data keys:', Object.keys(userData || {}));
-        const user = {
-          userName: userData.userName || userName,
-          name: userData.name,
-          email: userData.email,
-          role: userData.role,
-          forcePasswordChange: userData.forcePasswordChange || false,
-          status: userData.status
-        };
-        
-        console.log('Login - User data from profile:', user);
-        console.log('Login - User role from profile:', userData.role);
-        login(user, token);
-        
-        // Check if user needs to change password (first time login with temp password)
-        if (user.forcePasswordChange) {
-          navigate('/change-password');
-          return;
-        }
-        
-        // Role-based navigation after password change or normal login
-        console.log('Login - User role for navigation:', user.role);
-        console.log('Login - User role (normalized):', user.role?.toUpperCase?.()?.trim?.());
-        console.log('Login - User role type:', typeof user.role);
-        console.log('Login - User role length:', user.role?.length);
-        console.log('Login - User role includes spaces:', user.role?.includes(' '));
-        
-        const normalizedRole = user.role?.toUpperCase?.()?.trim?.() || '';
-        console.log('Login - Normalized role:', normalizedRole);
-        console.log('Login - Normalized role === ADMIN:', normalizedRole === 'ADMIN');
-        console.log('Login - Normalized role === SUPER_ADMIN:', normalizedRole === 'SUPER_ADMIN');
-        
-        if (normalizedRole === 'SUPER_ADMIN') {
-          console.log('Login - Redirecting SUPER_ADMIN to /super-admin/dashboard');
-          alert('SUPER_ADMIN detected - redirecting to /super-admin/dashboard');
-          navigate('/super-admin/dashboard');
-        } else if (normalizedRole === 'ADMIN') {
-          console.log('Login - Redirecting ADMIN to /admin/dashboard');
-          alert('ADMIN detected - redirecting to /admin/dashboard');
-          navigate('/admin/dashboard');
-        } else if (normalizedRole === 'EMPLOYEE') {
-          console.log('Login - Redirecting EMPLOYEE to /employee/dashboard');
-          alert('EMPLOYEE detected - redirecting to /employee/dashboard');
-          navigate('/employee/dashboard');
-        } else {
-          console.log('Login - Redirecting FARMER to /dashboard');
-          alert('FARMER detected - redirecting to /dashboard');
-          navigate('/dashboard');
-        }
-      } catch (profileErr) {
-        console.log('Profile fetch failed, trying alternative methods');
-        console.log('Profile error:', profileErr);
-        
-        // Try to get role from login response first
-        let role = response.data?.role;
-        let forcePasswordChange = response.data?.forcePasswordChange || false;
-        
-        // If role is not in login response, try to get it from the backend
-        if (!role) {
-          try {
-            console.log('Login - Trying to get role from /auth/me endpoint');
-            const meResponse = await authAPI.getProfile();
-            console.log('Login - /auth/me response:', meResponse);
-            role = meResponse?.role;
-            console.log('Login - Role from /auth/me:', role);
-          } catch (meErr) {
-            console.log('Login - /auth/me failed:', meErr);
-            
-            // Try another common endpoint
-            try {
-              console.log('Login - Trying to get role from /api/auth/users/profile endpoint');
-              const altProfileResponse = await authAPI.getProfile();
-              console.log('Login - /api/auth/users/profile response:', altProfileResponse);
-              role = altProfileResponse?.role;
-              console.log('Login - Role from /api/auth/users/profile:', role);
-            } catch (altErr) {
-              console.log('Login - /api/auth/users/profile failed:', altErr);
-            }
-          }
-        }
-        
-        // If still no role, try to determine from username or use a default
-        if (!role) {
-          console.log('Login - No role found, trying to determine from username');
-          console.log('Login - Username being checked:', userName);
-          // Check if username contains admin indicators
-          const lowerUserName = userName.toLowerCase();
-          
-          // Specific username mapping for known accounts
-          const superAdminUsernames = [
-            'projecthinfintiy@12.in',
-            'superadmin@hinfinity.in'
-          ];
-          
-          const adminUsernames = [
-            'karthik.m@hinfinity.in',
-            'admin@hinfinity.in'
-          ];
-          
-          const employeeUsernames = [
-            'employee@hinfinity.in',
-            'emp@hinfinity.in',
-            'testemployee@hinfinity.in',
-            'hari2912@gmail.com',
-            'employee2@hinfinity.in',
-            'test@employee.com'
-          ];
-          
-          console.log('Login - Checking against employee usernames:', employeeUsernames);
-          console.log('Login - Username in employee list?', employeeUsernames.includes(userName));
-          
-          if (superAdminUsernames.includes(userName)) {
-            role = 'SUPER_ADMIN';
-            console.log('Login - Determined role as SUPER_ADMIN from specific username mapping');
-          } else if (adminUsernames.includes(userName)) {
-            role = 'ADMIN';
-            console.log('Login - Determined role as ADMIN from specific username mapping');
-          } else if (employeeUsernames.includes(userName)) {
-            role = 'EMPLOYEE';
-            console.log('Login - Determined role as EMPLOYEE from specific username mapping');
-            console.log('Login - Employee username detected:', userName);
-          } else if (lowerUserName.includes('admin') || lowerUserName.includes('super')) {
-            role = 'SUPER_ADMIN';
-            console.log('Login - Determined role as SUPER_ADMIN from username');
-          } else if (lowerUserName.includes('emp') || lowerUserName.includes('employee')) {
-            role = 'EMPLOYEE';
-            console.log('Login - Determined role as EMPLOYEE from username');
-          } else {
-            role = 'FARMER';
-            console.log('Login - Defaulting to FARMER role');
-          }
-        }
-        
-        const user = {
-          userName: userName,
-          role: role,
-          forcePasswordChange: forcePasswordChange
-        };
-        
-        console.log('Login - Final fallback user data:', user);
-        console.log('Login - Final role determined:', role);
-        
-        login(user, token);
-        
-        // Check if user needs to change password
-        if (user.forcePasswordChange) {
-          navigate('/change-password');
-          return;
-        }
-        
-        // Role-based navigation
-        console.log('Login - Fallback: User role for navigation:', user.role);
-        console.log('Login - Fallback: User role (normalized):', user.role?.toUpperCase?.()?.trim?.());
-        console.log('Login - Fallback: User role type:', typeof user.role);
-        console.log('Login - Fallback: User role length:', user.role?.length);
-        console.log('Login - Fallback: User role includes spaces:', user.role?.includes(' '));
-        
-        const normalizedRole = user.role?.toUpperCase?.()?.trim?.() || '';
-        console.log('Login - Fallback: Normalized role:', normalizedRole);
-        console.log('Login - Fallback: Normalized role === ADMIN:', normalizedRole === 'ADMIN');
-        console.log('Login - Fallback: Normalized role === SUPER_ADMIN:', normalizedRole === 'SUPER_ADMIN');
-        
-        if (normalizedRole === 'SUPER_ADMIN') {
-          console.log('Login - Fallback: Redirecting SUPER_ADMIN to /super-admin/dashboard');
-          alert('FALLBACK: SUPER_ADMIN detected - redirecting to /super-admin/dashboard');
-          navigate('/super-admin/dashboard');
-        } else if (normalizedRole === 'ADMIN') {
-          console.log('Login - Fallback: Redirecting ADMIN to /admin/dashboard');
-          alert('FALLBACK: ADMIN detected - redirecting to /admin/dashboard');
-          navigate('/admin/dashboard');
-        } else if (normalizedRole === 'EMPLOYEE') {
-          console.log('Login - Fallback: Redirecting EMPLOYEE to /employee/dashboard');
-          alert('FALLBACK: EMPLOYEE detected - redirecting to /employee/dashboard');
-          navigate('/employee/dashboard');
-        } else {
-          console.log('Login - Fallback: Redirecting FARMER to /dashboard');
-          alert('FALLBACK: FARMER detected - redirecting to /dashboard');
-          navigate('/dashboard');
-        }
+      
+      // Extract data from response
+      const { token, user: userData, forcePasswordChange, message } = response;
+      
+      if (!token) {
+        throw new Error('No token received from server');
       }
+      
+      console.log('Login - User data from response:', userData);
+      console.log('Login - Force password change:', forcePasswordChange);
+      
+      // Create user object for auth context
+      const user = {
+        id: userData.id,
+        userName: userData.email || userName,
+        name: userData.name,
+        email: userData.email,
+        phoneNumber: userData.phoneNumber,
+        role: userData.role,
+        status: userData.status,
+        forcePasswordChange: forcePasswordChange || false
+      };
+      
+      console.log('Login - Final user object:', user);
+      console.log('Login - User role:', user.role);
+      
+      // Store user data and token
+      login(user, token);
+      
+      // Check if user needs to change password
+      if (user.forcePasswordChange) {
+        console.log('Login - Redirecting to password change');
+        navigate('/change-password');
+        return;
+      }
+      
+      // Check user status
+      if (user.status !== 'APPROVED') {
+        setError('Your account is not yet approved by admin.');
+        setLoading(false);
+        return;
+      }
+      
+      // Role-based navigation
+      const normalizedRole = user.role?.toUpperCase?.()?.trim?.() || '';
+      console.log('Login - Normalized role for navigation:', normalizedRole);
+      
+      switch (normalizedRole) {
+        case 'SUPER_ADMIN':
+          console.log('Login - Redirecting SUPER_ADMIN to /super-admin/dashboard');
+          navigate('/super-admin/dashboard');
+          break;
+        case 'ADMIN':
+          console.log('Login - Redirecting ADMIN to /admin/dashboard');
+          navigate('/admin/dashboard');
+          break;
+        case 'EMPLOYEE':
+          console.log('Login - Redirecting EMPLOYEE to /employee/dashboard');
+          navigate('/employee/dashboard');
+          break;
+        case 'FARMER':
+          console.log('Login - Redirecting FARMER to /dashboard');
+          navigate('/dashboard');
+          break;
+        default:
+          console.log('Login - Unknown role, redirecting to login');
+          setError('Invalid user role. Please contact administrator.');
+          logout();
+      }
+      
     } catch (err) {
-      setError('Invalid credentials or server error.');
+      console.error('Login error:', err);
+      
+      // Handle specific error messages from backend
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Login failed. Please check your credentials and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -430,10 +365,19 @@ const Login = () => {
                 <label>Captcha</label>
                 <div className="captcha-container">
                   <div className="captcha-image">
-                    <span>{captchaValue}</span>
+                    {captchaLoading ? (
+                      <span>Loading...</span>
+                    ) : (
+                      <span>{captchaValue}</span>
+                    )}
                   </div>
-                  <button type="button" className="refresh-captcha" onClick={handleRefreshCaptcha}>
-                    🔄
+                  <button 
+                    type="button" 
+                    className="refresh-captcha" 
+                    onClick={handleRefreshCaptcha}
+                    disabled={captchaLoading}
+                  >
+                    {captchaLoading ? '⏳' : '🔄'}
                   </button>
                   <input
                     type="text"
@@ -441,6 +385,7 @@ const Login = () => {
                     onChange={e => setCaptcha(e.target.value)}
                     placeholder="Enter Captcha"
                     className="captcha-input"
+                    disabled={captchaLoading}
                   />
                 </div>
               </div>

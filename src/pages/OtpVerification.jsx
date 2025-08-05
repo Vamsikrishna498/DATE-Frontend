@@ -33,7 +33,8 @@ const OtpVerification = () => {
   const handleVerify = async () => {
     if (otp.length !== 6) { alert('Enter a 6‑digit OTP'); return; }
     try {
-      await authAPI.verifyOTP({ email: target, otp });
+      console.log('Verifying OTP for:', target, 'Type:', type);
+      await authAPI.verifyOTP({ emailOrPhone: target, otp });
       alert('OTP verified ✔️');
       if (type === 'userId') {
         navigate('/change-userid', { state: { target } });
@@ -41,8 +42,17 @@ const OtpVerification = () => {
         navigate('/change-password', { state: { target } });
       }
     } catch (err) {
-      console.error(err);
-      alert('Invalid or expired OTP.');
+      console.error('OTP verification error:', err);
+      
+      // Handle specific error messages from backend
+      let errorMessage = 'Invalid or expired OTP.';
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      alert(errorMessage);
     }
   };
  
@@ -50,14 +60,24 @@ const OtpVerification = () => {
   const handleResend = async () => {
     if (!canResend) return;
     try {
+      console.log('Resending OTP to:', target);
       await authAPI.resendOTP(target);
       alert('OTP resent!');
       setTimer(30);
       setCanResend(false);
       setOtp('');
     } catch (err) {
-      console.error(err);
-      alert('Could not resend OTP.');
+      console.error('Resend OTP error:', err);
+      
+      // Handle specific error messages from backend
+      let errorMessage = 'Could not resend OTP.';
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      alert(errorMessage);
     }
   };
  

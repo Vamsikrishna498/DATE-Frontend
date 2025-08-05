@@ -9,7 +9,7 @@ import FarmerRegistration from './pages/FarmerRegistration';
 import EmployeeRegistration from './pages/EmployeeRegistration';
 import RegistrationForm from './pages/RegistrationForm';
 import ForgotPassword from './pages/ForgotPassword';
-import ForgotUserId from './pages/ForgotUserId';
+import ForgotUserId from './pages/ForgotUserid';
 import ChangePassword from './pages/ChangePassword';
 import ChangeUserId from './pages/ChangeUserId';
 import OtpVerification from './pages/OtpVerification';

@@ -5,7 +5,7 @@ const EmployeeRegistration = () => {
   const handleSubmit = async (data) => {
     try {
       console.log('Employee registration submitted:', data);
-      // Here you would typically send the data to your backend
+      // The form component now handles the backend submission
       alert('Employee registration completed successfully!');
     } catch (error) {
       console.error('Error submitting employee registration:', error);

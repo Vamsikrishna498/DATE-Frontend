@@ -87,7 +87,7 @@ const RegistrationForm = () => {
   const handleVerifyOTP = async () => {
     try {
       await authAPI.verifyOTP({
-        email: emailValue,
+        emailOrPhone: emailValue,
         otp: otp,
       });
       alert("Email verified successfully!");
@@ -107,7 +107,21 @@ const RegistrationForm = () => {
 
     try {
       console.log('Submitting registration data:', data);
-      const response = await authAPI.register(data);
+      
+      // Format data for register-simple endpoint
+      const registrationData = {
+        name: data.name,
+        email: data.email,
+        phoneNumber: data.phoneNumber,
+        dateOfBirth: data.dateOfBirth,
+        gender: data.gender,
+        role: data.role || 'FARMER' // Default to FARMER if no role specified
+      };
+      
+      console.log('Formatted registration data:', registrationData);
+      console.log('Sending to endpoint: /api/auth/register-simple');
+      
+      const response = await authAPI.registerWithRole(registrationData);
       console.log('Registration successful:', response);
       
       // Show success message with approval notice
@@ -123,7 +137,21 @@ const RegistrationForm = () => {
       // Don't navigate to login - user needs to wait for approval
     } catch (error) {
       console.error('Registration error:', error);
-      alert('Registration failed. Please try again.');
+      console.error('Error response:', error.response);
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      
+      // Handle specific error messages from backend
+      let errorMessage = 'Registration failed. Please try again.';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Access forbidden. Please check your backend configuration.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
     }
   };
 

@@ -354,6 +354,17 @@ app.post('/api/auth/reset-password', (req, res) => {
     return res.status(400).json({ message: 'Password must be at least 6 characters' });
   }
   
+  // Find user by email or phone
+  const user = users.find(u => u.email === emailOrPhone || u.phoneNumber === emailOrPhone);
+  
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+  
+  // Update password
+  user.password = bcrypt.hashSync(newPassword, 10);
+  user.forcePasswordChange = false;
+  
   res.json({
     message: 'Password changed successfully',
     email: emailOrPhone
@@ -378,6 +389,86 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
     user.password = await bcrypt.hash(newPassword, 10);
     
     res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Force password change endpoint (for first-time login)
+app.post('/api/auth/force-change-password', authenticateToken, async (req, res) => {
+  try {
+    const { newPassword, confirmPassword } = req.body;
+    
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: 'Passwords do not match' });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+    
+    const user = users.find(u => u.id === req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Update password and remove force password change flag
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.forcePasswordChange = false;
+    
+    res.json({ 
+      message: 'Password changed successfully',
+      user: {
+        id: user.id,
+        userName: user.userName,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        forcePasswordChange: user.forcePasswordChange
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Alternative reset password confirm endpoint
+app.post('/api/auth/reset-password/confirm', authenticateToken, async (req, res) => {
+  try {
+    const { newPassword, confirmPassword } = req.body;
+    
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: 'Passwords do not match' });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+    
+    const user = users.find(u => u.id === req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Update password and remove force password change flag
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.forcePasswordChange = false;
+    
+    res.json({ 
+      message: 'Password changed successfully',
+      user: {
+        id: user.id,
+        userName: user.userName,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        forcePasswordChange: user.forcePasswordChange
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
   }
@@ -847,6 +938,11 @@ app.use('/uploads', express.static('uploads'));
 app.use((error, req, res, next) => {
   console.error(error.stack);
   res.status(500).json({ message: 'Something went wrong!' });
+});
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Backend server is running!', timestamp: new Date().toISOString() });
 });
 
 // Start server

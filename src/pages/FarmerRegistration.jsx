@@ -5,7 +5,7 @@ const FarmerRegistration = () => {
   const handleSubmit = async (data) => {
     try {
       console.log('Farmer registration submitted:', data);
-      // Here you would typically send the data to your backend
+      // The form component now handles the backend submission
       alert('Farmer registration completed successfully!');
     } catch (error) {
       console.error('Error submitting farmer registration:', error);

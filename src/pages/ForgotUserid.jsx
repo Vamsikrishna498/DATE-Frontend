@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
-import axios from "axios";
+import { authAPI } from "../api/apiService";
 import { useNavigate } from 'react-router-dom';
 import "../styles/Login.css";
 import background from "../assets/background-image.png";
@@ -42,17 +42,24 @@ const ForgotUserId = () => {
  
    const onSubmit = async (data) => {
     try {
-       await axios.post("http://localhost:8080/api/auth/forgot-user-id", {
-        emailOrPhone: data.userInput,
-      }, {
-        headers: { "Content-Type": "application/json" },
-      });
- 
+      console.log('Sending forgot user ID request for:', data.userInput);
+      const response = await authAPI.forgotUserId(data.userInput);
+      console.log('Forgot user ID response:', response);
+
       setTarget(data.userInput);
       setShowPopup(true); // Show success popup
     } catch (error) {
       console.error("Error:", error);
-      alert("Failed to send User ID. Please try again later.");
+      
+      // Handle specific error messages from backend
+      let errorMessage = "Failed to send User ID. Please try again later.";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
     }
   };
  

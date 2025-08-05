@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { employeesAPI } from '../api/apiService';
 import '../styles/EmployeeRegistration.css';
 
 const EmployeeRegistrationForm = ({ isInDashboard = false, editData = null, onClose }) => {
@@ -122,16 +123,64 @@ const EmployeeRegistrationForm = ({ isInDashboard = false, editData = null, onCl
     try {
       console.log('Employee form submitted with data:', data);
       
+      // Create FormData for multipart/form-data submission
+      const formData = new FormData();
+      
+      // Add employee data
+      formData.append('firstName', data.firstName || '');
+      formData.append('lastName', data.lastName || '');
+      formData.append('email', data.email || '');
+      formData.append('contactNumber', data.contactNumber || '');
+      formData.append('dateOfBirth', data.dob || '');
+      formData.append('gender', data.gender || '');
+      formData.append('state', data.state || '');
+      formData.append('district', data.district || '');
+      formData.append('education', data.professional?.education || '');
+      formData.append('experience', data.professional?.experience || '');
+      formData.append('bankName', data.bank?.bankName || '');
+      formData.append('accountNumber', data.bank?.accountNumber || '');
+      formData.append('ifscCode', data.bank?.ifscCode || '');
+      formData.append('role', 'FIELD_OFFICER'); // Default role
+      
+      // Add files if they exist
+      if (data.photo) {
+        formData.append('photo', data.photo);
+      }
+      if (data.bank?.passbook) {
+        formData.append('passbook', data.bank.passbook);
+      }
+      if (data.documentFile) {
+        formData.append('documentFile', data.documentFile);
+      }
+      
+      console.log('Submitting employee registration to backend...');
+      
+      // Submit to backend
+      const response = await employeesAPI.createEmployee(formData);
+      console.log('Employee registration response:', response);
+      
+      // Show success message
+      alert('Employee registration completed successfully! Registration ID: ' + response.id);
+      
       if (isInDashboard) {
         onClose && onClose();
       } else {
         navigate('/admin/dashboard');
       }
       
-      alert('Employee registration completed successfully!');
     } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('Error submitting form. Please try again.');
+      console.error('Error submitting employee registration:', error);
+      
+      // Handle specific error messages from backend
+      let errorMessage = 'Error submitting form. Please try again.';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert('Registration failed: ' + errorMessage);
     }
   };
 
