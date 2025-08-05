@@ -1,4 +1,4 @@
-# AgriStack Farmer Management System
+# DATE-Farmer - AgriStack Farmer Management System
 
 A comprehensive React.js frontend application for managing agricultural farmers with role-based access control, KYC processing, and real-time dashboard features.
 
@@ -40,7 +40,7 @@ A comprehensive React.js frontend application for managing agricultural farmers 
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd agristack-farmer-management
+   cd date-farmer-management
    ```
 
 2. **Install dependencies**

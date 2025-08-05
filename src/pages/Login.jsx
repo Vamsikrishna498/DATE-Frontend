@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { authAPI } from '../api/apiService';
 import logo from '../assets/rightlogo.png';
+import background from '../assets/background-image.png';
 import '../styles/Login.css';
 
 const generateClientCaptcha = () => {
@@ -57,7 +58,6 @@ const Login = () => {
   const handleRefreshCaptcha = () => {
     loadCaptcha();
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -177,6 +177,12 @@ const Login = () => {
       } else {
         setError('Login failed. Please check your credentials and try again.');
       }
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+        err.response?.data ||
+        'Invalid credentials or server error.'
+      );
     } finally {
       setLoading(false);
     }
@@ -416,4 +422,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;

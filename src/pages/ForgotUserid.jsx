@@ -2,9 +2,15 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
+<<<<<<< HEAD
 import { authAPI } from "../api/apiService";
 import { useNavigate } from 'react-router-dom';
 import "../styles/Login.css";
+=======
+import axios from "axios";
+import { useNavigate } from 'react-router-dom';
+import "../styles/ForgotUser.css";
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93
 import background from "../assets/background-image.png";
 import logo from "../assets/rightlogo.png";
 import illustration1 from "../assets/illustration1.png";
@@ -42,14 +48,24 @@ const ForgotUserId = () => {
  
    const onSubmit = async (data) => {
     try {
+<<<<<<< HEAD
       console.log('Sending forgot user ID request for:', data.userInput);
       const response = await authAPI.forgotUserId(data.userInput);
       console.log('Forgot user ID response:', response);
 
+=======
+       await axios.post("http://localhost:8080/api/auth/forgot-user-id", {
+        emailOrPhone: data.userInput,
+      }, {
+        headers: { "Content-Type": "application/json" },
+      });
+ 
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93
       setTarget(data.userInput);
       setShowPopup(true); // Show success popup
     } catch (error) {
       console.error("Error:", error);
+<<<<<<< HEAD
       
       // Handle specific error messages from backend
       let errorMessage = "Failed to send User ID. Please try again later.";
@@ -60,6 +76,9 @@ const ForgotUserId = () => {
       }
       
       alert(errorMessage);
+=======
+      alert("Failed to send User ID. Please try again later.");
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93
     }
   };
  
@@ -69,6 +88,7 @@ const ForgotUserId = () => {
 };
  
   return (
+<<<<<<< HEAD
     <div className="kerala-login-container">
       {/* Top Navigation Bar */}
       <nav className="nic-navbar">
@@ -191,8 +211,68 @@ const ForgotUserId = () => {
           </div>
         </div>
       </div>
+=======
+    <div
+      className="ForgotUserId-page"
+      style={{ backgroundImage: `url(${background})` }}
+    >
+      <img src={logo} alt="Logo" className="ForgotUserId-logo" />
+ 
+      <div className="ForgotUserId-left">
+        <h2 className="text-2xl font-bold mb-4">Forgot User ID</h2>
+        <p className="mb-6">
+          Enter your Email / Phone / ID, click “Reset User ID”, and we’ll send your User ID if it exists.
+        </p>
+ 
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <label className="block mb-1 font-medium">
+            Email / Phone / ID <span className="text-red-600">*</span>
+          </label>
+          <input
+            {...register("userInput")}
+            className="w-full p-2 border rounded mb-2"
+            placeholder="Enter your Email or Phone or ID"
+          />
+          {errors.userInput && (
+            <p className="text-red-600 text-sm mb-4">{errors.userInput.message}</p>
+          )}
+ 
+          <button
+            type="submit"
+            className="bg-green-600 text-white py-2 px-6 rounded hover:bg-green-700 transition"
+          >
+            Reset User ID
+          </button>
+        </form>
+      </div>
+ 
+      <div className="ForgotUser-image">
+        <img src={illustration1} alt="Forgot User Illustration" />
+      </div>
+ 
+      {showPopup && (
+        <div className="popup">
+          <div className="popup-content">
+            <h3 className="text-lg font-bold mb-2">Success!</h3>
+            <p className="mb-4">
+              Your User ID has been sent to <strong>{target}</strong>
+            </p>
+            <button
+              onClick={handlePopupClose}
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93
     </div>
   );
 };
  
+<<<<<<< HEAD
 export default ForgotUserId; 
+=======
+export default ForgotUserId;
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93

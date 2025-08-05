@@ -587,7 +587,6 @@ const EmployeeDashboard = () => {
           onUpdate={handleUpdateEmployee}
         />
       )}
-
     </div>
   );
 };

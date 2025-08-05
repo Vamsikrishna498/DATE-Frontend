@@ -2,9 +2,18 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
+<<<<<<< HEAD
 import { authAPI } from "../api/apiService";
 import { useNavigate } from 'react-router-dom';
 import "../styles/Login.css";
+=======
+import axios from "axios";
+import { useNavigate } from 'react-router-dom';
+import background from "../assets/background-image.png";
+import logo from "../assets/rightlogo.png";
+import illustration from "../assets/illustration1.png";
+import "../styles/ForgotPassword.css";
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93
  
 // ✅ Schema validation
 const schema = Yup.object().shape({
@@ -32,6 +41,10 @@ const ForgotPassword = () => {
   const {
     register,
     handleSubmit,
+<<<<<<< HEAD
+=======
+    reset,
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
  
@@ -41,14 +54,24 @@ const ForgotPassword = () => {
    const navigate = useNavigate();
    const onSubmit = async (data) => {
     try {
+<<<<<<< HEAD
       console.log('Sending forgot password request for:', data.userInput);
       const response = await authAPI.forgotPassword(data.userInput);
       console.log('Forgot password response:', response);
 
+=======
+      const response = await axios.post("http://localhost:8080/api/auth/forgot-password", {
+        emailOrPhone: data.userInput
+      }, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+ 
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93
       setTarget(data.userInput);
       setShowPopup(true); // Show popup on success
     } catch (error) {
       console.error("Error sending reset request:", error);
+<<<<<<< HEAD
       
       // Handle specific error messages from backend
       let errorMessage = "Failed to send reset link. Please try again.";
@@ -59,6 +82,9 @@ const ForgotPassword = () => {
       }
       
       alert(errorMessage);
+=======
+      alert("Failed to send reset link. Please try again.");
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93
     }
   };
  
@@ -67,6 +93,7 @@ const ForgotPassword = () => {
   navigate('/otp-verification', { state: { target, type: 'password' } });
 };
  
+<<<<<<< HEAD
   return (
     <div className="kerala-login-container">
       {/* Top Navigation Bar */}
@@ -190,8 +217,57 @@ const ForgotPassword = () => {
           </div>
         </div>
       </div>
+=======
+ 
+ 
+ 
+  return (
+    <div className="ForgotPassword-page" style={{ backgroundImage: `url(${background})` }}>
+      <img src={logo} alt="Logo" className="ForgotPassword-logo" />
+ 
+      <div className="ForgotPassword-container">
+        <h2>Forgot Password</h2>
+        <p>
+          Enter your email address, click “Reset password”, and we’ll send you a link to reset your password.
+        </p>
+ 
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <label>
+            Email<span className="required">*</span>
+          </label>
+          <input
+            {...register("userInput")}
+            placeholder="Enter your Email"
+          />
+          {errors.userInput && <p className="error">{errors.userInput.message}</p>}
+ 
+          <button type="submit">Reset password</button>
+        </form>
+      </div>
+ 
+      <div className="ForgotPassword-image">
+        <img src={illustration} alt="Illustration" />
+      </div>
+ 
+      {/* ✅ Success Popup */}
+      {showPopup && (
+        <div className="popup">
+          <div className="popup-content">
+            <h3>Success!</h3>
+            <h4>
+              A reset link has been sent to <strong>{target}</strong>
+            </h4>
+            <button onClick={handlePopupClose}>OK</button>
+          </div>
+        </div>
+      )}
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93
     </div>
   );
 };
  
+<<<<<<< HEAD
 export default ForgotPassword; 
+=======
+export default ForgotPassword;
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93

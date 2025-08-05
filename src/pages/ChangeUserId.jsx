@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import { authAPI } from '../api/apiService';
 import { useNavigate } from 'react-router-dom';
 import "../styles/Login.css";
+=======
+import axios from 'axios';
+import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import "../styles/Change.css";
+import background from "../assets/background-image.png"; // Adjust path if needed
+import logo from "../assets/rightlogo.png"; // Replace with your actual logo
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93
 
  
 const ChangeUserId = () => {
@@ -23,10 +32,23 @@ const handleChangeUserId = async () => {
   setError('');
 
   try {
+<<<<<<< HEAD
     await authAPI.changeUserId({ newUserName: newUserId, password: '' });
 
     alert(`User ID changed successfully to: ${newUserId}`);
     navigate('/login');
+=======
+    const response = await axios.post('https://your-api-url.com/api/change-user-id', {
+      userId: newUserId
+    });
+
+    if (response.status === 200) {
+      alert(`User ID changed successfully to: ${newUserId}`);
+      navigate('/login');
+    } else {
+      setError('Something went wrong. Please try again.');
+    }
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93
   } catch (error) {
     if (error.response && error.response.data && error.response.data.message) {
       setError(error.response.data.message);
@@ -37,6 +59,7 @@ const handleChangeUserId = async () => {
 };
 
   return (
+<<<<<<< HEAD
     <div className="kerala-login-container">
       {/* Top Navigation Bar */}
       <nav className="nic-navbar">
@@ -157,9 +180,42 @@ const handleChangeUserId = async () => {
             </div>
           </div>
         </div>
+=======
+    <div className="change-userid-container" style={{ backgroundImage: `url(${background})` }}>
+       <img src={logo} alt="Logo" className="otp-logo" />
+      <div className="change-userid-box">
+        <h2>User ID</h2>
+          <h4>Set a strong User id to prevent unauthorized access to your account.</h4>
+
+        <label htmlFor="newUserId">New User ID</label>
+        <input
+          id="newUserId"
+          type="text"
+          value={newUserId}
+          onChange={(e) => setNewUserId(e.target.value)}
+        />
+
+        <label htmlFor="confirmUserId">Confirm User ID</label>
+        <input
+          id="confirmUserId"
+          type="text"
+          value={confirmUserId}
+          onChange={(e) => setConfirmUserId(e.target.value)}
+        />
+
+        {error && <p className="error-text">{error}</p>}
+
+        <button className="change-btn" onClick={handleChangeUserId}>
+          Change User ID
+        </button>
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93
       </div>
     </div>
   );
 };
 
+<<<<<<< HEAD
 export default ChangeUserId; 
+=======
+export default ChangeUserId;
+>>>>>>> 428471ae12e0afc11adec9a845289f54a9875c93

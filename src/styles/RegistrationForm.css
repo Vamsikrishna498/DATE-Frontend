@@ -517,3 +517,175 @@
     grid-template-columns: 1fr;
   }
 } 
+=======
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+.registration-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  min-width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  z-index: 1000;
+}
+
+.luxury-card {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(210,168,84,0.13), 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.registration-form-container {
+  /* Remove background gradient, use .luxury-card for card background */
+  padding: 40px 32px 32px 32px;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.registration-logo {
+  display: block;
+  margin: 0 auto 10px auto;
+  width: 100px;
+  position: static;
+}
+
+.registration-form-title {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+h2 {
+  text-align: center;
+  margin-top: 10px;
+  color: #222;
+  font-size: 28px;
+}
+
+.dateregistration-form {
+  width: 100%;
+}
+
+.registration-grid {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  width: 100%;
+}
+.leftform-column, .rightform-column {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 50%;
+}
+
+.registrationform-group {
+  margin-bottom: 18px;
+  width: 100%;
+}
+
+.registrationform-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.registrationform-group input,
+.registrationform-group select {
+  width: 100%;
+  border: 1.5px solid #bdbdbd;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 16px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  background: #fafbfc;
+  transition: border 0.2s;
+}
+.registrationform-group input:focus,
+.registrationform-group select:focus {
+  border: 1.5px solid #006838;
+  outline: none;
+}
+
+.otp-button, .otp-verify-button {
+  background: #006838;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0;
+  transition: background 0.18s;
+}
+.otp-button:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+}
+.otp-verify-button {
+  background: #218838;
+}
+
+.reg-error {
+  color: #d32f2f;
+  font-size: 13px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.registersubmit-btn {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+  font-size: 19px;
+  background-color: #006838;
+  color: #fff;
+  padding: 13px 0;
+  border: none;
+  margin-top: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.registersubmit-btn:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+}
+
+.login-link {
+  margin-top: 22px;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .registration-form-container {
+    padding: 18px 4vw 18px 4vw;
+    max-width: 98vw;
+  }
+  .registration-grid {
+    flex-direction: column;
+    gap: 0;
+  }
+  .leftform-column, .rightform-column {
+    width: 100%;
+  }
+  .registration-logo {
+    width: 70px;
+  }
+  h2 {
+    font-size: 20px;
+  }
+}
